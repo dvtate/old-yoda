@@ -12,12 +12,7 @@
 
 
 
-
-
 long double getNextNumber(std::stack<long double>& );
-
-long double ans = 0;
-unsigned int line = 0;
 
 
 
@@ -30,6 +25,8 @@ replace one number with `ans` as in the following example:\n \
 }
 
 
+long double ans = 0;
+unsigned int line = 0;
 
 int main(){
 
@@ -216,8 +213,7 @@ long double getNextNumber(std::stack<long double>& numberStack){
 		numberStack.pop();
 		return topNum;
 	} else {
-		std::cerr <<"ERROR: Too many operators.\n" <<std::endl;
-		main();
-		return 0;
+		std::cerr <<"ERROR: not enough data to satisfy operator.\n" <<std::endl;
+		return main();
     }
 }
