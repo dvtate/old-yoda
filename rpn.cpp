@@ -57,7 +57,7 @@ replace one number with `ans` as in the following example:\n \
 		if (((*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '|'
 			|| *p == '%' || *p == '&' || *p == '^') && *(p + 1) == '\0')
 			|| !strcmp(p, "<<") || !strcmp(p, ">>")  || !strcmp(p, "**")
-            || !strcmp(p, "logBase")
+            || !strcmp(p, "logBase") || !strcmp(p, "logBASE") || !strcmp(p, "logbase")
 		) {
 
             b = getNextNumber(numstack);
@@ -89,9 +89,9 @@ replace one number with `ans` as in the following example:\n \
 				case '&': numstack.push((int) a & (int) b); break;
 				case '<': numstack.push((int) a << (int) b); break;
 				case '>': numstack.push((int) a >> (int) b); break;
-				case 'l': numstack.push(log(b) / log(a)); break;
+				case 'l': numstack.push(log10(b) / log10(a)); break;
 			}
-			
+
 		}
 		// char is a unary operator
             //trig functions
@@ -133,7 +133,12 @@ replace one number with `ans` as in the following example:\n \
         // not an operator
 		else {
 
-            if (strcmp(p, "pi") == 0)
+            if (*p == '#') { // comments... because I can XDDDDDDDDD
+                if (numstack.size() == 0)
+                    numstack.push(ans);
+                break;
+
+            } else if (strcmp(p, "pi") == 0)
                 numstack.push(PI);
 
 			else if (strcmp(p, "ans") == 0) // p == "ans"
@@ -181,8 +186,4 @@ inline double getNextNumber(std::stack<double> numberStack){
 		std::cerr <<"ERROR: Too many operators.\n" <<std::endl;
 		return main();
     }
-
-
 }
-
-
