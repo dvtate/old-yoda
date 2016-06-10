@@ -10,22 +10,22 @@
 // the node for my linked list of user defined variables
 class UserVar {
 public:
-	char* name;
+	char name[USERVAR_NAME_MAXLENGHT];
 	long double value;
 
 	UserVar *next;
 
-	UserVar(char* identifier, long double contents):
-			name(identifier), value(contents)
-	{ 
+	UserVar(const char* identifier, long double contents): value(contents) { 
 		next = (UserVar*) NULL; 
+		strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
 		
 	}
 
-	UserVar(char* identifier, long double contents, UserVar* next_node): 
-		name(identifier), value(contents)
+	UserVar(const char* identifier, long double contents, UserVar* next_node): 
+		value(contents)
 	{
 		next = next_node;
+		strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
 	}
 	
 	long double& getValue()
