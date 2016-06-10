@@ -20,23 +20,29 @@
 /// ans = {ans from previous prompt}
 
 
-double getNextNumber(std::stack<double>);
-double ans = 0;
+long double getNextNumber(std::stack<long double>);
+long double ans = 0;
 unsigned int line = 0;
+
+void displayHelp(){
+    std::cout <<"\n\t\tRPN Calculator\nPlace the operator after its two operands. \
+Here is an example:\n > 1 1 + \n ans = 2\n\nTo use the previous answer \
+replace one number with `ans` as in the following example:\n \
+> ans\n ans = 2\n\nWhen you are finished, type `q` or `exit` to exit the program.\n"
+              <<std::endl;
+}
 
 int main(){
 
 	// display the helper
 	if (line == 0)
-		std::cout <<"\n\t\tRPN Calculator\nPlace the operator after its two operands. \
-Here is an example:\n > 1 1 + \n ans = 2\n\nTo use the previous answer \
-replace one number with `ans` as in the following example:\n \
-> ans\n ans = 2\n\nWhen you are finished, type `q` or `exit` to exit the program.\n"
-				  <<std::endl;
+		displayHelp();
 
+// goto's can be evil, but this program is too smalle for this to be an issue.
+main_start_after_help:
 
-	std::stack<double> numstack;
-	double a, b;
+	std::stack<long double> numstack;
+	long double a, b;
 
 	std::cout <<line++ <<"> ";
 
@@ -58,12 +64,12 @@ replace one number with `ans` as in the following example:\n \
 			|| *p == '%' || *p == '&' || *p == '^') && *(p + 1) == '\0')
 			|| !strcmp(p, "<<") || !strcmp(p, ">>")  || !strcmp(p, "**")
             || !strcmp(p, "logBase") || !strcmp(p, "logBASE") || !strcmp(p, "logbase")
+            || !strcmp(p, "pow")
 		) {
 
-            b = getNextNumber(numstack);
-            a = getNextNumber(numstack);
+            //b = getNextNumber(numstack);
+            //a = getNextNumber(numstack);
 
-            /*
 			if (!numstack.empty()) {
 				a = numstack.top();
 				numstack.pop();
@@ -71,12 +77,20 @@ replace one number with `ans` as in the following example:\n \
 				std::cerr <<"ERROR: Too many operators.\n" <<std::endl;
 				return main();
 			}
-            */
+
+            if (!numstack.empty()) {
+				b = numstack.top();
+				numstack.pop();
+			} else {
+				std::cerr <<"ERROR: Too many operators.\n" <<std::endl;
+				return main();
+			}
+
 
 			switch (*p) {
 				case '+': numstack.push(a + b); break;
 				case '*':
-					if (*(p + 1) == '*')
+					if (strcmp(p, "**") == 0)
 						numstack.push(pow(a, b));
 					else
 						numstack.push(a * b);
@@ -90,6 +104,7 @@ replace one number with `ans` as in the following example:\n \
 				case '<': numstack.push((int) a << (int) b); break;
 				case '>': numstack.push((int) a >> (int) b); break;
 				case 'l': numstack.push(log10(b) / log10(a)); break;
+				case 'p': numstack.push(pow(a, b)); break;
 			}
 
 		}
@@ -135,23 +150,37 @@ replace one number with `ans` as in the following example:\n \
 
             if (*p == '#') { // comments... because I can XDDDDDDDDD
                 if (numstack.size() == 0)
-                    numstack.push(ans);
+                    goto main_start_after_help;
                 break;
 
             } else if (strcmp(p, "pi") == 0)
-                numstack.push(PI);
+                numstack.push(3.14);
 
 			else if (strcmp(p, "ans") == 0) // p == "ans"
 				numstack.push(ans);
 
 			else if (*p == 'q' || !strcmp(p, "exit")) // p == "q"
-				goto exit; // exit the program with
+				goto exit; // exit the program
 
-			else if (*p == '~' && *(p + 1) != '\0')
+            else if (strcmp(p, "help") == 0) {
+                displayHelp();
+                return main();
+            } else if (strcmp(p, "clear") == 0 || strcmp(p, "cls") == 0){
+                #ifdef _WIN32
+                    system("cls");
+                #else
+                    system("cear");
+                #endif
+                return main();
+            } else if (strcmp(p, "reset") == 0 ) {
+                ans = line = 0;
+                goto main_start_after_help;
+
+            } else if (*p == '~' && *(p + 1) != '\0')
                 numstack.push(~atoi(p + 1));
 
 			else { // number constant (pushes 0 if not)
-                double number = atof(p);
+                long double number = atof(p);
                 if (number == 0 && *p != '0') {
                     std::cerr <<"SYNTAX ERROR\n" <<std::endl;
                     return  main();
@@ -167,7 +196,7 @@ replace one number with `ans` as in the following example:\n \
 
 	}
 
-	std::cout <<"ans = " <<(ans = numstack.top()) <<'\n' <<std::endl;
+	std::cout <<"ans = " <<(double)(ans = numstack.top()) <<'\n' <<std::endl;
 
 	return main(); //next line...
 
@@ -175,8 +204,7 @@ exit:
     return 0;
 }
 
-
-inline double getNextNumber(std::stack<double> numberStack){
+long double getNextNumber(std::stack<long double> numberStack){
     double topNum;
     if (!numberStack.empty()) {
 		topNum = numberStack.top();
@@ -184,6 +212,9 @@ inline double getNextNumber(std::stack<double> numberStack){
 		return topNum;
 	} else {
 		std::cerr <<"ERROR: Too many operators.\n" <<std::endl;
-		return main();
+		main();
+		return 0;
     }
 }
+
+
