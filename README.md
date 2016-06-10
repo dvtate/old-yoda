@@ -2,14 +2,14 @@
 A simple calculator that uses reverse polish notation. 
 
 # How to use
- - Comments:
+ - <b>Comments:</b>
    Anything after the `#` symbol will be ignored.
    ```
    > 32 # this is a comment
    ans = 32
    ```
    
- - Binary operators:
+ - <b>Binary operators:</b>
   Place the operator after it's two operands.
    ```
    > 1 2 +    # 1 + 2 
@@ -18,7 +18,7 @@ A simple calculator that uses reverse polish notation.
    ans = 3125
    ```
    
- - Unary operators/funcitons:
+ - <b>Unary operators/funcitons:</b>
   place the unary operator/funciton behind it's parameter
   ```
   > 100 log   # log10(100)
@@ -27,25 +27,25 @@ A simple calculator that uses reverse polish notation.
   ans = 0.893997
   ```
   
- - Combining operators:
+ - <b>Combining operators:</b>
   One of RPN's main strengths is that it eliminates the need for parenthases. Simply combine operators in a way that would lead to them being performaed sequentially.
   ```
   > 1 1 + 1 -
   ans = 1
   ```
   
- - Keywords
-    * `> help`
+ - <b>Keywords:</b>
+    * `> help` <br/>
       The help command displays a short dialog to help get you started.
-    *`> clear`
+    *`> clear` <br/>
       clears the terminal
-    * `> reset`
+    * `> reset` <br/>
       resets the line numbering
-    * `> exit`
+    * `> exit` <br/>
       closes the program
-    * `> q`
+    * `> q` <br/>
       same as `exit`
-    * `> ans`
+    * `> ans` <br/>
       previous answer, initialized to 0.
-    * `> pi`
+    * `> pi` <br/>
       an approximate value for pi
