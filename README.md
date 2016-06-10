@@ -30,8 +30,8 @@ A simple calculator that uses reverse polish notation.
  - <b>Combining operators:</b>
   One of RPN's main strengths is that it eliminates the need for parenthases. Simply combine operators in a way that would lead to them being performaed sequentially.
   ```
-  > 1 1 + 1 -
-  ans = 1
+  > 1 1 + 2 * # (1 + 1) * 2  
+  ans = 4
   ```
   
  - <b>Keywords:</b>
