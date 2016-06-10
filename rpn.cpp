@@ -8,8 +8,6 @@
 
 #define MAX_LEN 200
 
-#define PI 3.14159265359
-
 /// > 1 1 +
 /// ans = 2
 
@@ -154,7 +152,7 @@ main_start_after_help:
                 break;
 
             } else if (strcmp(p, "pi") == 0)
-                numstack.push(3.14);
+                numstack.push(M_PI));
 
 			else if (strcmp(p, "ans") == 0) // p == "ans"
 				numstack.push(ans);
