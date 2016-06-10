@@ -11,8 +11,10 @@
 #define MAX_LEN 200
 
 
-
 long double getNextNumber(std::stack<long double>& );
+
+long double ans = 0;
+unsigned int line = 0;
 
 
 
@@ -25,8 +27,6 @@ replace one number with `ans` as in the following example:\n \
 }
 
 
-long double ans = 0;
-unsigned int line = 0;
 
 int main(){
 
@@ -133,18 +133,23 @@ main_start_after_help:
                     goto main_start_after_help;
                 break;
 
+		// pi
 		} else if (strcmp(p, "pi") == 0)
 			numstack.push(M_PI); 
 
+		// ans
 		else if (strcmp(p, "ans") == 0) // p == "ans"
 				numstack.push(ans);
-
+		// exit the program
 		else if (*p == 'q' || !strcmp(p, "exit")) // p == "q"
 			goto exit; // exit the program
 
+		// show help
 		else if (strcmp(p, "help") == 0) {
 			displayHelp();
 			return main();
+		
+		// clear screen 
 		} else if (strcmp(p, "clear") == 0 || strcmp(p, "cls") == 0) {
 			#ifdef _WIN32
 				system("cls");
@@ -153,21 +158,30 @@ main_start_after_help:
 			#endif
 			return main();
 
+		// restart the program (don't display help)
         } else if (strcmp(p, "reset") == 0 ) {
 			ans = line = 0;
+			vars::wipeAll();
 			goto main_start_after_help;
 
+		// bitwise not operator
 		} else if (*p == '~' && *(p + 1) != '\0')
 			numstack.push(~atoi(p + 1));
 
+		// assignment operator
 		else if (*p == '=' && *(p + 1) == '\0')
-			vars::assignVar(variableName1, numstack.top());
-	
-		else if (*p == '$'){
-			if (strlen(p + 1) > USERVAR_NAME_MAXLENGHT) {
-				std::cerr <<"ERROR: Variable name too long.\n" <<std::endl;
-				return main(); // start over
-			} else if (vars::varExists(p + 1)) {
+			if (variableName1 != NULL)			
+				vars::assignVar(variableName1, numstack.top());
+			else if (variableName2 != NULL)
+				vars::assignVar(variableName2, numstack.top());
+			else {
+				std::cerr <<"\aERROR: inappropriate use of assignment operator.\n" <<std::endl;
+				return main();
+			}
+
+		// variable
+		else if (*p == '$') { // user must use '$' prefix to access the variables
+			if (vars::varExists(p + 1)) {
 				numstack.push(vars::findVar(p + 1)->value);
 				if (variableName1 == NULL)
 					variableName1 = p + 1;
@@ -183,7 +197,7 @@ main_start_after_help:
 		} else { // anything else
 			long double number = atof(p);
 			if (number == 0 && *p != '0') {
-				std::cerr <<"SYNTAX ERROR\n" <<std::endl;
+				std::cerr <<"\aSYNTAX ERROR\n" <<std::endl;
 				return main();
 			} else
 				numstack.push(number);
@@ -200,10 +214,10 @@ main_start_after_help:
 	return main(); //next line...
 
 exit:
-	vars::wipeAll();
-	delete vars::first;
+//	vars::wipeAll();
+//	delete vars::first;
 
-	return 0;
+	exit(EXIT_SUCCESS);
 }
 
 long double getNextNumber(std::stack<long double>& numberStack){
@@ -213,7 +227,9 @@ long double getNextNumber(std::stack<long double>& numberStack){
 		numberStack.pop();
 		return topNum;
 	} else {
-		std::cerr <<"ERROR: not enough data to satisfy operator.\n" <<std::endl;
+		std::cerr <<"\aERROR: not enough data to satisfy operator.\n" <<std::endl;
 		return main();
     }
 }
+
+
