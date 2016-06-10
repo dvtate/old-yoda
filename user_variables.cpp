@@ -11,16 +11,34 @@ namespace vars {
 
 
 	void wipeAll(void){
-		
+
+		UserVar* var1, * var2;
+
+		var1 = first->next;
+
+		while (var1 != NULL) {
+			var2 = var1->next;
+
+			delete var1;
+			var1 = NULL;
+
+			if (var2 != NULL) {
+				var1 = var2->next;
+				delete var2;
+			}
+		}
+
 	}
 
 	void assignVar(char name[USERVAR_NAME_MAXLENGHT], long double value){
+		
 		UserVar* var = findVar(name);
 
 		// making a new variable		
 		if (var == NULL) {
 			var = new UserVar(name, value, NULL);
-			last->next = var; 
+			last->next = var;
+			last = var;
 
 		} else // changing the value
 			var->value = value;
@@ -49,7 +67,7 @@ namespace vars {
 
 	UserVar* findVar(char name[USERVAR_NAME_MAXLENGHT]){
 
-		UserVar* var = first->next;;
+		UserVar* var = first->next;
 		// search the linked list for the object
 		while (var != NULL)
 			if (strcmp(var->name, name) == 0)
@@ -61,7 +79,7 @@ namespace vars {
 	}
 
 	bool varExists(char name[USERVAR_NAME_MAXLENGHT]){
-		UserVar* var = first->next;;
+		UserVar* var = first->next;
 
 		while (var != NULL)
 			if (strcmp(var->name, name) == 0)
