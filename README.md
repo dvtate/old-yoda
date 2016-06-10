@@ -35,18 +35,17 @@ A simple calculator that uses reverse polish notation.
   ```
   
  - Keywords
-    > help
+    * `> help`
       The help command displays a short dialog to help get you started.
-    > clear
+    *`> clear`
       clears the terminal
-    > reset
+    * `> reset`
       resets the line numbering
-    > exit
+    * `> exit`
       closes the program
-    > q
+    * `> q`
       same as `exit`
-    > ans
+    * `> ans`
       previous answer, initialized to 0.
-    > pi
+    * `> pi`
       an approximate value for pi
-   
