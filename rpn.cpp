@@ -49,8 +49,8 @@ main_start_after_help:
 	std::cin.getline(rpnln, MAX_LEN);
 
 	// used for storing the name for user variables
-	char* variableName = NULL; // will get used later
-
+	char* variableName1 = NULL; // will get used later
+	char* variableName2 = NULL;
 
 	// get first token from the input
 	char* p = strtok(rpnln, " ");
@@ -164,19 +164,26 @@ main_start_after_help:
 			numstack.push(~atoi(p + 1));
 
 		else if (*p == '=' && *(p + 1) == '\0')
-			vars::assignVar(variableName, numstack.top());
+			vars::assignVar(variableName1, numstack.top());
 	
 		else if (*p == '$'){
 			if (strlen(p + 1) > USERVAR_NAME_MAXLENGHT) {
 				std::cerr <<"ERROR: Variable name too long.\n" <<std::endl;
 				return main(); // start over
-			} else if (vars::varExists(p + 1))
+			} else if (vars::varExists(p + 1)) {
 				numstack.push(vars::findVar(p + 1)->value);
-			 else 
-				variableName = p + 1;
-		}
+				if (variableName1 == NULL)
+					variableName1 = p + 1;
+				else 
+					variableName2 = p + 1;
 
-		else { // anything else
+			} else 
+				if (variableName1 == NULL)
+					variableName1 = p + 1;
+				else 
+					variableName2 = p + 1;
+
+		} else { // anything else
 			long double number = atof(p);
 			if (number == 0 && *p != '0') {
 				std::cerr <<"SYNTAX ERROR\n" <<std::endl;
@@ -190,7 +197,8 @@ main_start_after_help:
 
 	}
 
-	std::cout <<"ans = " <<(double)(ans = numstack.top()) <<'\n' <<std::endl;
+	if (!numstack.empty())
+		std::cout <<"ans " <<(double)(ans = numstack.top()) <<" =\n" <<std::endl;
 
 	return main(); //next line...
 
