@@ -28,13 +28,13 @@ A simple calculator that uses reverse polish notation.
   ```
   
  - <b>Combining operators:</b>
-  One of RPN's main strengths is that it eliminates the need for parenthases. Simply combine operators in a way that would lead to them being performaed sequentially.
+  One of RPN's main strengths is that it eliminates the need for parenthases. Simply combine operators in a way that would lead to them being performed sequentially.
   ```
   > 1 1 + 2 * # (1 + 1) * 2  
   ans 4 =
   ```
  - <b>Variables:</b>
-  This calculator supports user defined variables created as soon as you start using them. All variable names must start with a `$` to prevent them from clashing with other keywords, functions and numbers. Here's how to define one:
+  This calculator supports user-defined variables created as soon as you start using them. All variable names must start with a `$` to prevent them from clashing with other keywords, functions and numbers. Here's how to define one:
  ```
  > $a 4 =
  ans 4 =
@@ -61,3 +61,12 @@ A simple calculator that uses reverse polish notation.
       previous answer, initialized to 0. (access it as you would a variable)
     * `> pi` <br/>
       an approximate value for pi (access it as you would `ans`)
+
+
+# Build and Run
+If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (old). <b>Warning</b>, I cross-compiled this on Linux and haven't tested it on a genuine windows box yet, so there could be errors.<br/>
+https://onedrive.live.com/embed?cid=8C35060E130BADA5&resid=8C35060E130BADA5%2186540&authkey=AFZY5jRHzaQ1Ltc
+- Compiling:
+`rpn $ g++ *.cpp -o rpn`
+- Running:
+`rpn $ ./rpn`
