@@ -92,43 +92,44 @@ main_start_after_help:
 		}
 		// char is a unary operator
             //trig functions
-        else if (strcmp(p, "sin") == 0)
-            numstack.push(sin(getNextNumber(numstack)));
-        else if (strcmp(p, "cos") == 0)
-            numstack.push(cos(getNextNumber(numstack)));
-        else if (strcmp(p, "tan") == 0)
-            numstack.push(tan(getNextNumber(numstack)));
+		else if (strcmp(p, "sin") == 0)
+			numstack.push(sin(getNextNumber(numstack)));
+		else if (strcmp(p, "cos") == 0)
+			numstack.push(cos(getNextNumber(numstack)));
+		else if (strcmp(p, "tan") == 0)
+			numstack.push(tan(getNextNumber(numstack)));
 
-        else if (strcmp(p, "asin") == 0)
-            numstack.push(asin(getNextNumber(numstack)));
-        else if (strcmp(p, "acos") == 0)
-            numstack.push(acos(getNextNumber(numstack)));
-        else if (strcmp(p, "atan") == 0)
-            numstack.push(atan(getNextNumber(numstack)));
+		else if (strcmp(p, "asin") == 0)
+			numstack.push(asin(getNextNumber(numstack)));
+		else if (strcmp(p, "acos") == 0)
+			numstack.push(acos(getNextNumber(numstack)));
+		else if (strcmp(p, "atan") == 0)
+			numstack.push(atan(getNextNumber(numstack)));
 
-        else if (strcmp(p, "sinh") == 0)
-            numstack.push(sinh(getNextNumber(numstack)));
-        else if (strcmp(p, "cosh") == 0)
-            numstack.push(cosh(getNextNumber(numstack)));
-        else if (strcmp(p, "tanh") == 0)
-            numstack.push(tanh(getNextNumber(numstack)));
+		else if (strcmp(p, "sinh") == 0)
+			numstack.push(sinh(getNextNumber(numstack)));
+		else if (strcmp(p, "cosh") == 0)
+			numstack.push(cosh(getNextNumber(numstack)));
+		else if (strcmp(p, "tanh") == 0)
+			numstack.push(tanh(getNextNumber(numstack)));
 
-        else if (strcmp(p, "asinh") == 0)
-            numstack.push(asinh(getNextNumber(numstack)));
-        else if (strcmp(p, "acosh") == 0)
-            numstack.push(acosh(getNextNumber(numstack)));
-        else if (strcmp(p, "atanh") == 0)
-            numstack.push(atanh(getNextNumber(numstack)));
+		else if (strcmp(p, "asinh") == 0)
+			numstack.push(asinh(getNextNumber(numstack)));
+		else if (strcmp(p, "acosh") == 0)
+			numstack.push(acosh(getNextNumber(numstack)));
+		else if (strcmp(p, "atanh") == 0)
+			numstack.push(atanh(getNextNumber(numstack)));
 
-        else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0)
-            numstack.push(log10(getNextNumber(numstack)));
-        else if (strcmp(p, "ln") == 0)
-            numstack.push(log(getNextNumber(numstack)));
-        else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0)
-            numstack.push(sqrt(getNextNumber(numstack)));
+		else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0)
+			numstack.push(log10(getNextNumber(numstack)));
+		else if (strcmp(p, "ln") == 0)
+			numstack.push(log(getNextNumber(numstack)));
+		else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0)
+			numstack.push(sqrt(getNextNumber(numstack)));
 
-        // not an operator
-		else if (*p == '#') { // comments... because I can XDDDDDDDDD
+
+		// comments... because I can XDDDDDDDDD
+		else if (*p == '#') {
                 if (numstack.size() == 0)
                     goto main_start_after_help;
                 break;
