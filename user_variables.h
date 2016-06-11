@@ -15,10 +15,11 @@ public:
 
 	UserVar *next;
 
-	UserVar(const char* identifier, long double contents): value(contents) { 
+	UserVar(const char* identifier, long double contents):
+		value(contents) 
+	{ 
 		next = (UserVar*) NULL; 
 		strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
-		
 	}
 
 	UserVar(const char* identifier, long double contents, UserVar* next_node): 
