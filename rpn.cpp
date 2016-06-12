@@ -136,7 +136,7 @@ main_start_after_help:
 
 		// pi
 		} else if (strcmp(p, "pi") == 0)
-			numstack.push(M_PI); 
+			numstack.push(M_PI);
 
 		// ans
 		else if (strcmp(p, "ans") == 0) // p == "ans"
@@ -149,8 +149,8 @@ main_start_after_help:
 		else if (strcmp(p, "help") == 0) {
 			displayHelp();
 			return main();
-		
-		// clear screen 
+
+		// clear screen
 		} else if (strcmp(p, "clear") == 0 || strcmp(p, "cls") == 0) {
 			#ifdef _WIN32
 				system("cls");
@@ -162,7 +162,7 @@ main_start_after_help:
 		// restart the program (don't display help)
 		} else if (strcmp(p, "reset") == 0 ) {
 			ans = line = 0;
-			vars::wipeAll();
+			vars::wipeAll(vars::first_node);
 			goto main_start_after_help;
 
 		// bitwise not operator
@@ -171,39 +171,55 @@ main_start_after_help:
 
 		// assignment operator
 		else if (*p == '=' && *(p + 1) == '\0')
-			if (variableName1 != NULL)			
-				vars::assignVar(variableName1, numstack.top());
+			if (variableName1 != NULL)
+				vars::assignVar(vars::first_node, variableName1, numstack.top());
 			else if (variableName2 != NULL)
-				vars::assignVar(variableName2, numstack.top());
+				vars::assignVar(vars::first_node, variableName2, numstack.top());
 			else {
 				std::cerr <<"\aERROR: inappropriate use of assignment operator.\n" <<std::endl;
 				return main();
 			}
 
 		// variable
-		else if (*p == '$') { // user must use '$' prefix to access the variables
+		else if (*p == '$' && *(p + 1) != '\0') { // user must use '$' prefix to access the variables
 			if (strlen(p + 1) > USERVAR_NAME_MAXLENGHT) {
 				std::cerr <<"Error: Your variable\'s name is too long.\n" <<std::endl;
 				return main();
 			} else
-				if (vars::varExists(p + 1)) {
-					numstack.push(vars::findVar(p + 1)->value);
+				if (vars::varExists(vars::first_node, p + 1)) {
+					numstack.push(vars::findVar(vars::first_node, p + 1)->value);
 					if (variableName1 == NULL)
 						variableName1 = p + 1;
-					else 
+					else
 						variableName2 = p + 1;
 
-				} else 
+				} else
 					if (variableName1 == NULL)
 						variableName1 = p + 1;
-					else 
+					else
 						variableName2 = p + 1;
 
-		} else { // anything else
+		// user is defining a function
+		} /*else if (strcmp(p, "@function")) {
+
+
+		// user is calling a function
+		} else  if (*p == '@' && *(p + 1) != '\0') {
+
+
+
+		// anything else
+		} */
+		else {
+			// parse input
 			long double number = atof(p);
+
+			// the user is an asshole :T
 			if (number == 0 && *p != '0') {
 				std::cerr <<"\aSYNTAX ERROR\n" <<std::endl;
 				return main();
+
+			// the user has given us a number :D
 			} else
 				numstack.push(number);
 		}
@@ -212,6 +228,7 @@ main_start_after_help:
 		p = strtok(NULL, " ");
 
 	}
+
 
 	if (!numstack.empty())
 		std::cout <<"ans " <<(double)(ans = numstack.top()) <<" =\n" <<std::endl;
