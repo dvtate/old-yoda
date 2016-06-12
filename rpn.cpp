@@ -62,12 +62,12 @@ main_start_after_help:
 		if (((*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '%'
 			|| *p == '|' || *p == '&' || *p == '^') && *(p + 1) == '\0')
 			|| !strcmp(p, "<<") || !strcmp(p, ">>")  || !strcmp(p, "**")
-            || !strcmp(p, "logBase") || !strcmp(p, "logBASE") || !strcmp(p, "logbase")
-            || !strcmp(p, "pow")
+			|| !strcmp(p, "logBase") || !strcmp(p, "logBASE") || !strcmp(p, "logbase")
+			|| !strcmp(p, "pow")
 		) {
 
-            b = getNextNumber(numstack);
-            a = getNextNumber(numstack);
+			b = getNextNumber(numstack);
+			a = getNextNumber(numstack);
 
 			switch (*p) {
 				case '+': numstack.push(a + b); break;
@@ -91,7 +91,7 @@ main_start_after_help:
 
 		}
 		// char is a unary operator
-            //trig functions
+			//trig functions
 		else if (strcmp(p, "sin") == 0)
 			numstack.push(sin(getNextNumber(numstack)));
 		else if (strcmp(p, "cos") == 0)
@@ -130,9 +130,9 @@ main_start_after_help:
 
 		// comments... because I can XDDDDDDDDD
 		else if (*p == '#') {
-                if (numstack.size() == 0)
-                    goto main_start_after_help;
-                break;
+		if (numstack.size() == 0)
+			goto main_start_after_help;
+		break;
 
 		// pi
 		} else if (strcmp(p, "pi") == 0)
@@ -160,7 +160,7 @@ main_start_after_help:
 			return main();
 
 		// restart the program (don't display help)
-        } else if (strcmp(p, "reset") == 0 ) {
+		} else if (strcmp(p, "reset") == 0 ) {
 			ans = line = 0;
 			vars::wipeAll();
 			goto main_start_after_help;
