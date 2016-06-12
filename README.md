@@ -6,7 +6,7 @@ A simple calculator that uses reverse polish notation.
    Anything after the `#` symbol will be ignored.
    ```
    > 32 # this is a comment
-   ans = 32
+   ans 32 =
    ```
    
  - <b>Binary operators:</b>
