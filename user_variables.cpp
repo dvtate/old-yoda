@@ -1,21 +1,27 @@
-
 #include <cstdlib>
 #include <cstring>
 #include "user_variables.h"
 
-
 namespace vars {
 
-	UserVar* first = new UserVar(" ", 0, NULL);
-	UserVar* last = first;
+	UserVar* first_node = new UserVar(" ", 0);
 
 
-	void wipeAll(void){
+	UserVar* lastVar(UserVar* first){
+		while (first->next != NULL)
+			first++;
+
+		return first;
+	}
+
+
+	void wipeAll(UserVar* first){
 
 		UserVar* var1, * var2;
 
 		var1 = first->next;
 
+		// leap-frog and delete
 		while (var1 != NULL) {
 			var2 = var1->next;
 
@@ -30,22 +36,21 @@ namespace vars {
 
 	}
 
-	void assignVar(char name[USERVAR_NAME_MAXLENGHT], long double value){
-		
-		UserVar* var = findVar(name);
+	void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], long double value){
 
-		// making a new variable		
+		UserVar* var = findVar(first, name);
+
+		// making a new variable
 		if (var == NULL) {
 			var = new UserVar(name, value, NULL);
-			last->next = var;
-			last = var;
+			lastVar(first)->next = var;
 
 		} else // changing the value
 			var->value = value;
 
 	}
 
-	void removeVar(char name[USERVAR_NAME_MAXLENGHT]){
+	void removeVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]){
 		UserVar* var = first;
 
 		// search the linked list for the object
@@ -54,10 +59,10 @@ namespace vars {
 
 				// get object address so it doesn't become unaccessable
 				UserVar* toBeDeleted = var->next;
-				
+
 				// replace link
 				var->next = var->next->next;
-				
+
 				// remove the link
 				delete toBeDeleted;
 
@@ -65,26 +70,26 @@ namespace vars {
 				var = var->next;
 	}
 
-	UserVar* findVar(char name[USERVAR_NAME_MAXLENGHT]){
+	UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]){
 
 		UserVar* var = first->next;
 		// search the linked list for the object
 		while (var != NULL)
 			if (strcmp(var->name, name) == 0)
 				return var;
-			else 
+			else
 				var = var->next;
 
 		return (UserVar*) NULL;
 	}
 
-	bool varExists(char name[USERVAR_NAME_MAXLENGHT]){
+	bool varExists(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]){
 		UserVar* var = first->next;
 
 		while (var != NULL)
 			if (strcmp(var->name, name) == 0)
 				return true;
-			else 
+			else
 				var = var->next;
 
 		return false;
