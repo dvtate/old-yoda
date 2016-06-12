@@ -2,6 +2,7 @@
 #define USER_VARIABLES_H
 
 #include <cstdlib>
+#include <cstring>
 
 #define USERVAR_NAME_MAXLENGHT 20
 
@@ -16,19 +17,19 @@ public:
 	UserVar *next;
 
 	UserVar(const char* identifier, long double contents):
-		value(contents) 
-	{ 
-		next = (UserVar*) NULL; 
+		value(contents)
+	{
+		next = (UserVar*) NULL;
 		strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
 	}
 
-	UserVar(const char* identifier, long double contents, UserVar* next_node): 
+	UserVar(const char* identifier, long double contents, UserVar* next_node):
 		value(contents)
 	{
 		next = next_node;
 		strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
 	}
-	
+
 	long double& getValue()
 		{ return value; }
 
@@ -40,21 +41,24 @@ public:
 
 namespace vars {
 
-	extern UserVar* first;
+	extern UserVar* first_node;
+
+  	// the last element on the linked list
+  	extern UserVar* lastVar(UserVar* first);
 
 	// to be called after reset
-	void wipeAll(void);
+	extern void wipeAll(UserVar* first);
 
 	// to make a  new variable, or change it's value
-	void assignVar(char name[USERVAR_NAME_MAXLENGHT], long double value);
+	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], long double value);
 
 	// to remove an individial variable
-	void removeVar(char name[USERVAR_NAME_MAXLENGHT]);
+	extern void removeVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
 
 	// returns a pointer to the variable
-	UserVar* findVar(char name[USERVAR_NAME_MAXLENGHT]);
+	extern UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
 
-	bool varExists(char name[USERVAR_NAME_MAXLENGHT]);
+	extern bool varExists(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
 
 
 }
