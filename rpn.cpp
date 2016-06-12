@@ -19,11 +19,11 @@ unsigned int line = 0;
 
 
 inline void displayHelp(){
-    std::cout <<"\n\t\tRPN Calculator\nPlace the operator after its two operands. \
+	std::cout <<"\n\t\tRPN Calculator\nPlace the operator after its two operands. \
 Here is an example:\n > 1 1 + \n ans = 2\n\nTo use the previous answer \
 replace one number with `ans` as in the following example:\n \
 > ans\n ans = 2\n\nWhen you are finished, type `q` or `exit` to exit the program.\n"
-              <<std::endl;
+			  <<std::endl;
 }
 
 
@@ -130,9 +130,9 @@ main_start_after_help:
 
 		// comments... because I can XDDDDDDDDD
 		else if (*p == '#') {
-		if (numstack.size() == 0)
-			goto main_start_after_help;
-		break;
+			if (numstack.size() == 0)
+				goto main_start_after_help;
+			break;
 
 		// pi
 		} else if (strcmp(p, "pi") == 0)
@@ -182,18 +182,22 @@ main_start_after_help:
 
 		// variable
 		else if (*p == '$') { // user must use '$' prefix to access the variables
-			if (vars::varExists(p + 1)) {
-				numstack.push(vars::findVar(p + 1)->value);
-				if (variableName1 == NULL)
-					variableName1 = p + 1;
-				else 
-					variableName2 = p + 1;
+			if (strlen(p + 1) > USERVAR_NAME_MAXLENGHT) {
+				std::cerr <<"Error: Your variable\'s name is too long.\n" <<std::endl;
+				return main();
+			} else
+				if (vars::varExists(p + 1)) {
+					numstack.push(vars::findVar(p + 1)->value);
+					if (variableName1 == NULL)
+						variableName1 = p + 1;
+					else 
+						variableName2 = p + 1;
 
-			} else 
-				if (variableName1 == NULL)
-					variableName1 = p + 1;
-				else 
-					variableName2 = p + 1;
+				} else 
+					if (variableName1 == NULL)
+						variableName1 = p + 1;
+					else 
+						variableName2 = p + 1;
 
 		} else { // anything else
 			long double number = atof(p);
@@ -222,15 +226,15 @@ exit:
 }
 
 long double getNextNumber(std::stack<long double>& numberStack){
-    double topNum;
-    if (!numberStack.empty()) {
+	double topNum;
+	if (!numberStack.empty()) {
 		topNum = numberStack.top();
 		numberStack.pop();
 		return topNum;
 	} else {
 		std::cerr <<"\aERROR: not enough data to satisfy operator.\n" <<std::endl;
 		return main();
-    }
+	}
 }
 
 
