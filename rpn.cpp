@@ -13,6 +13,9 @@
 
 long double getNextNumber(std::stack<long double>& );
 
+char* splitSpacesKeepStrings(char*);
+char* replaceStr(char*, char*, char*);
+
 long double ans = 0;
 unsigned int line = 0;
 
@@ -26,7 +29,7 @@ replace one number with `ans` as in the following example:\n \
 			  <<std::endl;
 }
 
-
+//bool processLine
 
 int main(){
 
@@ -38,7 +41,6 @@ int main(){
 main_start_after_help:
 
 	std::stack<long double> numstack;
-	long double a, b;
 
 	std::cout <<line++ <<"> ";
 
@@ -66,8 +68,8 @@ main_start_after_help:
 			|| !strcmp(p, "pow")
 		) {
 
-			b = getNextNumber(numstack);
-			a = getNextNumber(numstack);
+			long double b = getNextNumber(numstack),
+						a = getNextNumber(numstack);
 
 			switch (*p) {
 				case '+': numstack.push(a + b); break;
@@ -120,13 +122,13 @@ main_start_after_help:
 		else if (strcmp(p, "atanh") == 0)
 			numstack.push(atanh(getNextNumber(numstack)));
 
+		// more unary functions
 		else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0)
 			numstack.push(log10(getNextNumber(numstack)));
 		else if (strcmp(p, "ln") == 0)
 			numstack.push(log(getNextNumber(numstack)));
 		else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0)
 			numstack.push(sqrt(getNextNumber(numstack)));
-
 
 		// comments... because I can XDDDDDDDDD
 		else if (*p == '#') {
@@ -159,7 +161,8 @@ main_start_after_help:
 			#endif
 			return main();
 
-		// restart the program (don't display help)
+
+		// essentially restarts the program (don't display help)
 		} else if (strcmp(p, "reset") == 0 ) {
 			ans = line = 0;
 			vars::wipeAll(vars::first_node);
@@ -187,7 +190,7 @@ main_start_after_help:
 				return main();
 			} else
 				if (vars::varExists(vars::first_node, p + 1)) {
-					numstack.push(vars::findVar(vars::first_node, p + 1)->value);
+					numstack.push(vars::findVar(vars::first_node, p + 1)->getNumber());
 					if (variableName1 == NULL)
 						variableName1 = p + 1;
 					else
@@ -254,4 +257,71 @@ long double getNextNumber(std::stack<long double>& numberStack){
 	}
 }
 
+/*
+char* splitSpacesKeepStrings(char* line){
 
+	static char str[MAX_LEN];
+	static char* ptr = str;
+	char * ret;
+
+	std::cout <<ptr;
+
+	if (line != NULL) { // continue from previous.
+		strcpy(str, line);
+		ptr = str;
+	} else if (line == NULL)
+		return (char*) NULL;
+	else
+		strcpy(ptr, str);
+
+	while (*ptr == ' ')
+		ptr++;
+
+	if (*ptr == '\0')
+		return NULL;
+
+	char* start = ptr;
+
+	// handling strings
+	if (*ptr == '\"')
+		for (;;) {
+			while (*ptr != '\"' && *ptr != '\0')
+				ptr++;
+
+			if  (*(ptr - 1) != '\\') // ignore escape sequence - " \" "
+				break;
+
+			if (*ptr == '\0')
+				break;
+
+		}
+
+	// handling strings
+	if (*ptr == '\'')
+		for (;;) {
+			while (*ptr != '\'' && *ptr != '\0')
+				ptr++;
+
+			if  (*(ptr - 1) != '\\') // ignore escape sequence - " \' "
+				break;
+
+			if (*ptr == '\0')
+				break;
+
+		}
+
+
+
+	while (*ptr != ' ' && *ptr != '\0')
+		ptr++;
+
+	// append NULL terminator
+	*ptr = '\0';
+
+	strcpy(ret, start);
+
+	return ret;
+
+}
+
+*/
