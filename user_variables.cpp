@@ -46,7 +46,7 @@ namespace vars {
 			lastVar(first)->next = var;
 
 		} else // changing the value
-			var->value = value;
+			var->setValue(value);
 
 	}
 
