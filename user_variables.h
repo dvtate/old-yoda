@@ -12,29 +12,68 @@
 class UserVar {
 public:
 	char name[USERVAR_NAME_MAXLENGHT];
-	long double value;
+
+  	enum type {NUM, STR, PTR} valType;
+
+	union {
+		long double number;
+		char* string;
+		void* pointer;
+	};
 
 	UserVar *next;
 
 	UserVar(const char* identifier, long double contents):
-		value(contents)
+		number(contents)
 	{
 		next = (UserVar*) NULL;
-		strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
+
+	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
+	  	valType = NUM;
 	}
 
 	UserVar(const char* identifier, long double contents, UserVar* next_node):
-		value(contents)
+		number(contents)
 	{
 		next = next_node;
-		strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
+
+	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
+		valType = NUM;
 	}
 
-	long double& getValue()
-		{ return value; }
+	// geting the values
+	double getNumber(){
+		if (valType == NUM)
+			return number;
+	  	else
+			return 0;
+	}
+	char* getString(){
+	  	if (valType == STR)
+			return string;
+	  	else
+		  	return (char*) NULL; // beware of segfaults...
+	}
+	void* getPointer(){
+	  	if (valType == PTR)
+		  	return pointer;
+	  	else
+		  	return (void*) NULL;
+	}
 
-	void setvalue(long double val)
-		{ value = val; }
+	// changing the values
+	void setValue(long double val){
+		number = val;
+	  	valType = NUM;
+	}
+	void setValue(const char* val){
+	  	strcpy(string, val);
+	  	valType = STR;
+	}
+	void setValue(void* val){
+	  	pointer = val;
+		valType = PTR;
+	}
 
 };
 
@@ -59,7 +98,6 @@ namespace vars {
 	extern UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
 
 	extern bool varExists(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
-
 
 }
 
