@@ -28,7 +28,7 @@ long double getNextNumber(std::stack<long double>& numberStack){
 }
 
 // Strips backslashes from quotes
-char* unescapeToken(char *token){
+char *unescapeToken(char *token){
     char *in = token;
     char *out = token;
 
@@ -53,7 +53,7 @@ char* unescapeToken(char *token){
 char *qtok(char *str, char **next){
     char *current = str;
     char *start = str;
-    int isQuoted = 0;
+    bool isQuoted = false;
 
     // Eat beginning whitespace.
     while (*current && isspace(*current))
@@ -62,7 +62,9 @@ char *qtok(char *str, char **next){
     start = current;
 
     if (*current == '"') {
-        isQuoted = 1;
+
+        isQuoted = true;
+
         // Quoted token
         current++; // Skip the beginning quote.
         start = current;
@@ -70,10 +72,9 @@ char *qtok(char *str, char **next){
             // Go until we find a quote or the end of string.
             while (*current && (*current != '"'))
                 current++;
-            if (!*current) {
-                // Reached the end of the string.
+            if (!*current) // Reached the end of the string.
                 goto finalize;
-            }
+
             if (*(current - 1) == '\\') {
                 // Escaped quote (keep going)
                 current++;
@@ -100,7 +101,7 @@ finalize:
 
     *next = current;
 
-    return isQuoted ? unescapeToken(start) : start;
+    return unescapeToken(start);
 
 }
 
