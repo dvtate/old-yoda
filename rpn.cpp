@@ -11,25 +11,12 @@
 #define MAX_LEN 200
 
 
-long double getNextNumber(std::stack<long double>& );
-
-char* splitSpacesKeepStrings(char*);
-char* replaceStr(char*, char*, char*);
 
 long double ans = 0;
 unsigned int line = 0;
 
 
 
-inline void displayHelp(){
-	std::cout <<"\n\t\tRPN Calculator\nPlace the operator after its two operands. \
-Here is an example:\n > 1 1 + \n ans = 2\n\nTo use the previous answer \
-replace one number with `ans` as in the following example:\n \
-> ans\n ans = 2\n\nWhen you are finished, type `q` or `exit` to exit the program.\n"
-			  <<std::endl;
-}
-
-//bool processLine
 
 int main(){
 
@@ -257,71 +244,4 @@ long double getNextNumber(std::stack<long double>& numberStack){
 	}
 }
 
-/*
-char* splitSpacesKeepStrings(char* line){
 
-	static char str[MAX_LEN];
-	static char* ptr = str;
-	char * ret;
-
-	std::cout <<ptr;
-
-	if (line != NULL) { // continue from previous.
-		strcpy(str, line);
-		ptr = str;
-	} else if (line == NULL)
-		return (char*) NULL;
-	else
-		strcpy(ptr, str);
-
-	while (*ptr == ' ')
-		ptr++;
-
-	if (*ptr == '\0')
-		return NULL;
-
-	char* start = ptr;
-
-	// handling strings
-	if (*ptr == '\"')
-		for (;;) {
-			while (*ptr != '\"' && *ptr != '\0')
-				ptr++;
-
-			if  (*(ptr - 1) != '\\') // ignore escape sequence - " \" "
-				break;
-
-			if (*ptr == '\0')
-				break;
-
-		}
-
-	// handling strings
-	if (*ptr == '\'')
-		for (;;) {
-			while (*ptr != '\'' && *ptr != '\0')
-				ptr++;
-
-			if  (*(ptr - 1) != '\\') // ignore escape sequence - " \' "
-				break;
-
-			if (*ptr == '\0')
-				break;
-
-		}
-
-
-
-	while (*ptr != ' ' && *ptr != '\0')
-		ptr++;
-
-	// append NULL terminator
-	*ptr = '\0';
-
-	strcpy(ret, start);
-
-	return ret;
-
-}
-
-*/
