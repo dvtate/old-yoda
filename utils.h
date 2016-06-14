@@ -1,12 +1,34 @@
 #ifndef RPN_UTILS_H
 #define RPN_UTILS_H
 
-
+#include <iostream>
+#include <stack>
 #include <stdio.h>
 #include <ctype.h>
 
+inline void displayHelp(){
+	std::cout <<"\n\t\tRPN Calculator\nPlace the operator after its two operands. \
+Here is an example:\n > 1 1 + \n ans = 2\n\nTo use the previous answer \
+replace one number with `ans` as in the following example:\n \
+> ans\n ans = 2\n\nWhen you are finished, type `q` or `exit` to exit the program.\n"
+			  <<std::endl;
+}
+
+
+long double getNextNumber(std::stack<long double>& numberStack){
+	double topNum;
+	if (!numberStack.empty()) {
+		topNum = numberStack.top();
+		numberStack.pop();
+		return topNum;
+	} else {
+		std::cerr <<"\aERROR: not enough data to satisfy operator.\n" <<std::endl;
+		return main();
+	}
+}
+
 // Strips backslashes from quotes
-char *unescapeToken(char *token){
+char* unescapeToken(char *token){
     char *in = token;
     char *out = token;
 
@@ -80,6 +102,14 @@ finalize:
 
     return isQuoted ? unescapeToken(start) : start;
 
+}
+
+inline void displayHelp(){
+	std::cout <<"\n\t\tRPN Calculator\nPlace the operator after its two operands. \
+Here is an example:\n > 1 1 + \n ans = 2\n\nTo use the previous answer \
+replace one number with `ans` as in the following example:\n \
+> ans\n ans = 2\n\nWhen you are finished, type `q` or `exit` to exit the program.\n"
+			  <<std::endl;
 }
 
 
