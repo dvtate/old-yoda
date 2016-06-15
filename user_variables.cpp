@@ -39,7 +39,7 @@ namespace vars {
 
 	}
 
-	void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], long double value){
+	void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], double value){
 
 		UserVar* var = findVar(first, name);
 
