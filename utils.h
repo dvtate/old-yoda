@@ -1,10 +1,18 @@
 #ifndef RPN_UTILS_H
 #define RPN_UTILS_H
 
+#include "calc_value.h"
+
+
 #include <iostream>
-#include <stack>
 #include <stdio.h>
 #include <ctype.h>
+#include <stack>
+
+
+extern int main();
+
+
 
 inline void displayHelp(){
 	std::cout <<"\n\t\tRPN Calculator\nPlace the operator after its two operands. \
@@ -15,12 +23,12 @@ replace one number with `ans` as in the following example:\n \
 }
 
 
-long double getNextNumber(std::stack<long double>& numberStack){
-	double topNum;
-	if (!numberStack.empty()) {
-		topNum = numberStack.top();
-		numberStack.pop();
-		return topNum;
+CalcValue getNextValue(std::stack<CalcValue>& valStack){
+	CalcValue topVal;
+	if (!valStack.empty()) {
+		topVal = valStack.top();
+		valStack.pop();
+		return topVal;
 	} else {
 		std::cerr <<"\aERROR: not enough data to satisfy operator.\n" <<std::endl;
 		return main();
@@ -35,7 +43,7 @@ char *unescapeToken(char *token){
     while (*in) {
         //assert(in >= out);
 
-        if ((in[0] == '\\') && (in[1] == '"')) {
+        if (in[0] == '\\' && (in[1] == '"' || in[1] == '\'')) {
             *out = in[1];
             out++;
             in += 2;
@@ -105,13 +113,6 @@ finalize:
 
 }
 
-inline void displayHelp(){
-	std::cout <<"\n\t\tRPN Calculator\nPlace the operator after its two operands. \
-Here is an example:\n > 1 1 + \n ans = 2\n\nTo use the previous answer \
-replace one number with `ans` as in the following example:\n \
-> ans\n ans = 2\n\nWhen you are finished, type `q` or `exit` to exit the program.\n"
-			  <<std::endl;
-}
 
 
 #endif
