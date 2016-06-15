@@ -1,5 +1,8 @@
 #include <cstdlib>
 #include <cstring>
+
+#include "calc_value.h"
+
 #include "user_variables.h"
 
 namespace vars {
@@ -42,11 +45,25 @@ namespace vars {
 
 		// making a new variable
 		if (var == NULL) {
-			var = new UserVar(name, value, NULL);
+			var = new UserVar(name, value);
 			lastVar(first)->next = var;
 
 		} else // changing the value
 			var->setValue(value);
+
+	}
+
+	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], CalcValue value){
+
+		UserVar* var = findVar(first, name);
+
+		// making a new variable
+		if (var == NULL) {
+			var = new UserVar(name, value);
+			lastVar(first)->next = var;
+		} else {
+			var->setValue(value);
+		}
 
 	}
 
