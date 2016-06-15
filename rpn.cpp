@@ -5,11 +5,17 @@
 #include <cstdlib>
 #include <cmath>
 
-#include "user_variables.h"
 
+// this is the class used in our stack
+#include "calc_value.h"
+
+// user defined variables
+#include "user_variables.h"
 
 #define MAX_LEN 200
 
+// some useful functions
+#include "utils.h"
 
 
 long double ans = 0;
@@ -27,7 +33,7 @@ int main(){
 // goto's can be evil, but this program is too smalle for this to be an issue.
 main_start_after_help:
 
-	std::stack<long double> numstack;
+	std::stack<CalcValue> numstack;
 
 	std::cout <<line++ <<"> ";
 
@@ -55,8 +61,17 @@ main_start_after_help:
 			|| !strcmp(p, "pow")
 		) {
 
-			long double b = getNextNumber(numstack),
-						a = getNextNumber(numstack);
+			if (numstack.top().type != CalcValue::NUM) {
+				std::cerr <<"ERROR: incompatible data-types!";
+				return main();
+			}
+			long double b = getNextValue(numstack).getNum();
+
+			if (numstack.top().type != CalcValue::NUM) {
+				std::cerr <<"ERROR: incompatible data-types!";
+				return main();
+			}
+			long double a = getNextValue(numstack).getNum();
 
 			switch (*p) {
 				case '+': numstack.push(a + b); break;
@@ -82,40 +97,40 @@ main_start_after_help:
 		// char is a unary operator
 			//trig functions
 		else if (strcmp(p, "sin") == 0)
-			numstack.push(sin(getNextNumber(numstack)));
+			numstack.push(sin(getNextValue(numstack).getNum()));
 		else if (strcmp(p, "cos") == 0)
-			numstack.push(cos(getNextNumber(numstack)));
+			numstack.push(cos(getNextValue(numstack).getNum()));
 		else if (strcmp(p, "tan") == 0)
-			numstack.push(tan(getNextNumber(numstack)));
+			numstack.push(tan(getNextValue(numstack).getNum()));
 
 		else if (strcmp(p, "asin") == 0)
-			numstack.push(asin(getNextNumber(numstack)));
+			numstack.push(asin(getNextValue(numstack).getNum()));
 		else if (strcmp(p, "acos") == 0)
-			numstack.push(acos(getNextNumber(numstack)));
+			numstack.push(acos(getNextValue(numstack).getNum()));
 		else if (strcmp(p, "atan") == 0)
-			numstack.push(atan(getNextNumber(numstack)));
+			numstack.push(atan(getNextValue(numstack).getNum()));
 
 		else if (strcmp(p, "sinh") == 0)
-			numstack.push(sinh(getNextNumber(numstack)));
+			numstack.push(sinh(getNextValue(numstack).getNum()));
 		else if (strcmp(p, "cosh") == 0)
-			numstack.push(cosh(getNextNumber(numstack)));
+			numstack.push(cosh(getNextValue(numstack).getNum()));
 		else if (strcmp(p, "tanh") == 0)
-			numstack.push(tanh(getNextNumber(numstack)));
+			numstack.push(tanh(getNextValue(numstack).getNum()));
 
 		else if (strcmp(p, "asinh") == 0)
-			numstack.push(asinh(getNextNumber(numstack)));
+			numstack.push(asinh(getNextValue(numstack).getNum()));
 		else if (strcmp(p, "acosh") == 0)
-			numstack.push(acosh(getNextNumber(numstack)));
+			numstack.push(acosh(getNextValue(numstack).getNum()));
 		else if (strcmp(p, "atanh") == 0)
-			numstack.push(atanh(getNextNumber(numstack)));
+			numstack.push(atanh(getNextValue(numstack).getNum()));
 
 		// more unary functions
 		else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0)
-			numstack.push(log10(getNextNumber(numstack)));
+			numstack.push(log10(getNextValue(numstack).getNum()));
 		else if (strcmp(p, "ln") == 0)
-			numstack.push(log(getNextNumber(numstack)));
+			numstack.push(log(getNextValue(numstack).getNum()));
 		else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0)
-			numstack.push(sqrt(getNextNumber(numstack)));
+			numstack.push(sqrt(getNextValue(numstack).getNum()));
 
 		// comments... because I can XDDDDDDDDD
 		else if (*p == '#') {
@@ -172,6 +187,7 @@ main_start_after_help:
 
 		// variable
 		else if (*p == '$' && *(p + 1) != '\0') { // user must use '$' prefix to access the variables
+
 			if (strlen(p + 1) > USERVAR_NAME_MAXLENGHT) {
 				std::cerr <<"Error: Your variable\'s name is too long.\n" <<std::endl;
 				return main();
@@ -182,12 +198,12 @@ main_start_after_help:
 						variableName1 = p + 1;
 					else
 						variableName2 = p + 1;
-
 				} else
 					if (variableName1 == NULL)
 						variableName1 = p + 1;
 					else
 						variableName2 = p + 1;
+
 
 		// user is defining a function
 		} /*else if (strcmp(p, "@function")) {
@@ -202,7 +218,7 @@ main_start_after_help:
 		} */
 		else {
 			// parse input
-			long double number = atof(p);
+			double number = atof(p);
 
 			// the user is an asshole :T
 			if (number == 0 && *p != '0') {
@@ -221,7 +237,7 @@ main_start_after_help:
 
 
 	if (!numstack.empty())
-		std::cout <<"ans " <<(double)(ans = numstack.top()) <<" =\n" <<std::endl;
+		std::cout <<"\aans " <<(double)(ans = numstack.top().getNum()) <<" =\n" <<std::endl;
 
 	return main(); //next line...
 
@@ -231,17 +247,3 @@ exit:
 
 	exit(EXIT_SUCCESS);
 }
-
-long double getNextNumber(std::stack<long double>& numberStack){
-	double topNum;
-	if (!numberStack.empty()) {
-		topNum = numberStack.top();
-		numberStack.pop();
-		return topNum;
-	} else {
-		std::cerr <<"\aERROR: not enough data to satisfy operator.\n" <<std::endl;
-		return main();
-	}
-}
-
-
