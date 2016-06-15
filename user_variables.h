@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "calc_value.h"
+
 #define USERVAR_NAME_MAXLENGHT 20
 
 
@@ -41,6 +43,23 @@ public:
 		valType = NUM;
 	}
 
+	UserVar(const char* identifier, CalcValue contents){
+
+	  	next = (UserVar*) NULL;
+
+	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
+
+	  	if (contents.type == CalcValue::NUM) {
+			valType = NUM;
+		  	number = contents.number;
+		} else {
+			valType = STR;
+			string = contents.string;
+		}
+	}
+
+
+
 	// geting the values
 	double getNumber(){
 		if (valType == NUM)
@@ -61,6 +80,7 @@ public:
 		  	return (void*) NULL;
 	}
 
+
 	// changing the values
 	void setValue(long double val){
 		number = val;
@@ -74,8 +94,19 @@ public:
 	  	pointer = val;
 		valType = PTR;
 	}
+	void setValue(CalcValue val){
+	  	if (val.type == CalcValue::NUM) {
+			valType = NUM;
+		  	number = val.number;
+		} else {
+			valType = STR;
+			string = val.string;
+		}
+	}
 
 };
+
+
 
 
 namespace vars {
@@ -90,6 +121,7 @@ namespace vars {
 
 	// to make a  new variable, or change it's value
 	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], long double value);
+	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], CalcValue value);
 
 	// to remove an individial variable
 	extern void removeVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
