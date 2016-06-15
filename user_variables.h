@@ -18,14 +18,14 @@ public:
   	enum type {NUM, STR, PTR} valType;
 
 	union {
-		long double number;
+		double number;
 		char* string;
 		void* pointer;
 	};
 
 	UserVar *next;
 
-	UserVar(const char* identifier, long double contents):
+	UserVar(const char* identifier, double contents):
 		number(contents)
 	{
 		next = (UserVar*) NULL;
@@ -34,7 +34,7 @@ public:
 	  	valType = NUM;
 	}
 
-	UserVar(const char* identifier, long double contents, UserVar* next_node):
+	UserVar(const char* identifier, double contents, UserVar* next_node):
 		number(contents)
 	{
 		next = next_node;
@@ -82,7 +82,7 @@ public:
 
 
 	// changing the values
-	void setValue(long double val){
+	void setValue(double val){
 		number = val;
 	  	valType = NUM;
 	}
@@ -120,7 +120,7 @@ namespace vars {
 	extern void wipeAll(UserVar* first);
 
 	// to make a  new variable, or change it's value
-	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], long double value);
+	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], double value);
 	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], CalcValue value);
 
 	// to remove an individial variable
