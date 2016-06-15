@@ -8,13 +8,13 @@ public:
 	enum type { NUM, STR } type;
 
 	union {
-		long double number;
+		double number;
 		char* string;
 	};
 
 	CalcValue(){}
 
-  	CalcValue (long double val){
+  	CalcValue (double val){
 		number = val;
 		type = NUM;
 	}
@@ -32,12 +32,12 @@ public:
 		type = STR;
 	}
 
-	void setValue(long double val){
+	void setValue(double val){
 		number = val;
 		type = NUM;
 	}
 
-	long double getNum(){
+	double getNum(){
 		if (type == NUM)
 			return number;
 		else
