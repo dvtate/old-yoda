@@ -44,6 +44,8 @@ main_start_after_help:
 	char* variableName1 = NULL; // will get used later
 	char* variableName2 = NULL;
 
+	bool isString = false;
+
 	// get first token from the input
 	char* p = strtok(rpnln, " ");
 
@@ -55,8 +57,11 @@ main_start_after_help:
 
 		// char is a binary operator
 		if (((*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '%'
-			|| *p == '|' || *p == '&' || *p == '^') && *(p + 1) == '\0')
-			|| !strcmp(p, "<<") || !strcmp(p, ">>")  || !strcmp(p, "**")
+			|| *p == '|' || *p == '&' || *p == '^' || *p == '>' || *p == '<')
+			&& *(p + 1) == '\0')
+			|| !strcmp(p, "<<") || !strcmp(p, ">>") || !strcmp(p, "**")
+			|| !strcmp(p, "&&") || !strcmp(p, "||") // logical operators
+			|| !strcmp(p, "<=") || !strcmp(p, ">=")
 			|| !strcmp(p, "logBase") || !strcmp(p, "logBASE") || !strcmp(p, "logbase")
 			|| !strcmp(p, "pow") // for those who dont like "**"
 		) {
@@ -76,24 +81,62 @@ main_start_after_help:
 			switch (*p) {
 				case '+': mainStack.push(a + b); break;
 				case '*':
-					if (strcmp(p, "**") == 0)
+					if (*(p + 1) == '*')
 						mainStack.push(pow(a, b));
 					else
 						mainStack.push(a * b);
 					break;
+
 				case '/': mainStack.push(a / b); break;
 				case '-': mainStack.push(a - b); break;
 				case '%': mainStack.push((int) a % (int) b); break;
-				case '|': mainStack.push((int) a | (int) b); break;
 				case '^': mainStack.push((int) a ^ (int) b); break;
-				case '&': mainStack.push((int) a & (int) b); break;
-				case '<': mainStack.push((int) a << (int) b); break;
-				case '>': mainStack.push((int) a >> (int) b); break;
+				case '|':
+					if (*(p + 1))
+						mainStack.push(a || b);
+					else
+						mainStack.push((int) a | (int) b);
+					break;
+
+				case '&':
+					if (*(p + 1))
+						mainStack.push(a && b);
+					else
+						mainStack.push((int) a & (int) b);
+					break;
+
+				case '<':
+					switch (*(p + 1)) {
+						case '<': mainStack.push((int) a << (int) b); break;
+						case '=': mainStack.push(a <= b); break;
+						case '\0': mainStack.push(a < b); break;
+					}
+					break;
+
+				case '>':
+					switch (*(p + 1)) {
+						case '>': mainStack.push((int) a << (int) b); break;
+						case '=': mainStack.push(a >= b); break;
+						case '\0': mainStack.push(a > b); break;
+					}
+					break;
+
 				case 'l': mainStack.push(log10(b) / log10(a)); break;
 				case 'p': mainStack.push(pow(a, b)); break;
 			}
 
-		}
+		} else if (strcmp(p, "==") == 0)
+			mainStack.push(getNextValue(mainStack) == getNextValue(mainStack));
+
+		// not equal to
+		else if (strcmp(p, "!=") == 0)
+			mainStack.push(!(getNextValue(mainStack) == getNextValue(mainStack)));
+
+		// logical not operator
+		else if (*p == '!' && *(p + 1) == '\0')
+			mainStack.push(getNextValue(mainStack).getNum() == 0);
+
+
 		// char is a unary operator
 			//trig functions
 		else if (strcmp(p, "sin") == 0)
@@ -132,7 +175,7 @@ main_start_after_help:
 		else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0)
 			mainStack.push(sqrt(getNextValue(mainStack).getNum()));
 
-		// comments... because I can XDDDDDDDDD
+		// comments
 		else if (*p == '#') {
 			if (mainStack.size() == 0)
 				goto main_start_after_help;
