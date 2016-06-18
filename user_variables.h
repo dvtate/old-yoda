@@ -79,7 +79,13 @@ public:
 	  	else
 		  	return (void*) NULL;
 	}
+	CalcValue getValue(){
+		if (valType == NUM)
+			return CalcValue(number);
 
+	  	return CalcValue(getString());
+
+	}
 
 	// changing the values
 	void setValue(double val){
@@ -111,16 +117,14 @@ public:
 
 namespace vars {
 
-	extern UserVar* first_node;
-
   	// the last element on the linked list
   	extern UserVar* lastVar(UserVar* first);
 
 	// to be called after reset
-	extern void wipeAll(UserVar* first);
+	extern void wipeAll(UserVar*& first);
 
 	// to make a  new variable, or change it's value
-	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], double value);
+	//extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], double value);
 	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], CalcValue value);
 
 	// to remove an individial variable
