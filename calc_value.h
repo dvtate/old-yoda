@@ -1,6 +1,8 @@
 #ifndef CALC_VALUE_H
 #define CALC_VALUE_H
 
+#include <cstring>
+
 class CalcValue {
 
 public:
@@ -49,6 +51,18 @@ public:
 			return string;
 	  	else
 		  	return (char*) NULL;
+	}
+
+	bool operator==(const CalcValue& val2){
+		if (type == val2.type) {
+			if (type == NUM && number == val2.number)
+				return true;
+			else if (string == val2.string && type == STR)
+				return true;
+			//else if (type == VOID){
+			  	//return true;
+		}
+	  	return false;
 	}
 };
 
