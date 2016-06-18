@@ -1,5 +1,5 @@
 # RPN Calculator
-A simple calculator that uses reverse polish notation. 
+A reverse polish notation interpreter which is laying the frameworks for a scripting langauge. It can be used as a calculator by those familiar with the notation, and it should be functional by the time I'm finished. 
 
 # How to use
  - <b>Comments:</b>
