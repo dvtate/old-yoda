@@ -116,7 +116,7 @@ finalize:
 
 
 // Returns the end of the token, without changing it.
-char *qtok(char *str, char **next, bool isQuoted){
+char *qtok(char *str, char **next){
     char *current = str;
     char *start = str;
 
