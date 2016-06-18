@@ -116,6 +116,8 @@ public:
 
 
 namespace vars {
+	
+	extern UserVar* first_node;
 
   	// the last element on the linked list
   	extern UserVar* lastVar(UserVar* first);
