@@ -7,8 +7,6 @@
 
 namespace vars {
 
-	UserVar* first_node = new UserVar(" ", 0);
-
 
 	UserVar* lastVar(UserVar* first){
 		while (first->next != NULL)
@@ -18,7 +16,7 @@ namespace vars {
 	}
 
 
-	void wipeAll(UserVar* first){
+	void wipeAll(UserVar*& first){
 
 		UserVar* var1, * var2;
 
@@ -38,7 +36,7 @@ namespace vars {
 		}
 
 	}
-
+/*
 	void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], double value){
 
 		UserVar* var = findVar(first, name);
@@ -52,7 +50,7 @@ namespace vars {
 			var->setValue(value);
 
 	}
-
+*/
 	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], CalcValue value){
 
 		UserVar* var = findVar(first, name);
@@ -68,46 +66,47 @@ namespace vars {
 	}
 
 	void removeVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]){
-		UserVar* var = first;
+		// UserVar* var = first;
 
 		// search the linked list for the object
-		while (var != NULL)
-			if (strcmp(var->next->name, name) == 0) {
+		while (first != NULL)
+			if (strcmp(first->next->name, name) == 0) {
 
 				// get object address so it doesn't become unaccessable
-				UserVar* toBeDeleted = var->next;
+				UserVar* toBeDeleted = first->next;
 
 				// replace link
-				var->next = var->next->next;
+				first->next = first->next->next;
 
 				// remove the link
 				delete toBeDeleted;
 
 			} else // keep looking for it
-				var = var->next;
+				first = first->next;
 	}
 
 	UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]){
 
-		UserVar* var = first->next;
+		first = first->next;
 		// search the linked list for the object
-		while (var != NULL)
-			if (strcmp(var->name, name) == 0)
-				return var;
+		while (first != NULL)
+			if (strcmp(first->name, name) == 0)
+				return first;
 			else
-				var = var->next;
+				first = first->next;
 
 		return (UserVar*) NULL;
 	}
 
 	bool varExists(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]){
-		UserVar* var = first->next;
 
-		while (var != NULL)
-			if (strcmp(var->name, name) == 0)
+		first = first->next;
+
+		while (first != NULL)
+			if (strcmp(first->name, name) == 0)
 				return true;
 			else
-				var = var->next;
+				first = first->next;
 
 		return false;
 	}
