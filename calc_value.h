@@ -57,7 +57,7 @@ public:
 		if (type == val2.type) {
 			if (type == NUM && number == val2.number)
 				return true;
-			else if (string == val2.string && type == STR)
+			else if (type == STR && (string == val2.string || strcmp(string,val2.string) == 0))
 				return true;
 			//else if (type == VOID){
 			  	//return true;
