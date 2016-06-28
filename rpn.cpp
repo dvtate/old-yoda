@@ -18,7 +18,7 @@
 #include "utils.h"
 
 
-double ans = 0;
+CalcValue ans = 0.0; // here `0` could be a pointer 
 unsigned int line = 0;
 
 
@@ -26,19 +26,15 @@ unsigned int line = 0;
 
 int main(){
 
-	// display the helper
-	if (line == 0)
-		displayHelp();
-
-// goto's can be evil, but this program is too smalle for this to be an issue.
-main_start_after_help:
 
 	std::stack<CalcValue> mainStack;
 
 	std::cout <<line++ <<">>> ";
 
-	char rpnln[MAX_LEN + 1];
+	// I know... this is really lame...
+	char* rpnln = (char*) malloc(MAX_LEN + 1);
 	std::cin.getline(rpnln, MAX_LEN);
+
 
 	// used for storing the name for user variables
 	char* variableName1 = NULL; // will get used later
@@ -46,15 +42,23 @@ main_start_after_help:
 
 	bool isString = false;
 
-	// get first token from the input
-	char* p = strtok(rpnln, " ");
 
+	// get first token from the input
+	//char* p = strtok(rpnln, " ");
+	char* p = qtok(rpnln, &rpnln);
 	// empty string/whitespace input
 	if (p == NULL)
 		return main();
 
-	while (p != NULL) {
+	char* nextString;
 
+	while (*p) {
+/*
+		nextString = NULL;
+startCheck:
+		if (nextString != NULL)
+			p = nextString;
+*/
 		// char is a binary operator
 		if (((*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '%'
 			|| *p == '|' || *p == '&' || *p == '^' || *p == '>' || *p == '<')
@@ -92,14 +96,14 @@ main_start_after_help:
 				case '%': mainStack.push((int) a % (int) b); break;
 				case '^': mainStack.push((int) a ^ (int) b); break;
 				case '|':
-					if (*(p + 1))
+					if (*(p + 1) != '\0')
 						mainStack.push(a || b);
 					else
 						mainStack.push((int) a | (int) b);
 					break;
 
 				case '&':
-					if (*(p + 1))
+					if (*(p + 1) != '\0')
 						mainStack.push(a && b);
 					else
 						mainStack.push((int) a & (int) b);
@@ -178,7 +182,7 @@ main_start_after_help:
 		// comments
 		else if (*p == '#') {
 			if (mainStack.size() == 0)
-				goto main_start_after_help;
+				return main();
 			break;
 
 		// pi
@@ -211,7 +215,7 @@ main_start_after_help:
 		} else if (strcmp(p, "reset") == 0 ) {
 			ans = line = 0;
 			vars::wipeAll(vars::first_node);
-			goto main_start_after_help;
+			return main();
 
 		// bitwise not operator
 		} else if (*p == '~' && *(p + 1) != '\0')
@@ -232,7 +236,7 @@ main_start_after_help:
 		else if (*p == '$' && *(p + 1) != '\0') { // user must use '$' prefix to access the variables
 
 			if (strlen(p + 1) > USERVAR_NAME_MAXLENGHT) {
-				std::cerr <<"Error: Your variable\'s name is too long.\n" <<std::endl;
+				std::cerr <<"\aERROR: Your variable\'s name is too long.\n" <<std::endl;
 				return main();
 			} else
 				if (vars::varExists(vars::first_node, p + 1)) {
@@ -248,8 +252,15 @@ main_start_after_help:
 						variableName2 = p + 1;
 
 
+		}
+
+		/* delete a variable
+		else if (strcmp(p, "delete") == 0) {
+			std::cout <<"$a deleted\n" <<std::endl;
+			vars::removeVar(vars::first_node, variableName1 ? variableName1 : variableName2);
+
 		// user is defining a function
-		} /*else if (strcmp(p, "@function")) {
+		} else if (strcmp(p, "@function")) {
 
 
 		// user is calling a function
@@ -259,13 +270,20 @@ main_start_after_help:
 
 		// anything else
 		} */
+
+		// it's a string
+
+
+		// user has given a string :D
+		else if (*p == '\"')
+			mainStack.push((p + 1)); // segfault!!!!
 		else {
 			// parse input
 			double number = atof(p);
 
 			// the user is an asshole :T
 			if (number == 0 && *p != '0') {
-				std::cerr <<"\aSYNTAX ERROR\n" <<std::endl;
+				std::cerr <<"\aSYNTAX ERROR: near `" <<p <<"`" <<std::endl;
 				return main();
 
 			// the user has given us a number :D
@@ -273,15 +291,20 @@ main_start_after_help:
 				mainStack.push(number);
 		}
 
+
 		// get next token
-		p = strtok(NULL, " ");
+		p = qtok(rpnln, &rpnln);
 
 	}
 
 
-	if (!mainStack.empty())
-		std::cout <<"\aans " <<(double)(ans = mainStack.top().getNum()) <<" =\n" <<std::endl;
-
+	if (!mainStack.empty()) {
+		ans = mainStack.top();
+		if (ans.type == CalcValue::NUM)
+			std::cout <<"ans " <<ans.getNum() <<" =\n" <<std::endl;
+		else
+			std::cout <<"ans " <<ans.getStr() <<" =\n" <<std::endl;
+	}
 	return main(); //next line...
 
 exit:
