@@ -18,7 +18,7 @@
 #include "utils.h"
 
 
-CalcValue ans = 0.0; // here `0` could be a pointer 
+CalcValue ans = 0.0; // here `0` could be a pointer
 unsigned int line = 0;
 
 
@@ -192,6 +192,16 @@ startCheck:
 		// ans
 		else if (strcmp(p, "ans") == 0) // p == "ans"
 				mainStack.push(ans);
+
+		else if (strcmp(p, "print") == 0 || strcmp(p, "Print") == 0) {
+			CalcValue& val = mainStack.top();
+			if (val.type == CalcValue::NUM)
+				std::cout <<val.getNum();
+			else
+				std::cout <<val.getStr();
+			mainStack.pop();
+
+		}
 		// exit the program
 		else if (*p == 'q' || !strcmp(p, "exit")) // p == "q"
 			goto exit; // exit the program
@@ -240,11 +250,19 @@ startCheck:
 				return main();
 			} else
 				if (vars::varExists(vars::first_node, p + 1)) {
-					mainStack.push(vars::findVar(vars::first_node, p + 1)->getNumber());
+
+					UserVar* var = vars::findVar(vars::first_node, p + 1);
+					if (var->valType == UserVar::NUM)
+						mainStack.push(vars::findVar(vars::first_node, p + 1)->getNumber());
+					else
+						mainStack.push(vars::findVar(vars::first_node, p + 1)->getString());
+
+
 					if (variableName1 == NULL)
 						variableName1 = p + 1;
 					else
 						variableName2 = p + 1;
+
 				} else
 					if (variableName1 == NULL)
 						variableName1 = p + 1;
@@ -253,6 +271,7 @@ startCheck:
 
 
 		}
+
 
 		/* delete a variable
 		else if (strcmp(p, "delete") == 0) {
@@ -301,10 +320,11 @@ startCheck:
 	if (!mainStack.empty()) {
 		ans = mainStack.top();
 		if (ans.type == CalcValue::NUM)
-			std::cout <<"ans " <<ans.getNum() <<" =\n" <<std::endl;
+			std::cout <<"ans " <<ans.getNum() <<" =\n";
 		else
-			std::cout <<"ans " <<ans.getStr() <<" =\n" <<std::endl;
+			std::cout <<"ans " <<ans.getStr() <<" =\n";
 	}
+	std::cout <<std::endl;
 	return main(); //next line...
 
 exit:
