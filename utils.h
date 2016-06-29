@@ -57,8 +57,69 @@ char *unescapeToken(char *token){
     return token;
 }
 
+
 // Returns the end of the token, without changing it.
-char *qtok(char *str, char **next, bool& isQuoted){
+char* qtok(char* str, char** next){
+    char *current = str, *start = str;
+
+  	bool isQuoted = false;
+
+    // Eat beginning whitespace.
+    while (*current && isspace(*current))
+        current++;
+
+    start = current;
+
+    if (*current == '"') {
+
+        isQuoted = true;
+
+        // Quoted token
+        start = current;
+        current++; // Skip the beginning quote.
+        for (;;){
+            // Go until we find a quote or the end of string.
+            while (*current && (*current != '"'))
+                current++;
+            if (!*current) // Reached the end of the string.
+                goto finalize;
+
+            if (*(current - 1) == '\\') {
+                // Escaped quote (keep going)
+                current++;
+                continue;
+            }
+            // Reached the ending quote.
+            goto finalize;
+        }
+    }
+    // Not quoted so run till we see a space.
+    while (*current && !isspace(*current))
+        current++;
+
+finalize:
+
+    if (*current) {
+        // Close token if not closed already.
+        *current = 0;
+        current++;
+        // Eat trailing whitespace.
+        while (*current && isspace(*current))
+            current++;
+    }
+
+    *next = current;
+
+    return unescapeToken(start);
+
+}
+
+/*
+// Returns the end of the token, without changing it.
+char* qtok(char* str, char** next, bool& isQuoted){
+  	if (strlen(str) == 0)
+		return NULL;
+
     char *current = str;
     char *start = str;
 
@@ -77,7 +138,8 @@ char *qtok(char *str, char **next, bool& isQuoted){
         // Quoted token
         current++; // Skip the beginning quote.
         start = current;
-        for (;;){
+
+        for (;;) {
             // Go until we find a quote or the end of string.
             while (*current && (*current != '"'))
                 current++;
@@ -114,63 +176,6 @@ finalize:
 
 }
 
-
-// Returns the end of the token, without changing it.
-char *qtok(char *str, char **next){
-    char *current = str;
-    char *start = str;
-
-  	bool isQuoted = false;
-
-    // Eat beginning whitespace.
-    while (*current && isspace(*current))
-        current++;
-
-    start = current;
-
-    if (*current == '"') {
-
-        isQuoted = true;
-
-        // Quoted token
-        current++; // Skip the beginning quote.
-        start = current;
-        for (;;){
-            // Go until we find a quote or the end of string.
-            while (*current && (*current != '"'))
-                current++;
-            if (!*current) // Reached the end of the string.
-                goto finalize;
-
-            if (*(current - 1) == '\\') {
-                // Escaped quote (keep going)
-                current++;
-                continue;
-            }
-            // Reached the ending quote.
-            goto finalize;
-        }
-    }
-    // Not quoted so run till we see a space.
-    while (*current && !isspace(*current))
-        current++;
-
-finalize:
-
-    if (*current) {
-        // Close token if not closed already.
-        *current = 0;
-        current++;
-        // Eat trailing whitespace.
-        while (*current && isspace(*current))
-            current++;
-    }
-
-    *next = current;
-
-    return unescapeToken(start);
-
-}
-
+*/
 
 #endif
