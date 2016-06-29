@@ -2,6 +2,9 @@
 #define CALC_VALUE_H
 
 #include <cstring>
+#include <cstdlib>
+
+
 
 class CalcValue {
 
@@ -22,7 +25,8 @@ public:
 	}
 
 	CalcValue(const char* val){
-		strcpy(string, val);
+	  	string = (char*) malloc(strlen(val) + 1);
+	  	strcpy(string, val);
 		type = STR;
 	}
 
@@ -49,8 +53,10 @@ public:
 	char* getStr(){
 	  	if (type == STR)
 			return string;
+
 	  	else
 		  	return (char*) NULL;
+
 	}
 
 	bool operator==(const CalcValue& val2){
