@@ -44,8 +44,19 @@ A reverse polish notation interpreter which is laying the frameworks for a scrip
  >>> $b $a =
  ans 4 =
  ```
-
-
+ - <b>Strings:</b>
+  This is a loosely-typed language. Strings are enclosed in double quotes `"` and only need a closing `"` if it would change the meaning without it.
+ ```
+ >>> "closing quote not needed here
+ ans closing quote not needed here =
+ 
+ >>> "hello there" $a = # $a could already be defined as a number
+ ans hello there =
+ 
+ >>> $a print
+ hello there
+ ```
+ 
  - <b>Keywords and Commands:</b>
     * `>>> help` <br/>
       The help command displays a short dialog to help get you started.
@@ -61,6 +72,8 @@ A reverse polish notation interpreter which is laying the frameworks for a scrip
       previous answer, initialized to 0. (access it as you would a variable)
     * `>>> pi` <br/>
       an approximate value for pi (access it as you would `ans`)
+    * `>>> print` <br/>
+      prints the element at the top of the stack
 
 
 # Build and Run
