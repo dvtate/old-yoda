@@ -67,7 +67,6 @@ namespace vars {
 	}
 
 	void removeVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]){
-		// UserVar* var = first;
 
 		// search the linked list for the object
 		while (first != NULL)
@@ -77,9 +76,9 @@ namespace vars {
 				UserVar* toBeDeleted = first->next;
 
 				// replace link
-				first->next = first->next->next;
+				first->next = (first->next->next) ? first->next->next : NULL;
 
-				// remove the link
+				// remove the node
 				delete toBeDeleted;
 
 			} else // keep looking for it
@@ -89,6 +88,7 @@ namespace vars {
 	UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]){
 
 		first = first->next;
+
 		// search the linked list for the object
 		while (first != NULL)
 			if (strcmp(first->name, name) == 0)
