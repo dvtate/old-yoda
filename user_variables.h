@@ -54,7 +54,8 @@ public:
 		  	number = contents.number;
 		} else {
 			valType = STR;
-			string = contents.string;
+	  	  	string = (char*) malloc(strlen(contents.string) + 1);
+		  	strcpy(string, contents.string);
 		}
 	}
 
@@ -107,6 +108,7 @@ public:
 		} else {
 			valType = STR;
 			string = val.string;
+
 		}
 	}
 
