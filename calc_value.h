@@ -5,7 +5,7 @@
 #include <cstdlib>
 
 
-
+/// a temporary value to hold user data in
 class CalcValue {
 
 public:
@@ -25,18 +25,12 @@ public:
 	}
 
 	CalcValue(const char* val){
-	  	string = (char*) malloc(strlen(val) + 1);
-	  	strcpy(string, val);
+		string = (char*) val;
 		type = STR;
 	}
 
-
 	void setValue(const char* str){
-	  	if (type == STR && string != NULL)
-			free(string);
-
-	  	string = (char*) malloc(strlen(str) + 1);
-		strcpy(string, str);
+	  	string = (char*) str;
 		type = STR;
 	}
 
