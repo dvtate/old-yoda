@@ -35,28 +35,8 @@ CalcValue getNextValue(std::stack<CalcValue>& valStack){
     }
 }
 
-// Strips backslashes from quotes
-char *unescapeToken(char *token){
-    char *in = token;
-    char *out = token;
 
-    while (*in) {
-        //assert(in >= out);
-
-        if (in[0] == '\\' && (in[1] == '"' || in[1] == '\'')) {
-            *out = in[1];
-            in += 2;
-        } else {
-            *out = *in;
-            in++;
-        }
-        out++;
-    }
-    *out = 0;
-    return token;
-}
-
-//
+// removes char from string from it's pointer
 static inline void deleteChar(char *word, char *toDelete){
     memmove(toDelete, toDelete + 1, strlen(toDelete));
 }
@@ -87,6 +67,8 @@ char* qtok(char* str, char** next){
             // Go until we find a quote or the end of string.
             while (*current != '\0'  && *current != '"') {
                 lastWasSlash = false;
+                
+                // this if statement contains code that might not be portable...
                 if (*current == '\\') {
                     if (*(current + 1) == 'n') {
                         *current = '\n';
