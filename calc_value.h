@@ -31,9 +31,11 @@ public:
 	}
 
 
-
-
 	void setValue(const char* str){
+	  	if (type == STR && string != NULL)
+			free(string);
+
+	  	string = (char*) malloc(strlen(str) + 1);
 		strcpy(string, str);
 		type = STR;
 	}
