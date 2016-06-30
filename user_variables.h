@@ -80,6 +80,7 @@ public:
 	  	else
 		  	return (void*) NULL;
 	}
+
 	CalcValue getValue(){
 		if (valType == NUM)
 			return CalcValue(number);
@@ -103,10 +104,16 @@ public:
 	}
 	void setValue(CalcValue val){
 	  	if (val.type == CalcValue::NUM) {
+		  	if (valType == STR && string != NULL)
+				free(string);
 			valType = NUM;
 		  	number = val.number;
 		} else {
+			if (valType == STR && string != NULL)
+			  	free(string);
+
 			valType = STR;
+		  	string = (char*) malloc(strlen(val.string) + 1);
 			string = val.string;
 
 		}
