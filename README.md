@@ -83,3 +83,44 @@ https://onedrive.live.com/embed?cid=8C35060E130BADA5&resid=8C35060E130BADA5%2189
 `rpn $ g++ *.cpp -o rpn`
 - Running:
 `rpn $ ./rpn`
+
+
+
+# A (in)complete list of built-in operators and functions:
+ * Mathematical operators:
+  - `+`: add
+  - `-`: subtract
+  - `*`: multiply
+  - `/`: divide
+  - `%`: modulus/remainder
+  - `**` = `pow`: raise arg1 to arg2 power
+  - `sqrt` = `sqr`: square route
+  - `log`, `log10`: base 10 logarithm
+  - `ln`: natural logarithm
+  - `logbase` = `logBase` = `logBASE`: Logarithm of the given base
+  - `sin`,`cos`,`tan`: trigonometric funcitons (radians)
+  - `asin`,`acos`,`atan`: inverse trigonometric funcitons (radians)
+  - `sinh`,`cosh`,`tanh`: hyperbolic trigonometric functions (radians)
+  - `asinh`,`acosh`,`atanh`: inverse hyperbolic trigonometric functions (radians)
+  
+ * Logical operators: (0 is false everything else is true)
+  - `&&`: logical-and
+  - `||`: logical-or
+  - `!`: logical-not
+ 
+ * Compairison operators:
+  - `==`: equals-to
+  - `!=`: not equals-to
+  - `>`: greater than
+  - `<`: less than
+  - `>=`: greater than or equal to
+  - `<=`: less than or equal to
+  
+ * Bitwise operators:
+  - `|`: bitwise-or
+  - `&`: bitwise-and
+  - `^`: bitwise-XOR
+  - `~`: bitwise-not
+  - `<<`: bitshift left
+  - `>>`: bitshift right
+ 
