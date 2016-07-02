@@ -37,18 +37,15 @@ CalcValue getNextValue(std::stack<CalcValue>& valStack){
 
 
 // removes char from string from it's pointer
-static inline void deleteChar(char *word, char *toDelete){
-    memmove(toDelete, toDelete + 1, strlen(toDelete));
-}
+static inline void deleteChar(char *toDelete)
+	{ memmove(toDelete, toDelete + 1, strlen(toDelete)); }
 
 // Returns the end of the token, without changing it.
 char* qtok(char* str, char** next){
-    char *current = str, *start = str;
 
-    bool isQuoted = false;
-    bool lastWasSlash = false;
+	char *current = str, *start = str;
 
-    // Eat beginning whitespace.
+    // skip beginning whitespace.
     while (*current && isspace(*current))
         current++;
 
@@ -56,33 +53,32 @@ char* qtok(char* str, char** next){
 
     if (*current == '"') {
 
-        isQuoted = true;
-
         // Quoted token
         start = current;
         current++; // Skip the beginning quote.
 
+		bool lastWasSlash = false;
 
         for (;;) {
             // Go until we find a quote or the end of string.
             while (*current != '\0'  && *current != '"') {
                 lastWasSlash = false;
-                
+
                 // this if statement contains code that might not be portable...
                 if (*current == '\\') {
                     if (*(current + 1) == 'n') {
                         *current = '\n';
                         *(current + 1) = '\r';
-                        deleteChar(str, current + 1);
+                        deleteChar(current + 1);
                     } else if (*(current + 1) == 'r') {
                         *current = *(current + 1) = '\r';
                         current++;
                     } else if (*(current + 1) == 't') {
                         *current = '\t';
-                        deleteChar(str, current + 1);
+                        deleteChar(current + 1);
                     } else if (*(current + 1) == '\\') {
                         *current = '\\';
-                        deleteChar(str, current + 1);
+                        deleteChar(current + 1);
                         lastWasSlash = true;
                     }
                     //current ++;
