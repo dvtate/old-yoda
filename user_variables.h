@@ -15,32 +15,17 @@ class UserVar {
 public:
 	char name[USERVAR_NAME_MAXLENGHT];
 
-  	enum type {NUM, STR, PTR} valType;
-
-	union {
-		double number;
-		char* string;
-		void* pointer;
-	};
+	CalcValue val;
 
 	UserVar *next;
 
 	UserVar(const char* identifier, double contents):
-		number(contents)
+		val(contents)
 	{
 		next = (UserVar*) NULL;
 
 	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
-	  	valType = NUM;
-	}
-
-	UserVar(const char* identifier, double contents, UserVar* next_node):
-		number(contents)
-	{
-		next = next_node;
-
-	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
-		valType = NUM;
+	  	val.type = CalcValue::NUM;
 	}
 
 	UserVar(const char* identifier, CalcValue contents){
@@ -50,71 +35,56 @@ public:
 	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
 
 	  	if (contents.type == CalcValue::NUM) {
-			valType = NUM;
-		  	number = contents.number;
+			val.type = CalcValue::NUM;
+		  	val.number = contents.number;
 		} else {
-			valType = STR;
-	  	  	string = (char*) malloc(strlen(contents.string) + 1);
-		  	strcpy(string, contents.string);
+			val.type = CalcValue::STR;
+	  	  	val.string = (char*) malloc(strlen(contents.string) + 1);
+		  	strcpy(val.string, contents.string);
 		}
 	}
 
 
-
 	// geting the values
-	double getNumber(){
-		if (valType == NUM)
-			return number;
-	  	else
-			return 0;
-	}
-	char* getString(){
-	  	if (valType == STR)
-			return string;
-	  	else
-		  	return (char*) NULL; // beware of segfaults...
-	}
-	void* getPointer(){
-	  	if (valType == PTR)
-		  	return pointer;
-	  	else
-		  	return (void*) NULL;
-	}
+	double getNumber()
+		{ return val.getNum(); }
 
-	CalcValue getValue(){
-		if (valType == NUM)
-			return CalcValue(number);
+	char* getString()
+		{ return val.getStr(); }
 
-	  	return CalcValue(getString());
+	CalcValue& getValue()
+		{ return val; }
 
-	}
 
 	// changing the values
-	void setValue(double val){
-		number = val;
-	  	valType = NUM;
+	void setValue(double in){
+		val.number = in;
+	  	val.type = CalcValue::NUM;
 	}
-	void setValue(const char* val){
-	  	strcpy(string, val);
-	  	valType = STR;
-	}
-	void setValue(void* val){
-	  	pointer = val;
-		valType = PTR;
-	}
-	void setValue(CalcValue val){
-	  	if (val.type == CalcValue::NUM) {
-		  	if (valType == STR && string != NULL)
-				free(string);
-			valType = NUM;
-		  	number = val.number;
-		} else {
-			if (valType == STR && string != NULL)
-			  	free(string);
 
-			valType = STR;
-		  	string = (char*) malloc(strlen(val.string) + 1);
-			string = val.string;
+	void setValue(const char* in){
+	  	if (val.type == CalcValue::STR && val.string != NULL)
+			  	free(val.string);
+
+	  	val.string = (char*) malloc(strlen(in) + 1);
+	  	strcpy(val.string, in);
+
+	  	val.type = CalcValue::STR;
+	}
+
+	void setValue(CalcValue in){
+	  	if (in.type == CalcValue::NUM) {
+		  	if (val.type == CalcValue::STR && val.string != NULL)
+				free(val.string);
+			val.type = CalcValue::NUM;
+		  	val.number = in.number;
+		} else {
+			if (val.type == CalcValue::STR && val.string != NULL)
+			  	free(val.string);
+
+			val.type = CalcValue::STR;
+		  	val.string = (char*) malloc(strlen(in.string) + 1);
+			strcpy(val.string, in.string);
 
 		}
 	}
