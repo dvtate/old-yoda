@@ -1,3 +1,4 @@
+#include <iostream>
 #include <cstdlib>
 #include <cstring>
 
@@ -11,7 +12,7 @@ namespace vars {
 
 	UserVar* lastVar(UserVar* first){
 		while (first->next != NULL)
-			first++;
+			first = first->next;
 
 		return first;
 	}
@@ -37,21 +38,7 @@ namespace vars {
 		}
 
 	}
-/*
-	void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], double value){
 
-		UserVar* var = findVar(first, name);
-
-		// making a new variable
-		if (var == NULL) {
-			var = new UserVar(name, value);
-			lastVar(first)->next = var;
-
-		} else // changing the value
-			var->setValue(value);
-
-	}
-*/
 	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], CalcValue value){
 
 		UserVar* var = findVar(first, name);
@@ -59,10 +46,11 @@ namespace vars {
 		// making a new variable
 		if (var == NULL) {
 			var = new UserVar(name, value);
-			lastVar(first)->next = var;
-		} else {
+			lastVar(first_node)->next = var;
+
+		// changing the variable's value
+		} else
 			var->setValue(value);
-		}
 
 	}
 
@@ -74,6 +62,7 @@ namespace vars {
 
 				// get object address so it doesn't become unaccessable
 				UserVar* toBeDeleted = first->next;
+
 
 				// replace link
 				first->next = (first->next->next) ? first->next->next : NULL;
