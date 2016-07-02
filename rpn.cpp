@@ -40,9 +40,6 @@ int main(){
 	char* variableName1 = NULL; // will get used later
 	char* variableName2 = NULL;
 
-	bool isString = false;
-
-
 	// get first token from the input
 	//char* p = strtok(rpnln, " ");
 	char* p = qtok(rpnln, &rpnln);
@@ -50,7 +47,7 @@ int main(){
 	if (p == NULL)
 		return main();
 
-	char* nextString;
+//	char* nextString;
 
 	while (*p) {
 /*
@@ -227,16 +224,42 @@ startCheck:
 			vars::wipeAll(vars::first_node);
 			return main();
 
+		// useful for debugging
+		} else if (strcmp(p, "showvars") == 0 || strcmp(p, "vars") == 0 || strcmp(p, "listvars") == 0) {
+			UserVar* var = vars::first_node->next;
+
+			while (var != NULL){
+				if (var->val.type == CalcValue::NUM)
+					std::cout <<"\n $"<<var->name <<" = " <<var->val.getNum() <<std::endl;
+				else
+					std::cout <<"\n $"<<var->name <<" = \"" <<var->val.getStr() <<"\"\n";
+
+				var = var->next;
+			}
+
+		// typeof function
+		} else if (strcmp(p, "typeof") == 0) {
+			if (mainStack.top().type == CalcValue::STR) {
+				mainStack.pop();
+				mainStack.push("string");
+			} else if (mainStack.top().type == CalcValue::NUM) {
+				mainStack.pop();
+				mainStack.push("double precision floating point number");
+			} else {
+				mainStack.pop();
+				mainStack.push("please constact toast27@gmail.com about this...");
+			}
+
 		// bitwise not operator
 		} else if (*p == '~' && *(p + 1) != '\0')
 			mainStack.push(~atoi(p + 1));
 
 		// assignment operator
 		else if (*p == '=' && *(p + 1) == '\0')
-			if (variableName1 != NULL)
-				vars::assignVar(vars::first_node, variableName1, mainStack.top());
-			else if (variableName2 != NULL)
+			if (variableName2 != NULL)
 				vars::assignVar(vars::first_node, variableName2, mainStack.top());
+			else if (variableName1 != NULL)
+				vars::assignVar(vars::first_node, variableName1, mainStack.top());
 			else {
 				std::cerr <<"\aERROR: inappropriate use of assignment operator.\n" <<std::endl;
 				return main();
@@ -245,30 +268,30 @@ startCheck:
 		// variable
 		else if (*p == '$' && *(p + 1) != '\0') { // user must use '$' prefix to access the variables
 
-			if (strlen(p + 1) > USERVAR_NAME_MAXLENGHT) {
+			// here strlen(p) == strlen(p + 1) + 1
+			if (strlen(p) > USERVAR_NAME_MAXLENGHT) {
 				std::cerr <<"\aERROR: Your variable\'s name is too long.\n" <<std::endl;
 				return main();
-			} else
-				if (vars::varExists(vars::first_node, p + 1)) {
+			} else {
 
-					UserVar* var = vars::findVar(vars::first_node, p + 1);
-					if (var->valType == UserVar::NUM)
-						mainStack.push(vars::findVar(vars::first_node, p + 1)->getNumber());
-					else
-						mainStack.push(vars::findVar(vars::first_node, p + 1)->getString());
+				UserVar* var = vars::findVar(vars::first_node, p + 1);
 
+				if (var != NULL) {
 
-					if (variableName1 == NULL)
-						variableName1 = p + 1;
-					else
+					mainStack.push(var->val);
+
+					if (variableName2 == NULL)
 						variableName2 = p + 1;
+					else
+						variableName1 = p + 1;
 
 				} else
-					if (variableName1 == NULL)
-						variableName1 = p + 1;
-					else
+					if (variableName2 == NULL)
 						variableName2 = p + 1;
+					else
+						variableName1 = p + 1;
 
+			}
 
 		}
 
@@ -290,12 +313,9 @@ startCheck:
 		// anything else
 		} */
 
-		// it's a string
-
-
 		// user has given a string :D
 		else if (*p == '\"')
-			mainStack.push((p + 1)); // segfault!!!!
+			mainStack.push((p + 1)); // segfault!
 		else {
 			// parse input
 			double number = atof(p);
@@ -329,7 +349,7 @@ startCheck:
 
 exit:
 //	vars::wipeAll();
-//	delete vars::first;
+	delete vars::first_node;
 
 	exit(EXIT_SUCCESS);
 }
