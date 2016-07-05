@@ -19,6 +19,7 @@
 
 
 CalcValue ans = 0.0; // here `0` could be a pointer
+
 unsigned int line = 0;
 
 
@@ -244,11 +245,15 @@ startCheck:
 				mainStack.push("string");
 			} else if (mainStack.top().type == CalcValue::NUM) {
 				mainStack.pop();
-				mainStack.push("double precision floating point number");
-			} else {
-				mainStack.pop();
-				mainStack.push("please constact toast27@gmail.com about this...");
+				mainStack.push("number/boolean");
 			}
+
+		// system call 
+		} else if (strcmp(p, "syscall") == 0 || strcmp(p, "systemcall") == 0) {
+			if (mainStack.top().type == CalcValue::NUM)
+				system(mainStack.top().getStr());
+			else
+				std::cerr <<"Ummm..." <<std::endl;
 
 		// bitwise not operator
 		} else if (*p == '~' && *(p + 1) != '\0')
@@ -342,10 +347,10 @@ startCheck:
 		if (ans.type == CalcValue::NUM)
 			std::cout <<"ans " <<ans.getNum() <<" =\n";
 		else
-			std::cout <<"ans " <<ans.getStr() <<" =\n";
+			std::cout <<"ans \"" <<ans.getStr() <<"\" =\n";
 	}
 	std::cout <<std::endl;
-	return main(); //next line...
+	return main(); //next line... (infinite loop)
 
 exit:
 //	vars::wipeAll();
