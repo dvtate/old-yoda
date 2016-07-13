@@ -192,16 +192,68 @@ startCheck:
 				mainStack.push(ans);
 
 		else if (strcmp(p, "print") == 0 || strcmp(p, "Print") == 0) {
-			CalcValue& val = mainStack.top();
-			if (val.type == CalcValue::NUM)
-				std::cout <<val.getNum();
-			else
-				std::cout <<val.getStr();
-			mainStack.pop();
+			if (mainStack.empty()) {
+				if (variableName1) {
+					UserVar* var = vars::findVar(vars::first_node, variableName1);
+					if (var != NULL) {
+						if (var->val.type == CalcValue::NUM)
+							std::cout <<var->val.getNum();
+						else
+							std::cout <<var->val.getStr();
+						return main();
+					}
+				}
+				if (variableName2) {
+					UserVar* var = vars::findVar(vars::first_node, variableName2);
+					if (var != NULL) {
+						if (var->val.type == CalcValue::NUM)
+							std::cout <<var->val.getNum();
+						else
+							std::cout <<var->val.getStr();
+						return main();
+					} else
+						std::cout <<std::endl;
+				}
+				std::cout <<std::endl;
+			} else {
+				CalcValue& val = mainStack.top();
+				if (val.type == CalcValue::NUM)
+					std::cout <<val.getNum();
+				else
+					std::cout <<val.getStr();
+				mainStack.pop();
+			}
 
-		}
+
+		} else if (strcmp(p, "input") == 0) {
+			char input[255];
+			std::cin.getline(input, 255);
+			mainStack.push(input);
+		} else if (strcmp(p, "str") == 0) {
+			CalcValue val = getNextValue(mainStack);
+			if (val.type == CalcValue::STR)
+				mainStack.push(val.getStr());
+			else {
+				char str[16];
+				snprintf(str, 15, "%f", val.getNum());
+				mainStack.push(str);
+			}
+
+		} else if (strcmp(p, "num") == 0) {
+			CalcValue val = getNextValue(mainStack);
+			if (val.type == CalcValue::NUM)
+				mainStack.push(val.getNum());
+			else
+				mainStack.push(atof(val.getStr()));
+		} else if (strcmp(p, "int") == 0) {
+			CalcValue val = getNextValue(mainStack);
+			if (val.type == CalcValue::NUM)
+				mainStack.push((int)val.getNum());
+			else
+				mainStack.push((int)atof(val.getStr()));
+
 		// exit the program
-		else if (*p == 'q' || !strcmp(p, "exit")) // p == "q"
+		} else if (*p == 'q' || !strcmp(p, "exit")) // p == "q"
 			goto exit; // exit the program
 
 		// show help
@@ -231,9 +283,9 @@ startCheck:
 
 			while (var != NULL){
 				if (var->val.type == CalcValue::NUM)
-					std::cout <<"\n $"<<var->name <<" = " <<var->val.getNum() <<std::endl;
+					std::cout <<"\n $"<<var->name <<" = " <<var->val.getNum();
 				else
-					std::cout <<"\n $"<<var->name <<" = \"" <<var->val.getStr() <<"\"\n";
+					std::cout <<"\n $"<<var->name <<" = \"" <<var->val.getStr() <<'\"';
 
 				var = var->next;
 			}
@@ -248,9 +300,9 @@ startCheck:
 				mainStack.push("number/boolean");
 			}
 
-		// system call 
+		// system call
 		} else if (strcmp(p, "syscall") == 0 || strcmp(p, "systemcall") == 0) {
-			if (mainStack.top().type == CalcValue::NUM)
+			if (mainStack.top().type == CalcValue::STR)
 				system(mainStack.top().getStr());
 			else
 				std::cerr <<"Ummm..." <<std::endl;
