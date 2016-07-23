@@ -63,7 +63,7 @@ startCheck:
 			p = nextString;
 */
 		// char is a binary operator
-		if (((*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '%'
+		if (((*p == '-' || *p == '*' || *p == '/' || *p == '%'
 			|| *p == '|' || *p == '&' || *p == '^' || *p == '>' || *p == '<')
 			&& *(p + 1) == '\0')
 			|| !strcmp(p, "<<") || !strcmp(p, ">>") || !strcmp(p, "**")
@@ -86,7 +86,6 @@ startCheck:
 			double a = getNextValue(mainStack).getNum();
 
 			switch (*p) {
-				case '+': mainStack.push(a + b); break;
 				case '*':
 					if (*(p + 1) == '*')
 						mainStack.push(pow(a, b));
@@ -131,6 +130,54 @@ startCheck:
 				case 'l': mainStack.push(log10(b) / log10(a)); break;
 				case 'p': mainStack.push(pow(a, b)); break;
 			}
+
+		} else if (*p == '+' ) {
+
+			CalcValue b = getNextValue(mainStack),
+					  a = getNextValue(mainStack);
+
+			if (a.type == CalcValue::STR)
+				if (b.type == CalcValue::STR) {
+					// allocate enough memory for both strings and a null terminator
+					char combined[strlen(a.getStr()) + strlen(b.getStr()) + 1];
+
+					// combine the strings
+					strcpy(combined, a.getStr());
+					strcpy(&combined[strlen(a.getStr())], b.getStr());
+
+					mainStack.push(combined);
+
+				} else { // b is a number
+
+					// convert the double to a string
+					char str[8];
+					snprintf(str, 7, "%g", b.getNum());
+
+					// allocate memory
+					char combined[strlen(a.getStr()) + strlen(str) + 1];
+					// combine them
+					strcpy(combined, a.getStr());
+					strcpy(&combined[strlen(a.getStr())], str);
+
+					mainStack.push(combined);
+				}
+			else
+				if (b.type == CalcValue::STR) {
+
+					// convert the double to a string
+					char str[8];
+					snprintf(str, 7, "%g", a.getNum());
+
+					// allocate memory
+					char combined[strlen(str) + strlen(b.getStr()) + 1];
+					// combine them
+					strcpy(combined, str);
+					strcpy(&combined[strlen(str)], b.getStr());
+
+					mainStack.push(combined);
+
+				} else
+					mainStack.push(a.getNum() + b.getNum());
 
 		} else if (strcmp(p, "==") == 0)
 			mainStack.push(getNextValue(mainStack) == getNextValue(mainStack));
@@ -239,8 +286,8 @@ startCheck:
 			if (val.type == CalcValue::STR)
 				mainStack.push(val.getStr());
 			else {
-				char str[16];
-				snprintf(str, 15, "%f", val.getNum());
+				char str[8];
+				snprintf(str, 7, "%g", val.getNum());
 				mainStack.push(str);
 			}
 
@@ -260,14 +307,12 @@ startCheck:
 		// starting conditional
 		} else if (strcmp(p, "?:") == 0) {
 
-
 			/* REWRITE THIS
-			* - write contents of the conditional to a WriteBuffer object
-			* - run the contents repetedly
-			*...
-			*
-			*
-			*
+			* - if true
+			*	+ write contents of the conditional to a StrStack object
+			* 	+ run the contents
+			* - continue checking for more elseifs on same line as ending :?
+			* - else follows same syntax as elseif but without a condition.
 			*/
 
 			nestedIf++;
