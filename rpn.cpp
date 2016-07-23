@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-
+#include <inttypes.h>
 
 // this is the class used in our stack
 #include "calc_value.h"
@@ -23,6 +23,8 @@ CalcValue ans = 0.0; // here `0` could be a pointer
 unsigned int line = 0;
 
 
+uint16_t nestedIf = 0;
+
 
 
 int main(){
@@ -30,7 +32,10 @@ int main(){
 
 	std::stack<CalcValue> mainStack;
 
-	std::cout <<line++ <<">>> ";
+	if (!nestedIf)
+		std::cout <<line++ <<">>> ";
+
+
 
 	// I know... this is really lame...
 	char* rpnln = (char*) malloc(MAX_LEN + 1);
@@ -42,8 +47,8 @@ int main(){
 	char* variableName2 = NULL;
 
 	// get first token from the input
-	//char* p = strtok(rpnln, " ");
 	char* p = qtok(rpnln, &rpnln);
+
 	// empty string/whitespace input
 	if (p == NULL)
 		return main();
@@ -252,6 +257,46 @@ startCheck:
 			else
 				mainStack.push((int)atof(val.getStr()));
 
+		// starting conditional
+		} else if (strcmp(p, "?:") == 0) {
+
+
+			/* REWRITE THIS
+			* - write contents of the conditional to a WriteBuffer object
+			* - run the contents repetedly
+			*...
+			*
+			*
+			*
+			*/
+
+			nestedIf++;
+			if (mainStack.empty()) {
+				std::cerr <<"\aERROR: if statement with no condition\n" <<std::endl;
+				return main();
+			} else {
+				bool condition = mainStack.top().getNum();
+				emptyStack(mainStack);
+				if (condition)
+					return main();
+				else {
+					while (rpnln[0] != ':' && rpnln[1] != '?') {
+						std::cin.getline(rpnln, MAX_LEN);
+						while (*rpnln == ' ' || *rpnln == '\t')
+							rpnln++;
+					}
+
+					// get next token if there...
+					p = qtok(rpnln, &rpnln);
+				}
+			}
+
+		// ending conditional
+		} else if (strcmp(p, ":?") == 0) {
+			if (!nestedIf)
+				std::cerr <<"\aERROR: `:?` without previous `?:`\n" <<std::endl;
+			else
+				nestedIf--;
 		// exit the program
 		} else if (*p == 'q' || !strcmp(p, "exit")) // p == "q"
 			goto exit; // exit the program
@@ -300,7 +345,7 @@ startCheck:
 				mainStack.push("number/boolean");
 			}
 
-		// system call
+		// system call (problem: this conflicts with the current strategy for handling if statements.....)
 		} else if (strcmp(p, "syscall") == 0 || strcmp(p, "systemcall") == 0) {
 			if (mainStack.top().type == CalcValue::STR)
 				system(mainStack.top().getStr());
@@ -394,14 +439,14 @@ startCheck:
 	}
 
 
-	if (!mainStack.empty()) {
+	if (!mainStack.empty() && !nestedIf) {
 		ans = mainStack.top();
 		if (ans.type == CalcValue::NUM)
 			std::cout <<"ans " <<ans.getNum() <<" =\n";
 		else
 			std::cout <<"ans \"" <<ans.getStr() <<"\" =\n";
 	}
-	std::cout <<std::endl;
+
 	return main(); //next line... (infinite loop)
 
 exit:
