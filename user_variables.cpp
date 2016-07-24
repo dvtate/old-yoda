@@ -8,7 +8,7 @@
 
 namespace vars {
 	
-	UserVar* first_node = new UserVar(" ", 0);
+	UserVar* first_node = new UserVar(" ", 0.0);
 
 	UserVar* lastVar(UserVar* first){
 		while (first->next != NULL)
