@@ -17,19 +17,28 @@ public:
 		char* string;
 	};
 
-	CalcValue(){}
+  	CalcValue(){}
 
   	CalcValue (double val){
 		number = val;
 		type = NUM;
 	}
 
-	CalcValue(const char* val){
-		string = (char*) val;
+	CalcValue(const char* str){
+		string = (char*) malloc(strlen(str) + 1);
+
+		// write the string to the buffer
+		strcpy(string, str);
 		type = STR;
 	}
 
 	void setValue(const char* str){
+		string = (char*) malloc(strlen(str) + 1);
+
+		// write the string to the buffer
+		strcpy(string, str);
+
+
 	  	string = (char*) str;
 		type = STR;
 	}
@@ -49,10 +58,8 @@ public:
 	char* getStr(){
 	  	if (type == STR)
 			return string;
-
 	  	else
 		  	return (char*) NULL;
-
 	}
 
 	bool operator==(const CalcValue& val2){
@@ -61,8 +68,6 @@ public:
 				return true;
 			else if (type == STR && (string == val2.string || strcmp(string,val2.string) == 0))
 				return true;
-			//else if (type == VOID){
-			  	//return true;
 		}
 	  	return false;
 	}
