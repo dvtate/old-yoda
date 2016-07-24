@@ -18,6 +18,14 @@
 #include "utils.h"
 
 
+/*This file is about to go through the biggest rewrite I've ever done:
+* - main will take in cmdline options for the name of the file to run
+*
+*
+*
+*
+*/
+
 CalcValue ans = 0.0; // here `0` could be a pointer
 
 unsigned int line = 0;
@@ -317,7 +325,7 @@ startCheck:
 
 			nestedIf++;
 			if (mainStack.empty()) {
-				std::cerr <<"\aERROR: if statement with no condition\n" <<std::endl;
+				std::cerr <<"\aERROR: conditional with no condition. (my fault, will change)\n" <<std::endl;
 				return main();
 			} else {
 				bool condition = mainStack.top().getNum();
@@ -443,11 +451,13 @@ startCheck:
 		}
 
 
-		/* delete a variable
+		/*delete a variable
 		else if (strcmp(p, "delete") == 0) {
 			std::cout <<"$a deleted\n" <<std::endl;
 			vars::removeVar(vars::first_node, variableName1 ? variableName1 : variableName2);
+		}
 
+		* Functions haven't been implemented yet
 		// user is defining a function
 		} else if (strcmp(p, "@function")) {
 
