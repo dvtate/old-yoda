@@ -64,7 +64,6 @@ char* qtok(char* str, char** next){
             while (*current != '\0'  && *current != '"') {
                 lastWasSlash = false;
 
-                // this if statement contains code that might not be portable...
                 if (*current == '\\') {
                     if (*(current + 1) == 'n') {
                         *current = '\n';
@@ -73,6 +72,12 @@ char* qtok(char* str, char** next){
                     } else if (*(current + 1) == 'r') {
                         *current = *(current + 1) = '\r';
                         current++;
+                    } else if (*(current + 1) == 't') {
+                        *current = '\t';
+                        deleteChar(current + 1);
+                    } else if (*(current + 1) == 'a') {
+                        *current = '\t';
+                        deleteChar(current + 1);
                     } else if (*(current + 1) == 't') {
                         *current = '\t';
                         deleteChar(current + 1);
@@ -127,5 +132,10 @@ finalize:
 
 }
 
+template <class T>
+inline void emptyStack(std::stack<T>& stk){
+  while (!stk.empty())
+	stk.pop();
+}
 
 #endif
