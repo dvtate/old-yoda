@@ -20,7 +20,7 @@
 
 /*This file is about to go through the biggest rewrite I've ever done:
 * - main will take in cmdline options for the name of the file to run
-*
+* - if none are given then it will go to the interactive shell (currently the only option)
 *
 *
 *
@@ -30,7 +30,7 @@ CalcValue ans = 0.0; // here `0` could be a pointer
 
 unsigned int line = 0;
 
-
+// this will get removed in the rewrite...
 uint16_t nestedIf = 0;
 
 
@@ -46,8 +46,22 @@ int main(){
 
 
 	// I know... this is really lame...
-	char* rpnln = (char*) malloc(MAX_LEN + 1);
-	std::cin.getline(rpnln, MAX_LEN);
+	//char* rpnln = (char*) malloc(MAX_LEN + 1);
+
+
+	char* rpnln = (char*) malloc(256);
+	size_t lineLen = 256;
+
+	if (getline(&rpnln, &lineLen, stdin) == -1) {
+		std::cerr <<"\aERROR: Input failed...\n" <<std::endl;
+		return main();
+	}
+
+	// I need a copy of it to call free() on later.
+	char* rpnln_head = rpnln;
+
+	//std::cin.getline(rpnln, MAX_LEN);
+
 
 
 	// used for storing the name for user variables
@@ -63,13 +77,15 @@ int main(){
 
 //	char* nextString;
 
-	while (*p) {
-/*
+	while (p != NULL && *p != '\0') {
+
+		/*
 		nextString = NULL;
 startCheck:
 		if (nextString != NULL)
 			p = nextString;
-*/
+		*/
+
 		// char is a binary operator
 		if (((*p == '-' || *p == '*' || *p == '/' || *p == '%'
 			|| *p == '|' || *p == '&' || *p == '^' || *p == '>' || *p == '<')
@@ -81,12 +97,21 @@ startCheck:
 			|| !strcmp(p, "pow") // for those who dont like "**"
 		) {
 
+			if (mainStack.empty()) {
+				std::cerr <<"\aERROR: Not enough data to satisfy operator." <<std::endl;
+				return main();
+			}
 			if (mainStack.top().type != CalcValue::NUM) {
 				std::cerr <<"ERROR: incompatible data-types!";
 				return main();
 			}
+
 			double b = getNextValue(mainStack).getNum();
 
+			if (mainStack.empty()) {
+				std::cerr <<"\aERROR: Not enough data to satisfy operator." <<std::endl;
+				return main();
+			}
 			if (mainStack.top().type != CalcValue::NUM) {
 				std::cerr <<"ERROR: incompatible data-types!";
 				return main();
@@ -106,10 +131,10 @@ startCheck:
 				case '%': mainStack.push((int) a % (int) b); break;
 				case '^': mainStack.push((int) a ^ (int) b); break;
 				case '|':
-					if (*(p + 1) != '\0')
-						mainStack.push(a || b);
-					else
+					if (*(p + 1) == '\0') // bitwise
 						mainStack.push((int) a | (int) b);
+					else // logical
+						mainStack.push(a || b);
 					break;
 
 				case '&':
@@ -169,6 +194,7 @@ startCheck:
 
 					mainStack.push(combined);
 				}
+
 			else
 				if (b.type == CalcValue::STR) {
 
@@ -251,7 +277,7 @@ startCheck:
 		else if (strcmp(p, "ans") == 0) // p == "ans"
 				mainStack.push(ans);
 
-		else if (strcmp(p, "print") == 0 || strcmp(p, "Print") == 0) {
+		else if (strcmp(p, "print") == 0) {
 			if (mainStack.empty()) {
 				if (variableName1) {
 					UserVar* var = vars::findVar(vars::first_node, variableName1);
@@ -274,6 +300,7 @@ startCheck:
 					} else
 						std::cout <<std::endl;
 				}
+				// remove for file-based interpreter...
 				std::cout <<std::endl;
 			} else {
 				CalcValue& val = mainStack.top();
@@ -282,13 +309,20 @@ startCheck:
 				else
 					std::cout <<val.getStr();
 				mainStack.pop();
+
+				// remove for file-based interpreter...
+				std::cout <<std::endl;
+
 			}
 
 
+		// user input
 		} else if (strcmp(p, "input") == 0) {
 			char input[255];
 			std::cin.getline(input, 255);
 			mainStack.push(input);
+
+		// convert to string
 		} else if (strcmp(p, "str") == 0) {
 			CalcValue val = getNextValue(mainStack);
 			if (val.type == CalcValue::STR)
@@ -299,18 +333,21 @@ startCheck:
 				mainStack.push(str);
 			}
 
+		// convert to number
 		} else if (strcmp(p, "num") == 0) {
 			CalcValue val = getNextValue(mainStack);
 			if (val.type == CalcValue::NUM)
 				mainStack.push(val.getNum());
 			else
 				mainStack.push(atof(val.getStr()));
+
+		// convert to an integer
 		} else if (strcmp(p, "int") == 0) {
 			CalcValue val = getNextValue(mainStack);
 			if (val.type == CalcValue::NUM)
-				mainStack.push((int)val.getNum());
+				mainStack.push(floor(val.getNum()));
 			else
-				mainStack.push((int)atof(val.getStr()));
+				mainStack.push(atoi(val.getStr()));
 
 		// starting conditional
 		} else if (strcmp(p, "?:") == 0) {
@@ -321,27 +358,43 @@ startCheck:
 			* 	+ run the contents
 			* - continue checking for more elseifs on same line as ending :?
 			* - else follows same syntax as elseif but without a condition.
+			* - else without previous if = multi-line comment (contemplating the security of this...)
 			*/
 
 			nestedIf++;
-			if (mainStack.empty()) {
-				std::cerr <<"\aERROR: conditional with no condition. (my fault, will change)\n" <<std::endl;
+
+			bool condition = !mainStack.empty() && mainStack.top().getNum();
+
+			//emptyStack(mainStack); // is this really desired?
+
+			if (condition) // change this...
 				return main();
-			} else {
-				bool condition = mainStack.top().getNum();
-				emptyStack(mainStack);
-				if (condition)
-					return main();
-				else {
-					while (rpnln[0] != ':' && rpnln[1] != '?') {
-						std::cin.getline(rpnln, MAX_LEN);
-						while (*rpnln == ' ' || *rpnln == '\t')
-							rpnln++;
+			else {
+elseif:
+				if ((rpnln = strstr(rpnln, ":?")) != NULL)
+					goto next_token;
+
+				do {
+
+					if (getline(&rpnln, &lineLen, stdin) == -1) {
+						std::cerr <<"\aERROR: Input failed...\n" <<std::endl;
+						return main();
 					}
 
-					// get next token if there...
-					p = qtok(rpnln, &rpnln);
-				}
+					while (isspace(*rpnln))
+						rpnln++;
+
+				} while ((rpnln[0] != ':' || rpnln[0] != '\0') && rpnln[1] != '?');
+
+				nestedIf--;
+
+				if ((rpnln = strstr(rpnln, "?:")) != NULL)
+					goto elseif;
+
+				// get next token if there...
+
+				goto next_token;
+
 			}
 
 		// ending conditional
@@ -388,6 +441,8 @@ startCheck:
 				var = var->next;
 			}
 
+			std::cout <<std::endl;
+
 		// typeof function
 		} else if (strcmp(p, "typeof") == 0) {
 			if (mainStack.top().type == CalcValue::STR) {
@@ -423,12 +478,6 @@ startCheck:
 		// variable
 		else if (*p == '$' && *(p + 1) != '\0') { // user must use '$' prefix to access the variables
 
-			// here strlen(p) == strlen(p + 1) + 1
-			if (strlen(p) > USERVAR_NAME_MAXLENGHT) {
-				std::cerr <<"\aERROR: Your variable\'s name is too long.\n" <<std::endl;
-				return main();
-			} else {
-
 				UserVar* var = vars::findVar(vars::first_node, p + 1);
 
 				if (var != NULL) {
@@ -446,10 +495,10 @@ startCheck:
 					else
 						variableName1 = p + 1;
 
-			}
-
 		}
-
+		else if (strcmp(p, "segfault") == 0)
+			for (uint8_t i = 0; i < 10; i++)
+				std::cout <<getNextValue(mainStack).getNum() <<std::endl;
 
 		/*delete a variable
 		else if (strcmp(p, "delete") == 0) {
@@ -472,7 +521,7 @@ startCheck:
 
 		// user has given a string :D
 		else if (*p == '\"')
-			mainStack.push((p + 1)); // segfault!
+			mainStack.push((p + 1)); // segfault?
 		else {
 			// parse input
 			double number = atof(p);
@@ -485,14 +534,18 @@ startCheck:
 			// the user has given us a number :D
 			} else
 				mainStack.push(number);
+
 		}
 
+next_token:
 
 		// get next token
 		p = qtok(rpnln, &rpnln);
 
 	}
 
+	// prevent memory leaks...
+	free(rpnln_head);
 
 	if (!mainStack.empty() && !nestedIf) {
 		ans = mainStack.top();
