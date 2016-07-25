@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
+#include <inttypes.h>
 
 #include "calc_value.h"
 
@@ -39,7 +40,7 @@ namespace vars {
 
 	}
 
-	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], CalcValue value){
+	void assignVar(UserVar* first, char* name, CalcValue value){
 
 		UserVar* var = findVar(first, name);
 
@@ -54,7 +55,7 @@ namespace vars {
 
 	}
 
-	void removeVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]){
+	void removeVar(UserVar* first, char* name){
 
 		// search the linked list for the object
 		while (first != NULL)
@@ -72,23 +73,27 @@ namespace vars {
 
 			} else // keep looking for it
 				first = first->next;
+
 	}
 
-	UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]){
+	UserVar* findVar(UserVar* first, char* name){
 
 		first = first->next;
 
+		register uint8_t len = strlen(name) + 1;
+		//uint8_t* plen = &len;
 		// search the linked list for the object
 		while (first != NULL)
-			if (strcmp(first->name, name) == 0)
+			if (strncmp(first->name, name, len) == 0)
 				return first;
 			else
 				first = first->next;
 
+
 		return (UserVar*) NULL;
 	}
 
-	bool varExists(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]){
+	bool varExists(UserVar* first, char* name){
 
 		first = first->next;
 
