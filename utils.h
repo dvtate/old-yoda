@@ -24,9 +24,9 @@ replace one number with `ans` as in the following example:\n \
 
 
 CalcValue getNextValue(std::stack<CalcValue>& valStack){
-    CalcValue topVal;
-    if (!valStack.empty()) {
-        topVal = valStack.top();
+
+  	if (!valStack.empty()) {
+		CalcValue topVal = valStack.top();
         valStack.pop();
         return topVal;
     } else {
@@ -36,23 +36,26 @@ CalcValue getNextValue(std::stack<CalcValue>& valStack){
 }
 
 
+
 // removes char from string from it's pointer
+// this is extremely inefficient...
 static inline void deleteChar(char *toDelete)
 	{ memmove(toDelete, toDelete + 1, strlen(toDelete)); }
 
-// Returns the end of the token, without changing it.
+// Returns the start of the token/string-constant
+// manages escape-sequences within string-constants
 char* qtok(char* str, char** next){
-
+	if (str == NULL)
+		return NULL;
 	char *current = str, *start = str;
 
     // skip beginning whitespace.
-    while (*current && isspace(*current))
+    while (*current != '\0' && isspace(*current))
         current++;
 
     start = current;
 
     if (*current == '"') {
-
         // Quoted token
         start = current;
         current++; // Skip the beginning quote.
@@ -86,7 +89,7 @@ char* qtok(char* str, char** next){
                         deleteChar(current + 1);
                         lastWasSlash = true;
                     }
-                    //current ++;
+                    //current++;
                 }
                 current++;
 
@@ -134,8 +137,15 @@ finalize:
 
 template <class T>
 inline void emptyStack(std::stack<T>& stk){
-  while (!stk.empty())
-	stk.pop();
+	while (!stk.empty())
+		stk.pop();
+}
+
+inline char* skipSpaces(char* p){
+	while (isspace(*p))
+		p++;
+
+	return p;
 }
 
 #endif
