@@ -6,6 +6,7 @@
 
 #include "calc_value.h"
 
+// variable names longer than 20chars will be called by their first 19 chars
 #define USERVAR_NAME_MAXLENGHT 20
 
 
@@ -24,7 +25,7 @@ public:
 	{
 		next = (UserVar*) NULL;
 
-	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
+	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT - 1);
 	  	val.type = CalcValue::NUM;
 	}
 
@@ -58,6 +59,7 @@ public:
 
 	// changing the values
 	void setValue(double in){
+
 		val.number = in;
 	  	val.type = CalcValue::NUM;
 	}
