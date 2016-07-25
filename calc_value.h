@@ -10,14 +10,15 @@ class CalcValue {
 
 public:
 
-	enum type { NUM, STR } type;
+	enum { NUM, STR } type;
 
 	union {
 		double number;
 		char* string;
 	};
 
-  	CalcValue(){}
+	CalcValue(){}
+
 
   	CalcValue (double val){
 		number = val;
@@ -25,25 +26,32 @@ public:
 	}
 
 	CalcValue(const char* str){
-		string = (char*) malloc(strlen(str) + 1);
+		// allocate memory for the string
+	  	string = (char*) malloc(strlen(str) + 1);
 
 		// write the string to the buffer
 		strcpy(string, str);
 		type = STR;
 	}
 
+	// memory-leak solved :D
+/*	~CalcValue(){
+		if (type == STR)
+			free(string);
+	}
+*/
 	void setValue(const char* str){
 		string = (char*) malloc(strlen(str) + 1);
 
 		// write the string to the buffer
 		strcpy(string, str);
 
-
-	  	string = (char*) str;
 		type = STR;
 	}
 
 	void setValue(double val){
+		if (type == STR)
+			free(string);
 		number = val;
 		type = NUM;
 	}
