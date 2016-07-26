@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stack>
+#include <queue>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -40,6 +41,7 @@ int main(){
 
 	std::stack<CalcValue> mainStack;
 
+
 	if (!nestedIf)
 		std::cout <<line++ <<">>> ";
 
@@ -64,9 +66,8 @@ int main(){
 
 
 
-	// used for storing the name for user variables
-	char* variableName1 = NULL; // will get used later
-	char* variableName2 = NULL;
+	// used for storing the name for user variables on a line by line basis
+	std::queue<char*> varNames;
 
 	// get first token from the input
 	char* p = qtok(rpnln, &rpnln);
@@ -279,27 +280,21 @@ startCheck:
 
 		else if (strcmp(p, "print") == 0) {
 			if (mainStack.empty()) {
-				if (variableName1) {
-					UserVar* var = vars::findVar(vars::first_node, variableName1);
+
+				if (!varNames.empty()) {
+					UserVar* var = vars::findVar(vars::first_node, varNames.front());
+					varNames.pop();
+
 					if (var != NULL) {
 						if (var->val.type == CalcValue::NUM)
-							std::cout <<var->val.getNum();
+							std::cout <<(var->val.getNum());
 						else
-							std::cout <<var->val.getStr();
+							std::cout <<(var->val.getStr());
 						return main();
 					}
+
 				}
-				if (variableName2) {
-					UserVar* var = vars::findVar(vars::first_node, variableName2);
-					if (var != NULL) {
-						if (var->val.type == CalcValue::NUM)
-							std::cout <<var->val.getNum();
-						else
-							std::cout <<var->val.getStr();
-						return main();
-					} else
-						std::cout <<std::endl;
-				}
+
 				// remove for file-based interpreter...
 				std::cout <<std::endl;
 			} else {
@@ -403,6 +398,10 @@ elseif:
 				std::cerr <<"\aERROR: `:?` without previous `?:`\n" <<std::endl;
 			else
 				nestedIf--;
+
+		} else if (strcmp(p, "nestedif") == 0) {
+			std::cout <<nestedIf <<std::endl;
+
 		// exit the program
 		} else if (*p == 'q' || !strcmp(p, "exit")) // p == "q"
 			goto exit; // exit the program
@@ -424,7 +423,7 @@ elseif:
 
 		// essentially restarts the program (don't display help)
 		} else if (strcmp(p, "reset") == 0 ) {
-			ans = line = 0;
+			ans = line = nestedIf = 0;
 			vars::wipeAll(vars::first_node);
 			return main();
 
@@ -432,16 +431,15 @@ elseif:
 		} else if (strcmp(p, "showvars") == 0 || strcmp(p, "vars") == 0 || strcmp(p, "listvars") == 0) {
 			UserVar* var = vars::first_node->next;
 
-			while (var != NULL){
+			while (var != NULL) {
 				if (var->val.type == CalcValue::NUM)
-					std::cout <<"\n $"<<var->name <<" = " <<var->val.getNum();
+					std::cout <<var <<": $"<<var->name <<' ' <<var->val.getNum() <<" = \n";
 				else
-					std::cout <<"\n $"<<var->name <<" = \"" <<var->val.getStr() <<'\"';
+					std::cout <<var <<": $"<<var->name <<" \"" <<var->val.getStr() <<"\" = \n";
 
 				var = var->next;
 			}
 
-			std::cout <<std::endl;
 
 		// typeof function
 		} else if (strcmp(p, "typeof") == 0) {
@@ -466,11 +464,31 @@ elseif:
 
 		// assignment operator
 		else if (*p == '=' && *(p + 1) == '\0')
-			if (variableName2 != NULL)
-				vars::assignVar(vars::first_node, variableName2, mainStack.top());
-			else if (variableName1 != NULL)
-				vars::assignVar(vars::first_node, variableName1, mainStack.top());
-			else {
+			if (!varNames.empty()) {
+
+				UserVar* var = vars::findVar(vars::first_node, varNames.front());
+
+
+				// making a new variable
+				if (var == NULL) {
+					var = new UserVar(varNames.front(), mainStack.top());
+					vars::lastVar(vars::first_node)->next = var;
+
+				// changing the variable's value
+				} else {
+					if (mainStack.top() == var->val) { // 6 $a =
+						mainStack.pop();
+						var->setValue(mainStack.top());
+					} else							   // $a 6 =
+						var->setValue(mainStack.top());
+
+				}
+
+				varNames.pop();
+
+
+
+			} else {
 				std::cerr <<"\aERROR: inappropriate use of assignment operator.\n" <<std::endl;
 				return main();
 			}
@@ -484,16 +502,9 @@ elseif:
 
 					mainStack.push(var->val);
 
-					if (variableName2 == NULL)
-						variableName2 = p + 1;
-					else
-						variableName1 = p + 1;
-
+					varNames.push(p + 1);
 				} else
-					if (variableName2 == NULL)
-						variableName2 = p + 1;
-					else
-						variableName1 = p + 1;
+					varNames.push(p + 1);
 
 		}
 		else if (strcmp(p, "segfault") == 0)
@@ -503,7 +514,8 @@ elseif:
 		/*delete a variable
 		else if (strcmp(p, "delete") == 0) {
 			std::cout <<"$a deleted\n" <<std::endl;
-			vars::removeVar(vars::first_node, variableName1 ? variableName1 : variableName2);
+			vars::removeVar(vars::first_node, varNames.front());
+			varNames.pop();
 		}
 
 		* Functions haven't been implemented yet
