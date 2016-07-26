@@ -48,14 +48,31 @@ A reverse polish notation interpreter which is laying the frameworks for a scrip
   This is a loosely-typed language. Strings are enclosed in double quotes `"` and only need a closing `"` if it would change the meaning without it.
  ```
  >>> "closing quote not needed here
- ans closing quote not needed here =
+ ans "closing quote not needed here" =
  
- >>> "hello there" $a = # $a could already be defined as a number
- ans hello there =
+ >>> "hello " "there" + $a = # notice that the `+` operator is overloaded
+ ans "hello there" =
  
- >>> $a print
+ >>> $a print 
  hello there
  ```
+ - <b>Conditionals:</b>
+  Sometimes code should only run under certain conditions. Conditionals are initiated after a boolean with a `?:` and are ended with a `:?`. An empty conditional can also be used as a multi-line comment. Currently conditionals aren't fully implemented.
+```
+>>> # prompt the user for the day of the week and assign it to $day
+>>> "What day of the week is it?" print     $day input =  
+What day of the week is it? tuesday
+ans "tuesday" =
+>>> $day "monday" == ?:                 # if today is monday 
+    "I hate mondays...\n" print         # so true
+:? $day "friday" == ?:                  # else if today is friday
+    "Gotta get down on friday!\n" print # I hate that song
+:? ?:                                   # else
+    "Thanks!\n" print 
+:?
+Thanks!
+>>>
+```
  
  - <b>Keywords and Commands:</b>
     * `>>> help` <br/>
