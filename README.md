@@ -61,7 +61,7 @@ A reverse polish notation interpreter which is laying the frameworks for a scrip
     * `>>> help` <br/>
       The help command displays a short dialog to help get you started.
     *`>>> clear` <br/>
-      clears the terminal
+      clears the terminal (using a system call (suports 3 major operating systems))
     * `>>> reset` <br/>
       resets the line numbering and variables
     * `>>> exit` <br/>
@@ -74,7 +74,20 @@ A reverse polish notation interpreter which is laying the frameworks for a scrip
       an approximate value for pi (access it as you would `ans`)
     * `>>> print` <br/>
       prints the element at the top of the stack
-
+    * `>>> input` <br/>
+      returns user input as a string
+    * `>>> str` <br/>
+      converts a number to a string (or passes a string)
+    * `>>> num` <br/>
+      converts a string to a number (or passes a number)
+    * `>>> int` <br/>
+      converts a string or a number to an integer.
+    * `>>> vars` = `>>> listvars` <br/>
+      prints the status of all the variables (useful for debugging)
+    * `>>> typeof`
+      returns the type of the given variable or constant
+    * `>>> syscall`
+      calls `system()` on the given string.
 
 # Build and Run
 If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>warning:</b> it's old). <b>Warning</b>, I cross-compiled this on Linux and haven't tested it on a genuine windows box yet, so there could be errors.<br/> <h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o rpn.exe</pre></h6>
@@ -86,9 +99,9 @@ https://onedrive.live.com/embed?cid=8C35060E130BADA5&resid=8C35060E130BADA5%2189
 
 
 
-# A (in)complete list of built-in operators and functions:
+# A incomplete list of built-in operators and functions:
  * Mathematical operators:
-  - `+`: add
+  - `+`: add (also concatenates when one or more of the arguments is a string)
   - `-`: subtract
   - `*`: multiply
   - `/`: divide
@@ -107,6 +120,7 @@ https://onedrive.live.com/embed?cid=8C35060E130BADA5&resid=8C35060E130BADA5%2189
   - `&&`: logical-and
   - `||`: logical-or
   - `!`: logical-not
+  - `!=`: logical-XOR
  
  * Compairison operators:
   - `==`: equals-to
