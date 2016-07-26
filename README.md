@@ -108,7 +108,7 @@ Thanks!
 
 # Build and Run
 If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>warning:</b> it's old). <b>Warning</b>, I cross-compiled this on Linux and haven't tested it on a genuine windows box yet, so there could be errors.<br/> <h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o rpn.exe</pre></h6>
-https://onedrive.live.com/embed?cid=8C35060E130BADA5&resid=8C35060E130BADA5%2189012&authkey=AJWR9GRQXYOBSqQ
+<i>Windows binary removed because it is obsolete (will make another later)</i>
 - Compiling:
 `rpn $ g++ *.cpp -o rpn`
 - Running:
