@@ -101,9 +101,9 @@ Thanks!
       converts a string or a number to an integer.
     * `>>> vars` = `>>> listvars` <br/>
       prints the status of all the variables (useful for debugging)
-    * `>>> typeof`
+    * `>>> typeof`<br/>
       returns the type of the given variable or constant
-    * `>>> syscall`
+    * `>>> syscall`<br/>
       calls `system()` on the given string.
 
 # Build and Run
