@@ -496,6 +496,16 @@ elseif:
 		// anything else
 		} */
 
+
+		// clear the stack
+		else if  (strcmp(p, "...") == 0)
+			emptyStack(mainStack);
+
+		// pop the top of the stack
+		else if  (strcmp(p, "!!") == 0)
+			emptyStack(mainStack);
+
+
 		// user has given a string :D
 		else if (*p == '\"')
 			mainStack.push((p + 1)); // segfault?

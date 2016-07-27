@@ -50,8 +50,14 @@ int main(int argc, char** argv){
 		UserVar* first_node = new UserVar(" ", 0.0);
 		bool showErrors = true;
 
+
+		std::stack<CalcValue> mainStack;
+
+		// used for storing the name for user variables on a line by line basis
+		std::queue<char*> varNames;
+
 		for (;;)
-			runShell(first_node, showErrors);
+			runShell(first_node, showErrors, mainStack, varNames);
 
 
 	// hit 'em up wit dat version info
@@ -76,9 +82,8 @@ There is NO warranty; not even MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPO
 			std::cerr <<*argv <<": could not open file \'" <<argv[1] <<'\'' <<std::endl;
 			return 1;
 		} else {
-//			UserVar* first_node = new UserVar(" ", 0.0);
-//			bool showErrors = true;
-
+			bool showErrors = true;
+			runFile(program, showErrors);
 		}
 
 	}
