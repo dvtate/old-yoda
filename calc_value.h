@@ -25,6 +25,7 @@ public:
 		type = NUM;
 	}
 
+
 	CalcValue(const char* str){
 		// allocate memory for the string
 	  	string = (char*) malloc(strlen(str) + 1);
@@ -34,12 +35,12 @@ public:
 		type = STR;
 	}
 
-	// memory-leak solved :D
-/*	~CalcValue(){
+	// this causes the core to get dumped (Q.Q)
+	/*~CalcValue(){
 		if (type == STR)
 			free(string);
-	}
-*/
+	}*/
+
 	void setValue(const char* str){
 		string = (char*) malloc(strlen(str) + 1);
 

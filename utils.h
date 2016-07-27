@@ -10,16 +10,15 @@
 #include <stack>
 #include <cstring>
 
-extern int main();
+extern int main(int, char**);
 
+extern int argc_cpy;
+extern char** argv_cpy;
 
 
 inline void displayHelp(){
-    std::cout <<"\n\t\tRPN Calculator\nPlace the operator after its two operands. \
-Here is an example:\n > 1 1 + \n ans = 2\n\nTo use the previous answer \
-replace one number with `ans` as in the following example:\n \
-> ans\n ans = 2\n\nWhen you are finished, type `q` or `exit` to exit the program.\n"
-              <<std::endl;
+    std::cout <<"If this is your first time using this language, you should check\
+the README on this project's github page. https://github.com/dvtate/rpn" <<std::endl;
 }
 
 
@@ -31,7 +30,7 @@ CalcValue getNextValue(std::stack<CalcValue>& valStack){
         return topVal;
     } else {
         std::cerr <<"\aERROR: not enough data to satisfy operator.\n" <<std::endl;
-        return main();
+		return main(argc_cpy, argv_cpy);
     }
 }
 
@@ -147,5 +146,6 @@ inline char* skipSpaces(char* p){
 
 	return p;
 }
+
 
 #endif

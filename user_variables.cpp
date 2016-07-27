@@ -80,8 +80,8 @@ namespace vars {
 
 		first = first->next;
 
-		register uint8_t len = strlen(name) + 1;
-		//uint8_t* plen = &len;
+		uint8_t len = strlen(name) + 1;
+
 		// search the linked list for the object
 		while (first != NULL)
 			if (strncmp(first->name, name, len) == 0)
