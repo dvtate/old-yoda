@@ -503,7 +503,7 @@ elseif:
 
 		// pop the top of the stack
 		else if  (strcmp(p, "!!") == 0)
-			emptyStack(mainStack);
+			mainStack.pop();
 
 
 		// user has given a string :D
