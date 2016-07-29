@@ -23,7 +23,7 @@ extern CalcValue ans;
 
 bool processLine(
 	std::stack<CalcValue>& mainStack, UserVar* first_node,
-	std::queue<char*>& varNames, bool& showErrors, char* rpnln,
+	std::queue<char*>& varNames, bool& showErrors, char*& rpnln,
 	size_t lineLen
 ){
 
