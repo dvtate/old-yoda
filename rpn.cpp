@@ -29,11 +29,6 @@ uint16_t nestedIf = 0;
 #include "core.h"
 
 
-/*This file is about to go through the biggest rewrite I've ever done:
-* - main will take in cmdline options for the name of the file to run
-* - if none are given then it will go to the interactive shell (currently the only option)
-*/
-
 int argc_cpy;
 char** argv_cpy;
 
@@ -77,14 +72,8 @@ There is NO warranty; not even MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPO
 		displayHelp();
 		return 0;
 	} else {
-		FILE* program = fopen(argv[1],"r");
-		if (program == NULL) {
-			std::cerr <<*argv <<": could not open file \'" <<argv[1] <<'\'' <<std::endl;
-			return 1;
-		} else {
-			bool showErrors = true;
-			runFile(program, showErrors);
-		}
+		bool showErrors = true;
+		runFile(argv[1], showErrors);
 
 	}
 
