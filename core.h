@@ -22,7 +22,22 @@
 
 #include "process_line.h"
 
-void runFile(FILE* program, bool& errorReporting){
+// don't we all love pretty colors :)))
+#include "terminal_colors.h"
+
+
+
+void runFile(char* programFile, bool& errorReporting){
+
+	FILE* program = fopen(programFile, "r");
+
+  	// file error
+	if (program == NULL) {
+		std::cerr <<*argv_cpy <<": could not open file \'" <<programFile <<'\'' <<std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+
 
 	// the most important component of the program :)
 	std::stack<CalcValue> mainStack;
@@ -37,19 +52,38 @@ void runFile(FILE* program, bool& errorReporting){
 
 
 	for (;;) {
+
+	  	// used for line numbers in errors
+		line++;
+
+
 		char* rpnln = (char*) malloc(256);
 		size_t lineLen = 256;
 		if (getline(&rpnln, &lineLen, program) == -1) {
-			// std::cerr <<"\aERROR: Input failed...\n" <<std::endl;
+			std::cerr <<"\aERROR: Input failed...\n" <<std::endl;
 			return;
 		}
 
 		// I need a copy of it to call free() on later.
-		char* rpnln_head = rpnln;
-
+		char	*rpnln_head = rpnln,
+	  			*rpnln_cpy = rpnln;
 
 		// process the line
-		processLine(mainStack, first_node, varNames, errorReporting, rpnln, lineLen);
+		if (!processLine(mainStack, first_node, varNames, errorReporting, rpnln, lineLen) && errorReporting) {
+			std::cerr <<"in file: \"" <<programFile <<"\"::" <<line <<std::endl;
+
+			// print the problem statement
+			std::cerr <<'\t' <<COLOR_RED <<rpnln_cpy <<'`' <<std::endl <<'\t';
+
+		  	// point to the problem area
+		  	while (rpnln_cpy++ != rpnln)
+				std::cout <<'~';
+			std::cout <<'^' <<COLOR_RESET <<std::endl;
+
+		  	// you're dead :P
+			exit(EXIT_FAILURE);
+
+		}
 
 		// prevent memory leaks...
 		free(rpnln_head);
@@ -69,9 +103,8 @@ void runFile(FILE* program, bool& errorReporting){
 
 }
 
-/*
 void runStringStack(StrStack&);
-*/
+
 
 void runShell(UserVar* first_node, bool& errorReporting,
 	      std::stack<CalcValue>& mainStack, std::queue<char*>& varNames
