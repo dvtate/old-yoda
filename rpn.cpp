@@ -2,6 +2,11 @@
 #include <stack>
 #include <queue>
 #include <cstring>
+
+#ifdef _WIN32
+	#include "fuck_windows.h"
+#endif
+
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
