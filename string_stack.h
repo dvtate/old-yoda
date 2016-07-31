@@ -20,10 +20,9 @@ public:
   	StrStack():
   		sizeFactor(0),
   		buffer((char**) malloc(256)),
-  		stackDepth(0)
-  	{
-  		stackHead = buffer;
-  	}
+  		stackDepth(0),
+  		stackHead(buffer)
+  	{}
 
   	~StrStack(){
 
@@ -51,6 +50,8 @@ public:
 	char* top()
 		{ return stackDepth ? *(buffer - 1) : NULL; }
 
+	size_t& size()
+		{ return stackDepth; }
 
 
 };

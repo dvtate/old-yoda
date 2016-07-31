@@ -20,18 +20,23 @@ public:
 
 	UserVar *next;
 
-	UserVar(const char* identifier, double contents):
-		val(contents)
+	UserVar(const char* const identifier, double contents):
+		val(contents), next((UserVar*) NULL)
 	{
-		next = (UserVar*) NULL;
-
 	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT - 1);
 	  	val.type = CalcValue::NUM;
 	}
 
-	UserVar(const char* identifier, CalcValue contents){
+	UserVar(const char* const identifier, const char* const contents):
+		val(contents), next((UserVar*) NULL)
+	{
+	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT - 1);
+	  	val.type = CalcValue::NUM;
+	}
 
-	  	next = (UserVar*) NULL;
+	UserVar(const char* const identifier, CalcValue contents):
+  		next((UserVar*) NULL)
+  	{
 
 	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
 

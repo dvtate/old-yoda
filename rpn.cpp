@@ -37,7 +37,6 @@ uint16_t nestedIf = 0;
 int argc_cpy;
 char** argv_cpy;
 
-CalcValue ans = 0.0;
 
 int main(int argc, char** argv){
 

@@ -21,7 +21,7 @@
 
 extern CalcValue ans;
 
-bool processLine(
+char* processLine(
 	std::stack<CalcValue>& mainStack, UserVar* first_node,
 	std::queue<char*>& varNames, bool& showErrors, char*& rpnln,
 	size_t lineLen
@@ -32,7 +32,7 @@ bool processLine(
 
 	// empty string/whitespace input
 	if (p == NULL)
-		return false;
+		return p;
 
 
 	while (p != NULL && *p != '\0') {
@@ -55,25 +55,23 @@ startCheck:
 			|| !strcmp(p, "pow") // for those who dont like "**"
 		) {
 
-			if (mainStack.empty()) {
-				std::cerr <<"\aERROR: Not enough data to satisfy operator." <<std::endl;
-				return false;
+			if (mainStack.size() < 2) {
+				std::cerr <<"\aERROR: Not enough data to satisfy operator `" <<p <<"`." <<std::endl;
+				return p;
 			}
+
 			if (mainStack.top().type != CalcValue::NUM) {
-				std::cerr <<"ERROR: incompatible data-types!";
-				return false;
+				std::cerr <<"ERROR: incompatible data-types! (expected two numbers)";
+				return p;
 			}
 
 			double b = getNextValue(mainStack).getNum();
 
-			if (mainStack.empty()) {
-				std::cerr <<"\aERROR: Not enough data to satisfy operator." <<std::endl;
-				return false;
-			}
 			if (mainStack.top().type != CalcValue::NUM) {
-				std::cerr <<"ERROR: incompatible data-types!";
-				return false;
+				std::cerr <<"ERROR: incompatible data-types! (expected two numbers) ";
+				return p;
 			}
+
 			double a = getNextValue(mainStack).getNum();
 
 			switch (*p) {
@@ -124,9 +122,21 @@ startCheck:
 
 		} else if (*p == '+' ) {
 
-			CalcValue b = getNextValue(mainStack),
-					  a = getNextValue(mainStack);
 
+		  	if (mainStack.size() < 2) {
+				std::cerr <<"\aERROR: Not enough data to satisfy `+` operator." <<std::endl;
+				return p;
+			}
+
+			CalcValue b = getNextValue(mainStack);
+
+
+			CalcValue a = getNextValue(mainStack);
+
+		  	if (a.isEmpty() || b.isEmpty())
+				return p;
+
+		  	// branching out all 4 permutations of string and num
 			if (a.type == CalcValue::STR)
 				if (b.type == CalcValue::STR) {
 					// allocate enough memory for both strings and a null terminator
@@ -134,7 +144,7 @@ startCheck:
 
 					// combine the strings
 					strcpy(combined, a.getStr());
-					strcpy(&combined[strlen(a.getStr())], b.getStr());
+					strcpy(combined + strlen(a.getStr()), b.getStr());
 
 					mainStack.push(combined);
 
@@ -171,11 +181,11 @@ startCheck:
 				} else
 					mainStack.push(a.getNum() + b.getNum());
 
-		} else if (strcmp(p, "==") == 0)
+		} else if (strcmp(p, "==") == 0) {
 			mainStack.push(getNextValue(mainStack) == getNextValue(mainStack));
 
 		// not equal to
-		else if (strcmp(p, "!=") == 0)
+		} else if (strcmp(p, "!=") == 0)
 			mainStack.push(!(getNextValue(mainStack) == getNextValue(mainStack)));
 
 		// logical not operator
@@ -227,7 +237,7 @@ startCheck:
 		// comments
 		else if (*p == '#') {
 			if (mainStack.size() == 0)
-				return false;
+				return NULL;
 			break;
 
 		// pi
@@ -250,7 +260,7 @@ startCheck:
 							std::cout <<(var->val.getNum());
 						else
 							std::cout <<(var->val.getStr());
-						return false;
+						return p;
 					}
 
 				}
@@ -280,7 +290,9 @@ startCheck:
 		// convert to string
 		} else if (strcmp(p, "str") == 0) {
 			CalcValue val = getNextValue(mainStack);
-			if (val.type == CalcValue::STR)
+			if (val.isEmpty())
+			 	return p;
+		  	else if (val.type == CalcValue::STR)
 				mainStack.push(val.getStr());
 			else {
 				char str[8];
@@ -291,7 +303,10 @@ startCheck:
 		// convert to number
 		} else if (strcmp(p, "num") == 0) {
 			CalcValue val = getNextValue(mainStack);
-			if (val.type == CalcValue::NUM)
+
+			if (val.isEmpty())
+			 	return p;
+		  	else if (val.type == CalcValue::NUM)
 				mainStack.push(val.getNum());
 			else
 				mainStack.push(atof(val.getStr()));
@@ -299,7 +314,9 @@ startCheck:
 		// convert to an integer
 		} else if (strcmp(p, "int") == 0) {
 			CalcValue val = getNextValue(mainStack);
-			if (val.type == CalcValue::NUM)
+			if (val.isEmpty())
+			 	return p;
+		  	else if (val.type == CalcValue::NUM)
 				mainStack.push(floor(val.getNum()));
 			else
 				mainStack.push(atoi(val.getStr()));
@@ -325,7 +342,7 @@ startCheck:
 			//emptyStack(mainStack); // is this really desired?
 
 			if (condition) // change this...
-				return false;
+				return p;
 			else {
 elseif:
 				if ((rpnln = strstr(rpnln, ":?")) != NULL)
@@ -335,7 +352,7 @@ elseif:
 
 					if (getline(&rpnln, &lineLen, stdin) == -1) {
 						std::cerr <<"\aERROR: Input failed...\n" <<std::endl;
-						return false;
+						return p;
 					}
 
 					while (isspace(*rpnln))
@@ -362,8 +379,6 @@ elseif:
 			else
 				nestedIf;
 		*/
-		} else if (strcmp(p, "nestedif") == 0) {
-			//std::cout <<nestedIf <<std::endl;
 
 		// exit the program
 		} else if (*p == 'q' || !strcmp(p, "exit")) // p == "q"
@@ -372,7 +387,7 @@ elseif:
 		// show help
 		else if (strcmp(p, "help") == 0) {
 			displayHelp();
-			return false;
+			return p;
 
 		// clear screen
 		} else if (strcmp(p, "clear") == 0 || strcmp(p, "cls") == 0) {
@@ -381,14 +396,15 @@ elseif:
 			#else
 				system("clear");
 			#endif
-			return false;
+			return p;
 
 
 		// essentially restarts the program (don't display help)
-		} else if (strcmp(p, "reset") == 0 ) {
-			ans = line = 0;
+		} else if (strcmp(p, "reset") == 0 ) { //
+			ans = 0.0;
+		  	emptyStack(mainStack);
 			vars::wipeAll(first_node);
-			return false;
+			return p;
 
 		// useful for debugging
 		} else if (strcmp(p, "showvars") == 0 || strcmp(p, "vars") == 0 || strcmp(p, "listvars") == 0) {
@@ -453,7 +469,7 @@ elseif:
 
 			} else {
 				std::cerr <<"\aERROR: inappropriate use of assignment operator.\n" <<std::endl;
-				return false;
+				return p;
 			}
 
 		// variable
@@ -516,7 +532,7 @@ elseif:
 			// the user is an asshole :T
 			if (number == 0 && *p != '0') {
 				std::cerr <<"\aSYNTAX ERROR: near `" <<p <<"`" <<std::endl;
-				return false;
+				return p;
 
 			// the user has given us a number :D
 			} else
@@ -531,7 +547,7 @@ next_token:
 
 	}
 
-	return false;
+	return (char*) NULL;
 
 }
 

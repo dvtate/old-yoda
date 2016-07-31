@@ -50,7 +50,7 @@ void runFile(char* programFile, bool& errorReporting){
 
 	static CalcValue ans(0.0); // here `0` could be a pointer
 
-
+	// for each line in the programFile...
 	for (;;) {
 
 	  	// used for line numbers in errors
@@ -59,25 +59,30 @@ void runFile(char* programFile, bool& errorReporting){
 
 		char* rpnln = (char*) malloc(256);
 		size_t lineLen = 256;
-		if (getline(&rpnln, &lineLen, program) == -1) {
-			std::cerr <<"\aERROR: Input failed...\n" <<std::endl;
-			return;
-		}
+
+
+		if (getline(&rpnln, &lineLen, program) == -1)
+			return; // EOF
 
 		// I need a copy of it to call free() on later.
 		char	*rpnln_head = rpnln,
-	  			*rpnln_cpy = rpnln;
-
+	  			*rpnln_cpy = rpnln,
+				*errorToken = NULL;
 		// process the line
-		if (!processLine(mainStack, first_node, varNames, errorReporting, rpnln, lineLen) && errorReporting) {
-			std::cerr <<"in file: \"" <<programFile <<"\"::" <<line <<std::endl;
+		if ((errorToken = processLine(
+				mainStack, first_node, varNames,
+				errorReporting, rpnln, lineLen
+			)) && errorReporting
+		) {
+
+			std::cerr <<"in file: \"" <<programFile <<"\":" <<line <<':' <<	(int)(errorToken - rpnln_head) <<std::endl;
 
 			// print the problem statement
-			std::cerr <<'\t' <<COLOR_RED <<rpnln_cpy <<'`' <<std::endl <<'\t';
+			std::cerr <<'\t' <<COLOR_RED <<getLineFromFile(programFile, line) <<'\t';
 
 		  	// point to the problem area
 		  	while (rpnln_cpy++ != rpnln)
-				std::cout <<'~';
+				std::cout <<' ';
 			std::cout <<'^' <<COLOR_RESET <<std::endl;
 
 		  	// you're dead :P
@@ -98,7 +103,7 @@ void runFile(char* programFile, bool& errorReporting){
 			std::cout <<"ans \"" <<ans.getStr() <<"\" =\n";
 	}
 
-
+	// windows sucks :P
 	#ifdef _WIN32
 		std::cin.ignore();
 	#endif
@@ -108,12 +113,14 @@ void runFile(char* programFile, bool& errorReporting){
 void runStringStack(StrStack&);
 
 
+// a NULL CalcValue
+CalcValue ans;
+
+
 void runShell(UserVar* first_node, bool& errorReporting,
 	      std::stack<CalcValue>& mainStack, std::queue<char*>& varNames
 ){
 
-
-	static CalcValue ans(0.0); // here `0` could be a pointer
 
 
 	//if (!nestedIf)
@@ -132,7 +139,7 @@ void runShell(UserVar* first_node, bool& errorReporting,
 
 
 	// process the line
-	processLine(mainStack, first_node, varNames, errorReporting, rpnln, lineLen);
+	bool errors = processLine(mainStack, first_node, varNames, errorReporting, rpnln, lineLen);
 
 
 	// prevent memory leaks...
@@ -143,10 +150,18 @@ void runShell(UserVar* first_node, bool& errorReporting,
 		ans = mainStack.top();
 		if (ans.type == CalcValue::NUM)
 			std::cout <<"ans " <<ans.getNum() <<" =\n";
+
+		else if (errors && ans.isNull())
+			std::cout <<"\nans null =\n";
+		else if (ans.isNull())
+			std::cout <<"ans null =\n";
 		else
 			std::cout <<"ans \"" <<ans.getStr() <<"\" =\n";
 	}
 
+   	// this allows the ans keyword to function
+	if (!mainStack.empty())
+		ans = mainStack.top();
 
 
 }

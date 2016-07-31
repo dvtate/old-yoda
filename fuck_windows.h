@@ -46,12 +46,14 @@ int getline(char **lineptr, size_t *n, FILE *stream) {
 	p = bufptr;
 
 	while (c != EOF) {
+
 		if ((p - bufptr) > (size - 1)) {
 			size = size + 128;
 			bufptr = (char*) realloc(bufptr, size);
 			if (bufptr == NULL)
 				return -1;
 		}
+
 		*p++ = c;
 		if (c == '\n')
 			break;

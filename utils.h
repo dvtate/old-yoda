@@ -5,6 +5,7 @@
 
 
 #include <iostream>
+#include <cstdlib>
 #include <cstdio>
 #include <ctype.h>
 #include <stack>
@@ -30,7 +31,7 @@ CalcValue getNextValue(std::stack<CalcValue>& valStack){
         return topVal;
     } else {
         std::cerr <<"\aERROR: not enough data to satisfy operator.\n" <<std::endl;
-		return main(argc_cpy, argv_cpy);
+		return CalcValue();
     }
 }
 
@@ -147,5 +148,37 @@ inline char* skipSpaces(char* p){
 	return p;
 }
 
+char* getLineFromFile(const char* filename, size_t lineNumber){
+	FILE *file = fopen(filename, "r");
+
+  	size_t count = 1;
+	if ( file != NULL ) {
+
+	  	char* line = (char*) malloc(200);
+		size_t lineLen = 200;
+
+
+		while (getline(&line, &lineLen, file) != -1)
+		    if (count == lineNumber)
+				break;
+		    else
+				count++;
+
+		if (count) {
+			fclose(file);
+			return line;
+		} else {
+			std::cerr <<"\autils.h@getLineFromFile(): line index not found";
+			fclose(file);
+		 	return (char*) NULL;
+		}
+
+	} else {
+		std::cerr <<"\aDAFUQ: fopen(\"" <<filename <<"\", \"r\") == NULL\n"
+	  			  <<__FILE__ <<':' <<__LINE__ <<std::endl;
+		return (char*) NULL;
+	}
+
+}
 
 #endif
