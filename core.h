@@ -85,6 +85,11 @@ void runFile(char* programFile, bool& errorReporting){
 				std::cout <<' ';
 			std::cout <<'^' <<COLOR_RESET <<std::endl;
 
+			// windows sucks :P
+			#ifdef _WIN32
+				std::cin.ignore();
+			#endif
+
 		  	// you're dead :P
 			exit(EXIT_FAILURE);
 
@@ -94,18 +99,9 @@ void runFile(char* programFile, bool& errorReporting){
 		free(rpnln_head);
 	}
 
-
-	if (!mainStack.empty()) {
-		ans = mainStack.top();
-		if (ans.type == CalcValue::NUM)
-			std::cout <<"ans " <<ans.getNum() <<" =\n";
-		else
-			std::cout <<"ans \"" <<ans.getStr() <<"\" =\n";
-	}
-
 	// windows sucks :P
 	#ifdef _WIN32
-		std::cin.ignore();
+		system("PAUSE");
 	#endif
 
 }

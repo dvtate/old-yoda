@@ -381,13 +381,14 @@ elseif:
 		*/
 
 		// exit the program
-		} else if (*p == 'q' || !strcmp(p, "exit")) // p == "q"
+		} else if ((*p == 'q' && *(p + 1) == '\0')
+			|| !strcmp(p, "exit") || !strcmp(p, "quit")
+	  	)
 			exit(EXIT_SUCCESS); // exit the program
 
 		// show help
 		else if (strcmp(p, "help") == 0) {
 			displayHelp();
-			return p;
 
 		// clear screen
 		} else if (strcmp(p, "clear") == 0 || strcmp(p, "cls") == 0) {
@@ -396,15 +397,12 @@ elseif:
 			#else
 				system("clear");
 			#endif
-			return p;
-
 
 		// essentially restarts the program (don't display help)
 		} else if (strcmp(p, "reset") == 0 ) { //
 			ans = 0.0;
 		  	emptyStack(mainStack);
 			vars::wipeAll(first_node);
-			return p;
 
 		// useful for debugging
 		} else if (strcmp(p, "showvars") == 0 || strcmp(p, "vars") == 0 || strcmp(p, "listvars") == 0) {

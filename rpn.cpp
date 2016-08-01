@@ -79,6 +79,13 @@ There is NO warranty; not even MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPO
 		bool showErrors = true;
 		runFile(argv[1], showErrors);
 
+
+		// windows sucks :P
+		#ifdef _WIN32
+			std::cin.ignore();
+		#endif
+
+
 	}
 
 }
