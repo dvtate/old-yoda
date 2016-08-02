@@ -119,7 +119,6 @@ void runShell(UserVar* first_node, bool& errorReporting,
 
 
 
-	//if (!nestedIf)
 	std::cout <<line++ <<">>> ";
 
 	char* rpnln = (char*) malloc(256);
@@ -159,6 +158,7 @@ void runShell(UserVar* first_node, bool& errorReporting,
 	if (!mainStack.empty())
 		ans = mainStack.top();
 
+	std::cout <<std::endl;
 
 }
 
