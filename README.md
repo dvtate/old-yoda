@@ -1,5 +1,13 @@
 # RPN Calculator / Stack-based Scripting language
-A reverse polish notation interpreter which is almost a scripting language at this poing. It can be used as a calculator by those familiar with the notation, and it should be relatively useful by the time I'm finished.
+A stack based script (.sbs) interpreter which is almost a scripting language at this point. Using the shell, it can be used as a calculator by those familiar with the notation, and it should be relatively useful by the time I'm finished.
+
+# Build and Run
+If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>warning:</b> it's old). <b>Warning</b>, I cross-compiled this on Linux and have only run it in a virtual machine, so it might not be perfect.<br/> <h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o rpn.exe</pre></h6>
+https://1drv.ms/u/s!AqWtCxMOBjWMhbc0ZRkaWosjm5IWXw
+- Compiling:
+`rpn $ g++ *.cpp -o rpn`
+- Running:
+`rpn $ ./rpn`
 
 # How to use
  - <b>Comments:</b>
@@ -107,14 +115,6 @@ Thanks!
       calls `system()` on the given string.
     * `>>> errors-on` & `>>> errors-off`<br/>
       enable/disable errors (by default they are on)
-
-# Build and Run
-If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>warning:</b> it's old). <b>Warning</b>, I cross-compiled this on Linux and have only run it in a virtual machine, so it might not be perfect.<br/> <h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o rpn.exe</pre></h6>
-https://1drv.ms/u/s!AqWtCxMOBjWMhbc0ZRkaWosjm5IWXw
-- Compiling:
-`rpn $ g++ *.cpp -o rpn`
-- Running:
-`rpn $ ./rpn`
 
 
 
