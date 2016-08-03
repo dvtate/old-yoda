@@ -109,8 +109,8 @@ Thanks!
       enable/disable errors (by default they are on)
 
 # Build and Run
-If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>warning:</b> it's old). <b>Warning</b>, I cross-compiled this on Linux and haven't tested it on a genuine windows box yet, so there could be errors.<br/> <h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o rpn.exe</pre></h6>
-<i>Windows binary removed because it is obsolete (will make another later)</i>
+If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>warning:</b> it's old). <b>Warning</b>, I cross-compiled this on Linux and have only run it in a virtual machine, so it might not be perfect.<br/> <h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o rpn.exe</pre></h6>
+https://1drv.ms/u/s!AqWtCxMOBjWMhbc0ZRkaWosjm5IWXw
 - Compiling:
 `rpn $ g++ *.cpp -o rpn`
 - Running:

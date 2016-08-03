@@ -28,23 +28,21 @@
 unsigned int line = 0;
 
 // this will get removed in the rewrite...
-uint16_t nestedIf = 0;
+uint8_t nestedIf = 0;
 
 #include "process_line.h"
 #include "core.h"
 
-
-int argc_cpy;
-char** argv_cpy;
-
+char* metaName;
 
 int main(int argc, char** argv){
 
-	argc_cpy = argc;
-	argv_cpy = argv;
+	metaName = *argv;
 
 	// give 'em da shell
 	if (argc == 1) {
+
+
 
 		UserVar* first_node = new UserVar(" ", 0.0);
 		bool showErrors = true;
@@ -61,7 +59,8 @@ int main(int argc, char** argv){
 
 	// hit 'em up wit dat version info
 	} else if (strcmp(argv[1], "-V") == 0 || strcmp(argv[1], "--version")  == 0) {
-		std::cout <<" - v0.0.1\nCopyright (C) 2016 Dustin Van Tate Testa <toast27@gmail.com>\n\
+		std::cout <<"Stack Based Scripting Language  - v0.0.2-alpha\n\
+Copyright (C) 2016 Dustin Van Tate Testa <toast27@gmail.com>\n\
 This program is free software: you can redistribute it and/or modify\n\
 it under the terms of the GNU General Public License as published by\n\
 the Free Software Foundation.\n\
@@ -73,7 +72,7 @@ You should have received a copy of the GNU General Public License\n\
 along with this program. If not, see <http://www.gnu.org/licenses/>\n";
 
 	// help a brotha out
-	} else if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
+	} else if (strcmp(*argv, "--help") == 0 || strcmp(*argv, "-h") == 0) {
 		std::cout <<"Usage: a.out [ option | file ] ...\nOptions:"
 					"   -h\t\t: display's this help message (also --help)\n"
 					"   -V\t\t: display's version information (also --version)\n\n";
@@ -82,6 +81,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>\n";
 
 	// run a file
 	} else {
+
+		metaName = *argv;
+
 		bool showErrors = true;
 		runFile(argv[1], showErrors);
 
@@ -93,5 +95,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>\n";
 
 
 	}
+
+	return 0;
 
 }

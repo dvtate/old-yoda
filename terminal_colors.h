@@ -24,33 +24,29 @@
 
 
 inline void textColor(uint8_t attr, uint8_t fg, uint8_t bg){
-
 	printf("\x1B[%d;%d;%dm",
-		(unsigned int) attr,
-		(unsigned int) fg + 30,
-		(unsigned int) bg + 40
+		attr,
+		fg + 30,
+		bg + 40
 	);
-
-
 }
 
 inline void textColor(uint8_t attr, uint8_t fg){
 	printf("\x1B[%d;%dm",
-		(unsigned int) attr,
-		(unsigned int) fg + 30
+		attr,
+		fg + 30
 	);
 }
 
 inline void textColor(uint8_t fg){
 	printf("\x1B[%dm",
-		(unsigned int) fg + 30
+		fg + 30
 	);
-
 }
 
 inline void textEffect(uint8_t eff){
 	printf("\x1B[%dm",
-		(unsigned int) eff
+		eff
 	);
 }
 

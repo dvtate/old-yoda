@@ -120,7 +120,7 @@ startCheck:
 				case 'p': mainStack.push(pow(a, b)); break;
 			}
 
-		} else if (*p == '+' ) {
+		} else if (*p == '+' && *(p + 1) == '\0') {
 
 
 		  	if (mainStack.size() < 2) {
@@ -512,11 +512,11 @@ elseif:
 
 
 		// clear the stack
-		else if  (strcmp(p, "...") == 0)
+		else if  (strcmp(p, ";") == 0)
 			emptyStack(mainStack);
 
 		// pop the top of the stack
-		else if  (strcmp(p, "!!") == 0)
+		else if  (strcmp(p, ",") == 0)
 			mainStack.pop();
 
 

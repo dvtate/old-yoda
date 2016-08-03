@@ -25,7 +25,7 @@
 // don't we all love pretty colors :)))
 #include "terminal_colors.h"
 
-
+extern char* metaName;
 
 void runFile(char* programFile, bool& errorReporting){
 
@@ -33,7 +33,10 @@ void runFile(char* programFile, bool& errorReporting){
 
   	// file error
 	if (program == NULL) {
-		std::cerr <<*argv_cpy <<": could not open file \'" <<programFile <<'\'' <<std::endl;
+
+		textEffect(TERM_CLR_BRIGHT);
+	  	std::cerr <<metaName <<": " <<COLOR_RED <<"error: " <<COLOR_RESET;
+	  	std::cerr <<": could not open file \'" <<programFile <<'\'' <<std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -66,7 +69,6 @@ void runFile(char* programFile, bool& errorReporting){
 
 		// I need a copy of it to call free() on later.
 		char	*rpnln_head = rpnln,
-	  			*rpnln_cpy = rpnln,
 				*errorToken = NULL;
 		// process the line
 		if ((errorToken = processLine(
@@ -84,7 +86,7 @@ void runFile(char* programFile, bool& errorReporting){
 			std::cerr <<'\t' <<COLOR_RED <<getLineFromFile(programFile, line) <<'\t';
 
 		  	// point to the problem area
-		  	while (rpnln_cpy++ != rpnln)
+		  	while (rpnln_head++ != rpnln)
 				std::cout <<' ';
 			std::cout <<'^' <<COLOR_RESET <<std::endl;
 
