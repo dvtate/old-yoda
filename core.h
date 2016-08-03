@@ -75,7 +75,10 @@ void runFile(char* programFile, bool& errorReporting){
 			)) && errorReporting
 		) {
 
-			std::cerr <<"in file: \"" <<programFile <<"\":" <<line <<':' <<	(int)(errorToken - rpnln_head) <<std::endl;
+		  	// file name and
+		  	textEffect(TERM_CLR_BRIGHT);
+			std::cerr <<programFile <<":" <<line <<':' <<errorToken - rpnln_head <<':';
+			textEffect();
 
 			// print the problem statement
 			std::cerr <<'\t' <<COLOR_RED <<getLineFromFile(programFile, line) <<'\t';

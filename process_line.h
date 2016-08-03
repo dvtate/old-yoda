@@ -275,6 +275,9 @@ startCheck:
 					std::cout <<val.getStr();
 				mainStack.pop();
 
+				// remove for file-based interpreter...
+				//std::cout <<std::endl;
+
 			}
 
 
@@ -395,8 +398,8 @@ elseif:
 				system("clear");
 			#endif
 
-		// essentially restarts the program
-		} else if (strcmp(p, "reset") == 0 ) {
+		// essentially restarts the program (don't display help)
+		} else if (strcmp(p, "reset") == 0 ) { //
 			ans = 0.0;
 		  	emptyStack(mainStack);
 			vars::wipeAll(first_node);

@@ -61,20 +61,26 @@ int main(int argc, char** argv){
 
 	// hit 'em up wit dat version info
 	} else if (strcmp(argv[1], "-V") == 0 || strcmp(argv[1], "--version")  == 0) {
-		std::cout <<"Scripting language - v0.0.1" <<std::endl
-				  <<"Copyright (C) 2016 Dustin Van Tate Testa <toast27@gmail.com>\n"
-				  <<"This is free software; see the source for copying conditions.\n\
-There is NO warranty; not even MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n";
-		return 0;
+		std::cout <<" - v0.0.1\nCopyright (C) 2016 Dustin Van Tate Testa <toast27@gmail.com>\n\
+This program is free software: you can redistribute it and/or modify\n\
+it under the terms of the GNU General Public License as published by\n\
+the Free Software Foundation.\n\
+This program is distributed in the hope that it will be useful,\n\
+but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
+MERCHANTIBILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n\
+GNU General Public License for more details.\n\n\
+You should have received a copy of the GNU General Public License\n\
+along with this program. If not, see <http://www.gnu.org/licenses/>\n";
 
 	// help a brotha out
 	} else if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
 		std::cout <<"Usage: a.out [ option | file ] ...\nOptions:"
-				  <<"-h\t: display's this help message (also --help)\n"
-				  <<"-V\t: display's version information (also --version)\n\n";
+					"   -h\t\t: display's this help message (also --help)\n"
+					"   -V\t\t: display's version information (also --version)\n\n";
 
 		displayHelp();
-		return 0;
+
+	// run a file
 	} else {
 		bool showErrors = true;
 		runFile(argv[1], showErrors);

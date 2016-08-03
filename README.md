@@ -1,5 +1,5 @@
-# RPN Calculator
-A reverse polish notation interpreter which is laying the frameworks for a scripting langauge. It can be used as a calculator by those familiar with the notation, and it should be functional by the time I'm finished. 
+# RPN Calculator / Stack-based Scripting language
+A reverse polish notation interpreter which is almost a scripting language at this poing. It can be used as a calculator by those familiar with the notation, and it should be relatively useful by the time I'm finished.
 
 # How to use
  - <b>Comments:</b>
@@ -110,7 +110,7 @@ Thanks!
 
 # Build and Run
 If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>warning:</b> it's old). <b>Warning</b>, I cross-compiled this on Linux and haven't tested it on a genuine windows box yet, so there could be errors.<br/> <h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o rpn.exe</pre></h6>
-https://1drv.ms/u/s!AqWtCxMOBjWMhbc0ZRkaWosjm5IWXw
+<i>Windows binary removed because it is obsolete (will make another later)</i>
 - Compiling:
 `rpn $ g++ *.cpp -o rpn`
 - Running:
