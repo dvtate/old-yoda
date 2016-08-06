@@ -157,6 +157,6 @@ Thanks!
   - `<<`: bitshift left
   - `>>`: bitshift right
  
-* Stack operators:
+* Stack operators: (these also clear variable names)
   - `...`: empty stack
-  - `!!`: pop top of stack
+  - `;`: pop top of stack
