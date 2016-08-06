@@ -416,6 +416,7 @@ startCheck:
 						var->setValue(mainStack.top());
 
 				}
+				mainStack.pop();
 
 				varNames.pop();
 
