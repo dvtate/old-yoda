@@ -1,8 +1,8 @@
 #ifndef CALC_VALUE_H
 #define CALC_VALUE_H
 
-#include <cstring>
-#include <cstdlib>
+#include <string.h>
+#include <stdlib.h>
 
 
 /// a temporary value to hold user data in

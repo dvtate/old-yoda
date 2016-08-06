@@ -27,9 +27,16 @@
 
 extern char* metaName;
 
+
+FILE* program = stdin;
+char* progName = NULL;
+
+
 void runFile(char* programFile, bool& errorReporting){
 
-	FILE* program = fopen(programFile, "r");
+	progName = programFile;
+
+	program = fopen(programFile, "r");
 
   	// file error
 	if (program == NULL) {
@@ -73,7 +80,7 @@ void runFile(char* programFile, bool& errorReporting){
 		// process the line
 		if ((errorToken = processLine(
 				mainStack, first_node, varNames,
-				errorReporting, rpnln, lineLen
+				errorReporting, rpnln
 			)) && errorReporting
 		) {
 
@@ -111,7 +118,6 @@ void runFile(char* programFile, bool& errorReporting){
 
 }
 
-void runStringStack(StrStack&);
 
 
 // a NULL CalcValue
@@ -139,7 +145,7 @@ void runShell(UserVar* first_node, bool& errorReporting,
 
 
 	// process the line
-	bool errors = processLine(mainStack, first_node, varNames, errorReporting, rpnln, lineLen);
+	bool errors = processLine(mainStack, first_node, varNames, errorReporting, rpnln);
 
 
 	// prevent memory leaks...
@@ -167,6 +173,143 @@ void runShell(UserVar* first_node, bool& errorReporting,
 
 }
 
+void runStringStack(StrStack& code, bool& errorReporting){
+
+
+	// the most important component of the program :)
+	std::stack<CalcValue> mainStack;
+
+	// used for storing the name for user variables on a line by line basis
+	std::queue<char*> varNames;
+
+
+	UserVar* first_node = new UserVar(" ", 0.0);
+
+	static CalcValue ans(0.0); // here `0` could be a pointer
+
+
+	char** stackHead = code.stackHead;
+
+	// for each line in the string stack...
+	for (size_t i = 0; i < code.stackDepth; i++) {
+
+	  	// used for line numbers in errors
+		line++;
+
+
+
+		char* rpnln = *(stackHead++);
+
+		// I need a copy of it to call free() on later.
+		char	*rpnln_head = rpnln,
+				*errorToken = NULL;
+
+
+		// process the line
+		if ((errorToken = processLine(
+				mainStack, first_node, varNames,
+				errorReporting, rpnln
+			)) && errorReporting
+		) {
+
+		  	// file name and
+		  	textEffect(TERM_CLR_BRIGHT);
+			std::cerr <<progName <<":" <<line <<':' <<errorToken - rpnln_head <<':';
+			textEffect();
+
+			// print the problem statement
+			std::cerr <<'\t' <<COLOR_RED <<getLineFromFile(progName, line) <<'\t';
+
+		  	// point to the problem area
+		  	while (rpnln_head++ != rpnln)
+				std::cout <<' ';
+			std::cout <<'^' <<COLOR_RESET <<std::endl;
+
+			// windows sucks :P
+			#ifdef _WIN32
+				std::cin.ignore();
+			#endif
+
+		  	// you're dead :P
+			exit(EXIT_FAILURE);
+
+
+		}
+
+
+	}
+
+}
+
+void runStringStack(StrStack& code, bool& errorReporting){
+
+
+	// the most important component of the program :)
+	std::stack<CalcValue> mainStack;
+
+	// used for storing the name for user variables on a line by line basis
+	std::queue<char*> varNames;
+
+
+	UserVar* first_node = new UserVar(" ", 0.0);
+
+	static CalcValue ans(0.0); // here `0` could be a pointer
+
+
+	char** stackHead = code.stackHead;
+
+	// for each line in the string stack...
+	for (size_t i = 0; i < code.stackDepth; i++) {
+
+	  	// used for line numbers in errors
+		line++;
+
+
+
+		char* rpnln = *(stackHead++);
+
+		// I need a copy of it to call free() on later.
+		char	*rpnln_head = rpnln,
+				*errorToken = NULL;
+
+
+		// process the line
+		if ((errorToken = processLine(
+				mainStack, first_node, varNames,
+				errorReporting, rpnln
+			)) && errorReporting
+		) {
+
+		  	// file name and
+		  	textEffect(TERM_CLR_BRIGHT);
+			std::cerr <<progName <<":" <<line <<':' <<errorToken - rpnln_head <<':';
+			textEffect();
+
+			// print the problem statement
+			std::cerr <<'\t' <<COLOR_RED <<getLineFromFile(progName, line) <<'\t';
+
+		  	// point to the problem area
+		  	while (rpnln_head++ != rpnln)
+				std::cout <<' ';
+			std::cout <<'^' <<COLOR_RESET <<std::endl;
+
+			// windows sucks :P
+			#ifdef _WIN32
+				std::cin.ignore();
+			#endif
+
+		  	// you're dead :P
+			exit(EXIT_FAILURE);
+
+
+		}
+
+
+	}
+
+
+}
 
 
 #endif
+

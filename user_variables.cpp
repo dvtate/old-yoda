@@ -9,7 +9,6 @@
 
 namespace vars {
 	
-	UserVar* first_node = new UserVar(" ", 0.0);
 
 	UserVar* lastVar(UserVar* first){
 		while (first->next != NULL)
@@ -47,7 +46,7 @@ namespace vars {
 		// making a new variable
 		if (var == NULL) {
 			var = new UserVar(name, value);
-			lastVar(first_node)->next = var;
+			lastVar(first)->next = var;
 
 		// changing the variable's value
 		} else
@@ -92,6 +91,7 @@ namespace vars {
 
 		return (UserVar*) NULL;
 	}
+
 
 	bool varExists(UserVar* first, char* name){
 

@@ -16,15 +16,19 @@
 // user defined variables
 #include "user_variables.h"
 
+// conditional statements
+#include "conditionals.h"
+
 // some useful functions
 #include "utils.h"
+
+
 
 extern CalcValue ans;
 
 char* processLine(
 	std::stack<CalcValue>& mainStack, UserVar* first_node,
-	std::queue<char*>& varNames, bool& showErrors, char*& rpnln,
-	size_t lineLen
+	std::queue<char*>& varNames, bool& showErrors, char*& rpnln
 ){
 
 	// get first token from the input
@@ -128,10 +132,8 @@ startCheck:
 				return p;
 			}
 
-			CalcValue b = getNextValue(mainStack);
-
-
-			CalcValue a = getNextValue(mainStack);
+			CalcValue b = getNextValue(mainStack),
+					  a = getNextValue(mainStack);
 
 		  	if (a.isEmpty() || b.isEmpty())
 				return p;
@@ -323,54 +325,8 @@ startCheck:
 
 		// starting conditional
 		} else if (strcmp(p, "?:") == 0) {
+			conditional(p + 3, mainStack, first_node, showErrors);
 
-			/* REWRITE THIS
-			* - if true
-			*	+ write contents of the conditional to a StrStack object
-			* 	+ run the contents
-			* - continue checking for more elseifs on same line as ending :?
-			* - else follows same syntax as elseif but without a condition.
-			* - else without previous if = multi-line comment (contemplating the security of this...)
-			*/
-
-			//nestedIf++;
-
-			bool condition = !mainStack.empty() && mainStack.top().getNum();
-			if (!mainStack.empty())
-				mainStack.pop();
-
-			//emptyStack(mainStack); // is this really desired?
-
-			if (condition) // change this...
-				return p;
-			else {
-elseif:
-				if ((rpnln = strstr(rpnln, ":?")) != NULL)
-					goto next_token;
-
-				do {
-
-					if (getline(&rpnln, &lineLen, stdin) == -1) {
-						std::cerr <<"\aERROR: Input failed...\n" <<std::endl;
-						return p;
-					}
-
-					while (isspace(*rpnln))
-						rpnln++;
-
-				} while ((rpnln[0] != ':' || rpnln[0] != '\0') && rpnln[1] != '?');
-
-				//nestedIf--;
-
-				if ((rpnln = strstr(rpnln, "?:")) != NULL) // problem if ?: occurs after a comment
-
-					goto elseif;
-
-				// get next token if there...
-
-				goto next_token;
-
-			}
 
 		// ending conditional
 		/*} else if (strcmp(p, ":?") == 0) {
@@ -512,17 +468,20 @@ elseif:
 
 
 		// clear the stack
-		else if  (strcmp(p, ";") == 0)
+		else if  (strcmp(p, "...") == 0)
 			emptyStack(mainStack);
 
 		// pop the top of the stack
-		else if  (strcmp(p, ",") == 0)
-			mainStack.pop();
+		else if  (*p == ';' && *(p + 1) == '\0') {
+			if (!mainStack.empty())
+				mainStack.pop();
 
 
 		// user has given a string :D
-		else if (*p == '\"')
-			mainStack.push((p + 1)); // segfault?
+		} else if (*p == '\"')
+			mainStack.push((p + 1));
+
+		// let's try and figure out what this could be...
 		else {
 			// parse input
 			double number = atof(p);
@@ -538,7 +497,6 @@ elseif:
 
 		}
 
-next_token:
 
 		// get next token
 		p = qtok(rpnln, &rpnln);
@@ -548,5 +506,10 @@ next_token:
 	return (char*) NULL;
 
 }
+
+
+
+
+
 
 #endif
