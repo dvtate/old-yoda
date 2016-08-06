@@ -468,13 +468,18 @@ startCheck:
 
 
 		// clear the stack
-		else if  (strcmp(p, "...") == 0)
+		else if  (strcmp(p, "...") == 0) {
+
 			emptyStack(mainStack);
+			emptyStack(varNames);
 
 		// pop the top of the stack
-		else if  (*p == ';' && *(p + 1) == '\0') {
+		} else if  (*p == ';' && *(p + 1) == '\0') {
+
 			if (!mainStack.empty())
 				mainStack.pop();
+
+			emptyStack(varNames);
 
 
 		// user has given a string :D

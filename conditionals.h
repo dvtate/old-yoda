@@ -17,25 +17,11 @@
 
 
 /*	WARNING:
-*This code is non-functional. I think I removed the core dumps
-*
-*
-*
-*
-*
-*
+* This code is terribly broken. I wrote this without any sleep and I'm suprised
+* I even got it to compile. It might be best to do a total rewrite. Please feel
+* free to fix my mistakes. I've done a pretty shitty job with this... I'm going
+* to sleep now.
 */
-
-
-
-
-
-
-
-
-
-
-
 
 
 extern FILE* program;
@@ -45,19 +31,23 @@ extern char* processLine(
 	std::queue<char*>& varNames, bool& showErrors, char*& rpnln
 );
 
-
+extern void runStringStack(
+	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
+	UserVar* first_node, std::queue<char*>& varNames
+);
 
 
 
 char* endif(char*& string){
 	if (string && *string) {
-		while (*++string != '\0')
+		do {
 			if (*string == ':') {
 				if (*++string == '?')
-					return string;
+					return ++string;
 
 			} else if (*string == '#')
 				return NULL;
+		} while (*++string != '\0');
 	}
 	return NULL;
 }
@@ -121,7 +111,9 @@ process_condition:
 
 			}
 
-			runStringStack(stk);
+			runStringStack(stk, showErrors, mainStack, first_node, varNames);
+
+
 		}
 
 	} else { // skip this one
@@ -182,7 +174,7 @@ process_condition:
 	goto process_condition;
 
 	free(strHolder);
-	free(string_head);
+	//free(string_head);
 	return NULL;
 
 }

@@ -241,17 +241,10 @@ void runStringStack(StrStack& code, bool& errorReporting){
 
 }
 
-void runStringStack(StrStack& code, bool& errorReporting){
-
-
-	// the most important component of the program :)
-	std::stack<CalcValue> mainStack;
-
-	// used for storing the name for user variables on a line by line basis
-	std::queue<char*> varNames;
-
-
-	UserVar* first_node = new UserVar(" ", 0.0);
+void runStringStack(
+	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
+	UserVar* first_node, std::queue<char*>& varNames
+){
 
 	static CalcValue ans(0.0); // here `0` could be a pointer
 

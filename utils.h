@@ -9,7 +9,9 @@
 #include <cstdio>
 #include <ctype.h>
 #include <stack>
+#include <queue>
 #include <cstring>
+
 
 extern int main(int, char**);
 
@@ -137,6 +139,11 @@ finalize:
 
 template <class T>
 inline void emptyStack(std::stack<T>& stk){
+	while (!stk.empty())
+		stk.pop();
+}
+template <class T>
+inline void emptyStack(std::queue<T>& stk){
 	while (!stk.empty())
 		stk.pop();
 }
