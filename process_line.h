@@ -60,19 +60,22 @@ startCheck:
 		) {
 
 			if (mainStack.size() < 2) {
-				std::cerr <<"\aERROR: Not enough data to satisfy operator `" <<p <<"`." <<std::endl;
+				if (showErrors)
+					std::cerr <<"\aERROR: Not enough data to satisfy operator `" <<p <<"`." <<std::endl;
 				return p;
 			}
 
 			if (mainStack.top().type != CalcValue::NUM) {
-				std::cerr <<"ERROR: incompatible data-types! (expected two numbers)";
+				if (showErrors)
+					std::cerr <<"ERROR: incompatible data-types! (expected two numbers)";
 				return p;
 			}
 
 			double b = getNextValue(mainStack).getNum();
 
 			if (mainStack.top().type != CalcValue::NUM) {
-				std::cerr <<"ERROR: incompatible data-types! (expected two numbers) ";
+				if (showErrors)
+					std::cerr <<"ERROR: incompatible data-types! (expected two numbers) ";
 				return p;
 			}
 
@@ -128,7 +131,8 @@ startCheck:
 
 
 		  	if (mainStack.size() < 2) {
-				std::cerr <<"\aERROR: Not enough data to satisfy `+` operator." <<std::endl;
+		  		if (showErrors)
+					std::cerr <<"\aERROR: Not enough data to satisfy `+` operator." <<std::endl;
 				return p;
 			}
 
@@ -327,14 +331,11 @@ startCheck:
 		} else if (strcmp(p, "?:") == 0) {
 			conditional(p + 3, mainStack, first_node, showErrors);
 
-
-		// ending conditional
-		/*} else if (strcmp(p, ":?") == 0) {
-			if (!nestedIf)
+		// should never see this as it is handled by the conditional function
+		} else if (strcmp(p, ":?") == 0) {
+			if (showErrors)
 				std::cerr <<"\aERROR: `:?` without previous `?:`\n" <<std::endl;
-			else
-				nestedIf;
-		*/
+			return p;
 
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
@@ -376,21 +377,33 @@ startCheck:
 
 		// typeof function
 		} else if (strcmp(p, "typeof") == 0) {
-			if (mainStack.top().type == CalcValue::STR) {
-				mainStack.pop();
-				mainStack.push("string");
-			} else if (mainStack.top().type == CalcValue::NUM) {
-				mainStack.pop();
-				mainStack.push("number/boolean");
-			}
+			if (!mainStack.empty()) {
+				if (mainStack.top().isNull()) { // NULL string pointer
+					mainStack.pop();
+					mainStack.push("NULL_PTR");
+
+				} else if (mainStack.top().type == CalcValue::STR) { // string-type
+					mainStack.pop();
+					mainStack.push("string"); // STR
+
+				} else if (mainStack.top().type == CalcValue::NUM) { // number-type
+					mainStack.pop();
+					mainStack.push("number/boolean"); // NUM/BLN
+
+				} // else = WHAT THE FUCK
+			} else
+				mainStack.push("NULL_PTR");
 
 		// system call (problem: this conflicts with the current strategy for handling if statements.....)
-		} else if (strcmp(p, "syscall") == 0 || strcmp(p, "systemcall") == 0) {
+		} else if (strcmp(p, "sys") == 0 || strcmp(p, "system") == 0) {
 			if (mainStack.top().type == CalcValue::STR)
-				system(mainStack.top().getStr());
-			else
-				std::cerr <<"Ummm..." <<std::endl;
+				system(mainStack.top().getStr()); // gets run in BASH/CMD
 
+			else {
+				if (showErrors)
+					std::cerr <<"\aERROR: cannot make a system call with a number...\n" <<std::endl;
+				return p;
+			}
 		// bitwise not operator
 		} else if (*p == '~' && *(p + 1) != '\0')
 			mainStack.push(~atoi(p + 1));
@@ -401,29 +414,40 @@ startCheck:
 
 				UserVar* var = vars::findVar(first_node, varNames.front());
 
-
 				// making a new variable
 				if (var == NULL) {
-					var = new UserVar(varNames.front(), mainStack.top());
-					vars::lastVar(first_node)->next = var;
+				  	if (!mainStack.empty()) {
+						var = new UserVar(varNames.front(), mainStack.top());
+						vars::lastVar(first_node)->next = var;
+					} else {
+						if (showErrors)
+							std::cerr <<"\aERROR: not enough data for assignment\n"<< std::endl;
+						return p;
+					}
 
 				// changing the variable's value
 				} else {
-					if (mainStack.top() == var->val) { // 6 $a =
-						mainStack.pop();
-						var->setValue(mainStack.top());
-					} else							   // $a 6 =
-						var->setValue(mainStack.top());
+					if (!mainStack.empty())
+						if (mainStack.top() == var->val) { // 6 $a =
+							var->setValue(mainStack.top());
+							mainStack.pop();
+						} else							   // $a 6 =
+							var->setValue(mainStack.top());
+					else { // variables undefined...
+						if (showErrors)
+							std::cerr <<"\aERROR: not enough data for assignment\n"<< std::endl;
+						return p;
+					}
 
 				}
+
 				mainStack.pop();
 
 				varNames.pop();
 
-
-
 			} else {
-				std::cerr <<"\aERROR: inappropriate use of assignment operator.\n" <<std::endl;
+				if (showErrors)
+					std::cerr <<"\aERROR: inappropriate use of assignment operator.\n" <<std::endl;
 				return p;
 			}
 
@@ -433,10 +457,9 @@ startCheck:
 				UserVar* var = vars::findVar(first_node, p + 1);
 
 				if (var != NULL) {
-
 					mainStack.push(var->val);
-
 					varNames.push(p + 1);
+
 				} else
 					varNames.push(p + 1);
 
@@ -494,7 +517,8 @@ startCheck:
 
 			// the user is an asshole :T
 			if (number == 0 && *p != '0') {
-				std::cerr <<"\aSYNTAX ERROR: near `" <<p <<"`" <<std::endl;
+				if (showErrors)
+					std::cerr <<"\aSYNTAX ERROR: near `" <<p <<"`" <<std::endl;
 				return p;
 
 			// the user has given us a number :D

@@ -1,0 +1,17 @@
+# declarations
+"hello" $a = ;
+"World!" $b = ;
+
+$a " " + $b + print
+
+
+# this is to demonstrate the problem I'm facing...
+$c print
+
+
+vars
+
+5 =
+
+# this code should assign 4 to $c after printing nothing.
+vars #but apparently it doesn't work the way I want it too...

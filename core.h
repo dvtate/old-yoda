@@ -48,7 +48,6 @@ void runFile(char* programFile, bool& errorReporting){
 	}
 
 
-
 	// the most important component of the program :)
 	std::stack<CalcValue> mainStack;
 
