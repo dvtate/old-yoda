@@ -11,9 +11,6 @@ $c print
 
 vars
 
-5 =
+5 = # this code should error
 
-# this code should error
-vars 
-
-#but apparently it doesn't work the way I want it too...
+vars #but apparently it doesn't work the way I want it too...
