@@ -7,35 +7,36 @@
 #include "calc_value.h"
 
 // variable names longer than 20chars will be called by their first 19 chars
-#define USERVAR_NAME_MAXLENGHT 20
+
 
 
 
 // the node for my linked list of user defined variables
 class UserVar {
 public:
-	char name[USERVAR_NAME_MAXLENGHT];
+
+	char name[USERVAR_NAME_MAXLENGHT]; // USERVAR_NAME_MAXLENGHT defined in calc_value.h
 
 	CalcValue val;
 
-	UserVar *next;
+	UserVar *first, *next;
 
-	UserVar(const char* const identifier, double contents):
-		val(contents), next((UserVar*) NULL)
+	UserVar(UserVar* firstn, const char* const identifier, double contents):
+		val(contents), first(firstn), next((UserVar*) NULL)
 	{
 	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT - 1);
 	  	val.type = CalcValue::NUM;
 	}
 
-	UserVar(const char* const identifier, const char* const contents):
-		val(contents), next((UserVar*) NULL)
+	UserVar(UserVar* firstn, const char* const identifier, const char* const contents):
+		val(contents), first(firstn), next((UserVar*) NULL)
 	{
 	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT - 1);
 	  	val.type = CalcValue::NUM;
 	}
 
-	UserVar(const char* const identifier, CalcValue contents):
-  		next((UserVar*) NULL)
+	UserVar(UserVar* firstn, const char* const identifier, CalcValue contents):
+		first(firstn), next((UserVar*) NULL)
   	{
 
 	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
@@ -58,43 +59,62 @@ public:
 	char* getString()
 		{ return val.getStr(); }
 
-	CalcValue& getValue()
+	// recursive method of accessing Values of CalcValue::REF type
+	CalcValue getValue(){
+
+		if (val.type == CalcValue::REF) {
+			CalcValue* value = val.valAtRef(first);
+
+			while (value != NULL && value->type == CalcValue::REF)
+				value = value->valAtRef(first);
+
+			// broken reference (should I tell them???)
+			return value ? *value : NULL_CALCVAL_OBJECT;
+
+		}
+
+		return val;
+
+	}
+
+	// recursive method of accessing Values of CalcValue::REF type
+	CalcValue* getValPtr(){
+
+		if (val.type == CalcValue::REF) {
+			CalcValue* value = val.valAtRef(first);
+
+			while (value != NULL && value->type == CalcValue::REF)
+				value = value->valAtRef(first);
+
+			return value;
+		}
+
+		return &val;
+
+	}
+
+	CalcValue& getVal()
 		{ return val; }
 
 
 	// changing the values
 	void setValue(double in){
-
-		val.number = in;
-	  	val.type = CalcValue::NUM;
+		val.setValue(in);
 	}
 
 	void setValue(const char* in){
-	  	if (val.type == CalcValue::STR && val.string != NULL)
-			  	free(val.string);
 
-	  	val.string = (char*) malloc(strlen(in) + 1);
-	  	strcpy(val.string, in);
+	  	CalcValue* value = getValPtr();
+		value->setValue(in);
 
-	  	val.type = CalcValue::STR;
 	}
 
-	void setValue(CalcValue in){
-	  	if (in.type == CalcValue::NUM) {
-		  	if (val.type == CalcValue::STR && val.string != NULL)
-				free(val.string);
-			val.type = CalcValue::NUM;
-		  	val.number = in.number;
-		} else {
-			if (val.type == CalcValue::STR && val.string != NULL)
-			  	free(val.string);
+	void setValue(UserVar* in)
+		{ val = CalcValue().setRef(in->name); }
 
-			val.type = CalcValue::STR;
-		  	val.string = (char*) malloc(strlen(in.string) + 1);
-			strcpy(val.string, in.string);
+	void setValue(CalcValue in)
+		{ val.setValue(in); }
 
-		}
-	}
 
 };
 
@@ -123,6 +143,7 @@ namespace vars {
 
 	extern bool varExists(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
 
+	extern CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
 }
 
 

@@ -44,7 +44,9 @@ int main(int argc, char** argv){
 
 
 
-		UserVar* first_node = new UserVar(" ", 0.0);
+		UserVar* first_node = new UserVar(NULL, " ", 0.0);
+		first_node->first = first_node;
+
 		bool showErrors = true;
 
 

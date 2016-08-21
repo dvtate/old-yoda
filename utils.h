@@ -188,4 +188,66 @@ char* getLineFromFile(const char* filename, size_t lineNumber){
 
 }
 
+
+void printCalcValue(CalcValue& val, UserVar* first_node){
+
+  	if (val.type == CalcValue::NUM)
+		std::cout <<val.getNum();
+	else if (val.isNull())
+		std::cout <<"null";
+	else if (val.type == CalcValue::STR)
+		std::cout <<'\"' <<val.getStr() <<'\"';
+	else if (val.type == CalcValue::REF) {
+		CalcValue* ret = val.valAtRef(first_node);
+		while (ret && ret->type == CalcValue::REF)
+			ret = ret->valAtRef(first_node);
+		if (ret)
+			return printCalcValue(*ret, first_node);
+
+	}
+}
+
+void printCalcValueRAW(CalcValue& val, UserVar* first_node){
+
+  	if (val.type == CalcValue::NUM)
+		std::cout <<val.getNum();
+	else if (val.isNull())
+		std::cout <<"null";
+	else if (val.type == CalcValue::STR)
+		std::cout <<val.getStr();
+	else if (val.type == CalcValue::REF) {
+		CalcValue* ret = val.valAtRef(first_node);
+		while (ret && ret->type == CalcValue::REF)
+			ret = ret->valAtRef(first_node);
+		if (ret)
+			return printCalcValueRAW(*ret, first_node);
+
+	}
+
+}
+
+
+CalcValue* valAtRef(CalcValue cv, UserVar* first){
+
+find_var:
+	if (cv.type != CalcValue::REF)
+		return (CalcValue*) 0x0;
+
+	UserVar* var = vars::findVar(first, cv.string);
+	if (var == NULL)
+		return (CalcValue*) 0x0;
+
+	CalcValue* ret = &var->val;
+
+
+
+	if (ret->type == CalcValue::REF) {
+		cv = *ret;
+		goto find_var;
+	} else
+		return ret;
+
+
+}
+
 #endif

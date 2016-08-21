@@ -55,7 +55,8 @@ void runFile(char* programFile, bool& errorReporting){
 	std::queue<char*> varNames;
 
 
-	UserVar* first_node = new UserVar(" ", 0.0);
+	UserVar* first_node = new UserVar(NULL, " ", 0.0);
+  	first_node->first = first_node;
 
 	static CalcValue ans(0.0); // here `0` could be a pointer
 
@@ -146,6 +147,9 @@ void runShell(UserVar* first_node, bool& errorReporting,
 	// process the line
 	bool errors = processLine(mainStack, first_node, varNames, errorReporting, rpnln);
 
+	if (errors)
+		emptyStack(mainStack);
+
 
 	// prevent memory leaks...
 	free(rpnln_head);
@@ -153,15 +157,9 @@ void runShell(UserVar* first_node, bool& errorReporting,
 
 	if (!mainStack.empty()) {
 		ans = mainStack.top();
-		if (ans.type == CalcValue::NUM)
-			std::cout <<"ans " <<ans.getNum() <<" =\n";
-
-		else if (errors && ans.isNull())
-			std::cout <<"\nans null =\n";
-		else if (ans.isNull())
-			std::cout <<"ans null =\n";
-		else
-			std::cout <<"ans \"" <<ans.getStr() <<"\" =\n";
+		//ans.print(first_node);
+		printCalcValue(ans, first_node);
+		std::cout <<std::endl;
 	}
 
    	// this allows the ans keyword to function
@@ -181,8 +179,8 @@ void runStringStack(StrStack& code, bool& errorReporting){
 	// used for storing the name for user variables on a line by line basis
 	std::queue<char*> varNames;
 
-
-	UserVar* first_node = new UserVar(" ", 0.0);
+	UserVar* first_node = new UserVar(NULL, " ", 0.0);
+  	first_node->first = first_node;
 
 	static CalcValue ans(0.0); // here `0` could be a pointer
 

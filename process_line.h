@@ -139,11 +139,34 @@ startCheck:
 			CalcValue b = getNextValue(mainStack),
 					  a = getNextValue(mainStack);
 
-		  	if (a.isEmpty() || b.isEmpty())
-				return p;
+plusop_check_values:
+
+			// handling null values
+		  	if (a.isEmpty() != b.isEmpty()) {
+		  		if (a.isEmpty())
+		  			mainStack.push(b);
+		  		else
+		  			mainStack.push(a);
+
+				// get next token
+				p = qtok(rpnln, &rpnln);
+
+				continue;
+
+			} else if (a.isEmpty() && b.isEmpty()) {
+				mainStack.push(a);
+
+				// get next token
+				p = qtok(rpnln, &rpnln);
+
+				continue;
+
+			}
+
+
 
 		  	// branching out all 4 permutations of string and num
-			if (a.type == CalcValue::STR)
+			if (a.type == CalcValue::STR) {
 				if (b.type == CalcValue::STR) {
 					// allocate enough memory for both strings and a null terminator
 					char combined[strlen(a.getStr()) + strlen(b.getStr()) + 1];
@@ -154,7 +177,7 @@ startCheck:
 
 					mainStack.push(combined);
 
-				} else { // b is a number
+				} else if (b.type == CalcValue::NUM) { // b is a number
 
 					// convert the double to a string
 					char str[8];
@@ -167,9 +190,23 @@ startCheck:
 					strcpy(&combined[strlen(a.getStr())], str);
 
 					mainStack.push(combined);
+
+				} else if (b.type == CalcValue::REF) {
+					CalcValue* val = b.valAtRef(first_node);
+					if (val != NULL) {
+						b = *val;
+						goto plusop_check_values;
+
+					} else {
+						if (showErrors)
+							std::cerr <<"\aERROR: not enough data to satisfy `+` operator.\n";
+						return p;
+
+					}
+
 				}
 
-			else
+			} else if (a.type == CalcValue::NUM) {
 				if (b.type == CalcValue::STR) {
 
 					// convert the double to a string
@@ -184,8 +221,37 @@ startCheck:
 
 					mainStack.push(combined);
 
-				} else
+				} else if (b.type == CalcValue::NUM)
 					mainStack.push(a.getNum() + b.getNum());
+
+				else if (b.type == CalcValue::REF) {
+					CalcValue* val = b.valAtRef(first_node);
+					if (val != NULL) {
+						b = *val;
+						goto plusop_check_values;
+
+					} else {
+						if (showErrors)
+							std::cerr <<"\aERROR: not enough data to satisfy `+` operator.\n";
+						return p;
+
+					}
+
+				}
+
+			} else if (a.type == CalcValue::REF) {
+					CalcValue* val = a.valAtRef(first_node);
+					if (val != NULL) {
+						a = *val;
+						goto plusop_check_values;
+
+					} else {
+						if (showErrors)
+							std::cerr <<"\aERROR: not enough data to satisfy `+` operator.\n";
+						return p;
+
+					}
+			}
 
 		} else if (strcmp(p, "==") == 0) {
 			mainStack.push(getNextValue(mainStack) == getNextValue(mainStack));
@@ -257,76 +323,113 @@ startCheck:
 		else if (strcmp(p, "print") == 0) {
 			if (mainStack.empty()) {
 
-				if (!varNames.empty()) {
-					UserVar* var = vars::findVar(first_node, varNames.front());
-					varNames.pop();
+				if (showErrors)
+					std::cerr <<"\aERROR: not enough data to satisfy print\n";
 
-					if (var != NULL) {
-						if (var->val.type == CalcValue::NUM)
-							std::cout <<(var->val.getNum());
-						else
-							std::cout <<(var->val.getStr());
-						return p;
-					}
+				return p;
 
-				}
-
-				// remove for file-based interpreter...
-				std::cout <<std::endl;
 			} else {
-				CalcValue& val = mainStack.top();
-				if (val.type == CalcValue::NUM)
-					std::cout <<val.getNum();
-				else
-					std::cout <<val.getStr();
-				mainStack.pop();
 
-				// remove for file-based interpreter...
-				//std::cout <<std::endl;
+				printCalcValueRAW(mainStack.top(), first_node);
+				mainStack.pop();
 
 			}
 
 
 		// user input
 		} else if (strcmp(p, "input") == 0) {
-			char input[255];
-			std::cin.getline(input, 255);
+			char* input = (char*) malloc(256);
+			size_t lineLen = 256;
+
+			if (getline(&input, &lineLen, program) == -1) {
+				if (showErrors)
+					std::cerr <<"\aERROR: input could not getline()\n";
+				return p;
+			}
+
 			mainStack.push(input);
 
 		// convert to string
 		} else if (strcmp(p, "str") == 0) {
 			CalcValue val = getNextValue(mainStack);
-			if (val.isEmpty())
-			 	return p;
-		  	else if (val.type == CalcValue::STR)
+
+str_convert_process_value:
+		  	if (val.type == CalcValue::STR)
 				mainStack.push(val.getStr());
-			else {
+			else if (val.type == CalcValue::NUM) {
 				char str[8];
 				snprintf(str, 7, "%g", val.getNum());
 				mainStack.push(str);
+			} else if (val.type == CalcValue::REF) {
+				CalcValue* value = val.valAtRef(first_node);
+
+				while (value != NULL && value->type == CalcValue::REF)
+					value = value->valAtRef(first_node);
+
+				if (value == NULL) {
+					if (showErrors)
+						std::cerr <<"\aERROR: str: broken reference to `$" <<val.string <<"`.\n";
+					return p;
+				} else {
+					val = *value;
+					goto str_convert_process_value;
+				}
 			}
 
 		// convert to number
 		} else if (strcmp(p, "num") == 0) {
 			CalcValue val = getNextValue(mainStack);
 
+num_convert_process_value:
 			if (val.isEmpty())
 			 	return p;
 		  	else if (val.type == CalcValue::NUM)
 				mainStack.push(val.getNum());
-			else
+			else if (val.type == CalcValue::STR)
 				mainStack.push(atof(val.getStr()));
+			else if (val.type == CalcValue::REF) {
+				CalcValue* value = val.valAtRef(first_node);
 
+				while (value != NULL && value->type == CalcValue::REF)
+					value = value->valAtRef(first_node);
+
+				if (value == NULL) {
+					if (showErrors)
+						std::cerr <<"\aERROR: num: broken reference to `$" <<val.string <<"`.\n";
+					return p;
+				} else {
+					val = *value;
+					goto num_convert_process_value;
+				}
+
+			}
 		// convert to an integer
 		} else if (strcmp(p, "int") == 0) {
 			CalcValue val = getNextValue(mainStack);
+
+int_convert_process_value:
 			if (val.isEmpty())
 			 	return p;
 		  	else if (val.type == CalcValue::NUM)
 				mainStack.push(floor(val.getNum()));
-			else
+			else if (val.type == CalcValue::STR)
 				mainStack.push(atoi(val.getStr()));
+			else if (val.type == CalcValue::REF) {
+				CalcValue* value = val.valAtRef(first_node);
 
+				while (value != NULL && value->type == CalcValue::REF)
+					value = value->valAtRef(first_node);
+
+				if (value == NULL) {
+					if (showErrors)
+						std::cerr <<"\aERROR: int: broken reference to `$" <<val.string <<"`.\n";
+					return p;
+				} else {
+					val = *value;
+					goto int_convert_process_value;
+				}
+
+			}
 		// starting conditional
 		} else if (strcmp(p, "?:") == 0) {
 			conditional(p + 3, mainStack, first_node, showErrors);
@@ -367,11 +470,14 @@ startCheck:
 
 			while (var != NULL) {
 				if (var->val.type == CalcValue::NUM)
-					std::cout <<var <<": $"<<var->name <<' ' <<var->val.getNum() <<" = \n";
-				else
-					std::cout <<var <<": $"<<var->name <<" \"" <<var->val.getStr() <<"\" = \n";
+					std::cout <<"[NUM] @ " <<var <<": $"<<var->name <<' ' <<var->val.getNum() <<" = \n";
+				else if (var->val.type == CalcValue::STR)
+					std::cout <<"[STR] @ " <<var <<": $"<<var->name <<" \"" <<var->val.getStr() <<"\" = \n";
+				else if (var->val.type == CalcValue::REF)
+					std::cout <<"[REF] @ " <<var <<": $"<<var->name <<" $" <<var->val.getRef() <<" = \n";
 
 				var = var->next;
+
 			}
 
 
@@ -390,78 +496,134 @@ startCheck:
 					mainStack.pop();
 					mainStack.push("number/boolean"); // NUM/BLN
 
-				} // else = WHAT THE FUCK
+				} else if (mainStack.top().type == CalcValue::REF) { // variable reference
+					mainStack.pop();
+					mainStack.push("reference");
+
+				}
 			} else
-				mainStack.push("NULL_PTR");
+				mainStack.push("DataError");
 
 		// system call (problem: this conflicts with the current strategy for handling if statements.....)
 		} else if (strcmp(p, "sys") == 0 || strcmp(p, "system") == 0) {
+
+syscall_process_value:
 			if (mainStack.top().type == CalcValue::STR)
 				system(mainStack.top().getStr()); // gets run in BASH/CMD
 
-			else {
+			else if (mainStack.top().type == CalcValue::STR) {
 				if (showErrors)
 					std::cerr <<"\aERROR: cannot make a system call with a number...\n" <<std::endl;
 				return p;
+
+			} else if (mainStack.top().type == CalcValue::REF) {
+				CalcValue* value = mainStack.top().valAtRef(first_node);
+
+				while (value != NULL && value->type == CalcValue::REF)
+					value = value->valAtRef(first_node);
+
+				if (value == NULL) {
+					if (showErrors)
+						std::cerr <<"\aERROR: " <<p <<": broken reference to `$"
+								  <<value->string <<"`.\n";
+					return p;
+				}
+
+				mainStack.top().setValue(*value);
+				goto syscall_process_value;
+
 			}
+
+			mainStack.pop();
+
 		// bitwise not operator
 		} else if (*p == '~' && *(p + 1) != '\0')
 			mainStack.push(~atoi(p + 1));
 
 		// assignment operator
-		else if (*p == '=' && *(p + 1) == '\0')
-			if (!varNames.empty()) {
+		else if (*p == '=' && *(p + 1) == '\0') { // variable assignment
 
-				UserVar* var = vars::findVar(first_node, varNames.front());
-
-				// making a new variable
-				if (var == NULL) {
-				  	if (!mainStack.empty()) {
-						var = new UserVar(varNames.front(), mainStack.top());
-						vars::lastVar(first_node)->next = var;
-					} else {
-						if (showErrors)
-							std::cerr <<"\aERROR: not enough data for assignment\n"<< std::endl;
-						return p;
-					}
-
-				// changing the variable's value
-				} else {
-					if (!mainStack.empty())
-						if (mainStack.top() == var->val) { // 6 $a =
-							var->setValue(mainStack.top());
-							mainStack.pop();
-						} else							   // $a 6 =
-							var->setValue(mainStack.top());
-					else { // variables undefined...
-						if (showErrors)
-							std::cerr <<"\aERROR: not enough data for assignment\n"<< std::endl;
-						return p;
-					}
-
-				}
-
-				mainStack.pop();
-
-				varNames.pop();
+			if (mainStack.size() < 2) {
+				if (showErrors)
+					std::cerr <<"\aERROR: not enough data for assignment.\n" <<std::endl;
+				return p;
 
 			} else {
+
+				CalcValue rhs = getNextValue(mainStack),
+						  lhs = getNextValue(mainStack);
+
+				if (lhs.type == CalcValue::REF) {
+					UserVar* var = vars::findVar(first_node, lhs.string);
+
+					while (var && var->val.type == CalcValue::REF)
+						var = vars::findVar(first_node, var->val.string);
+
+					if (var == NULL) {
+						var = new UserVar(first_node, lhs.string, rhs);
+						var->val.type = rhs.type;
+						vars::lastVar(first_node)->next = var;
+
+					// changing the variable's value
+					} else
+						var->setValue(rhs);
+
+
+				} else if (rhs.type == CalcValue::REF) {
+					UserVar* var = vars::findVar(first_node, rhs.string);
+
+					while (var && var->val.type == CalcValue::REF)
+						var = vars::findVar(first_node, var->val.string);
+
+					if (var == NULL) {
+						var = new UserVar(first_node, rhs.string, lhs);
+						var->val.type = lhs.type;
+						vars::lastVar(first_node)->next = var;
+
+					// changing the variable's value
+					} else
+						var->setValue(lhs);
+
+				// nothing that can hold data
+				} else {
+					if (showErrors)
+						std::cerr <<"\aERROR: inappropriate use of assignment operator.\n" <<std::endl;
+					return p;
+				}
+
+			}
+
+
+		// variable
+		} else if (*p == '$' && *(p + 1) != '\0') // user must use '$' prefix to access the variables
+
+			mainStack.push(CalcValue().setRef(p + 1));
+
+		else if (*p == '~' && *(p + 1) == '\0') {
+			if (mainStack.empty()){
 				if (showErrors)
-					std::cerr <<"\aERROR: inappropriate use of assignment operator.\n" <<std::endl;
+					std::cerr <<"\aERROR: not enough data for copy operator\n" <<std::endl;
 				return p;
 			}
 
-		// variable
-		else if (*p == '$' && *(p + 1) != '\0') { // user must use '$' prefix to access the variables
+			if (mainStack.top().type == CalcValue::REF) {
+				CalcValue* val = mainStack.top().valAtRef(first_node);
 
-				UserVar* var = vars::findVar(first_node, p + 1);
+				while (val && val->type == CalcValue::REF)
+					val = valAtRef(*val, first_node);
 
-				if (var != NULL) {
-					mainStack.push(var->val);
-					varNames.push(p + 1);
+				if (val != NULL)
+					mainStack.top().setValue(*val);
+				else {
+					if (showErrors)
+						std::cerr <<"\aERROR: broken reference to $" <<mainStack.top().string <<'\n';
+					return p;
+				}
 
-				} else
-					varNames.push(p + 1);
+
+			} else
+				{ }// do nothing...
+
 
 		// error reporting can get annoying on final programs
 		} else if (strcmp(p, "errors-off") == 0)
@@ -490,21 +652,16 @@ startCheck:
 		// anything else
 		} */
 
-
 		// clear the stack
-		else if  (strcmp(p, "...") == 0) {
+		else if  (strcmp(p, "...") == 0)
 
 			emptyStack(mainStack);
-			emptyStack(varNames);
 
 		// pop the top of the stack
-		} else if  (*p == ';' && *(p + 1) == '\0') {
+		else if  (*p == ';' && *(p + 1) == '\0') {
 
 			if (!mainStack.empty())
 				mainStack.pop();
-
-			emptyStack(varNames);
-
 
 		// user has given a string :D
 		} else if (*p == '\"')
@@ -526,7 +683,6 @@ startCheck:
 				mainStack.push(number);
 
 		}
-
 
 		// get next token
 		p = qtok(rpnln, &rpnln);

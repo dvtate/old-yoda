@@ -45,7 +45,7 @@ namespace vars {
 
 		// making a new variable
 		if (var == NULL) {
-			var = new UserVar(name, value);
+			var = new UserVar(first, name, value);
 			lastVar(first)->next = var;
 
 		// changing the variable's value
@@ -77,6 +77,9 @@ namespace vars {
 
 	UserVar* findVar(UserVar* first, char* name){
 
+		if (!name || !first)
+			return NULL;
+
 		first = first->next;
 
 		uint8_t len = strlen(name) + 1;
@@ -106,4 +109,21 @@ namespace vars {
 		return false;
 	}
 
+	CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]){
+		UserVar* var = findVar(first, name);
+
+		if (var) {
+			CalcValue* val = &var->val;
+			if (val->type == CalcValue::REF) {
+				return valueAtVar(first, val->string);
+
+			} else
+				return val;
+		} else
+			return NULL;
+
+	}
+
+
 }
+
