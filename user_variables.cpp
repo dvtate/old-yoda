@@ -37,6 +37,8 @@ namespace vars {
 			}
 		}
 
+		first->next = NULL;
+
 	}
 
 	void assignVar(UserVar* first, char* name, CalcValue value){
@@ -126,4 +128,3 @@ namespace vars {
 
 
 }
-
