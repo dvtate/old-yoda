@@ -411,7 +411,7 @@ int_convert_process_value:
 			if (val.isEmpty())
 			 	return p;
 		  	else if (val.type == CalcValue::NUM)
-				mainStack.push(floor(val.getNum()));
+				mainStack.push(round(val.getNum()));
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atoi(val.getStr()));
 			else if (val.type == CalcValue::REF) {
