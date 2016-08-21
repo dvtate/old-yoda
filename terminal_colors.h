@@ -11,8 +11,7 @@
 #define COLOR_CYAN		"\x1B[36m"
 #define COLOR_WHITE		"\x1B[37m"
 
-
-#include <cstdio>
+#include <stdio.h>
 
 #define TERM_CLR_RESET		0
 #define TERM_CLR_BRIGHT 	1

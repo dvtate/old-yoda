@@ -26,9 +26,8 @@
 
 extern CalcValue ans;
 
-char* processLine(
-	std::stack<CalcValue>& mainStack, UserVar* first_node,
-	std::queue<char*>& varNames, bool& showErrors, char*& rpnln
+char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
+	bool& showErrors, char*& rpnln
 ){
 
 	// get first token from the input
@@ -65,6 +64,8 @@ startCheck:
 				return p;
 			}
 
+			CONVERT_REFS(mainStack, first_node, showErrors);
+
 			if (mainStack.top().type != CalcValue::NUM) {
 				if (showErrors)
 					std::cerr <<"ERROR: incompatible data-types! (expected two numbers)";
@@ -72,6 +73,8 @@ startCheck:
 			}
 
 			double b = getNextValue(mainStack).getNum();
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			if (mainStack.top().type != CalcValue::NUM) {
 				if (showErrors)
@@ -135,14 +138,15 @@ startCheck:
 					std::cerr <<"\aERROR: Not enough data to satisfy `+` operator." <<std::endl;
 				return p;
 			}
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			CalcValue b = getNextValue(mainStack);
 
-			CalcValue b = getNextValue(mainStack),
-					  a = getNextValue(mainStack);
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			CalcValue a = getNextValue(mainStack);
 
-plusop_check_values:
 
 			// handling null values
-		  	if (a.isEmpty() != b.isEmpty()) {
+		  	if (a.isEmpty() != b.isEmpty()) { // val + null
 		  		if (a.isEmpty())
 		  			mainStack.push(b);
 		  		else
@@ -153,7 +157,7 @@ plusop_check_values:
 
 				continue;
 
-			} else if (a.isEmpty() && b.isEmpty()) {
+			} else if (a.isEmpty() && b.isEmpty()) { // null + null
 				mainStack.push(a);
 
 				// get next token
@@ -191,19 +195,6 @@ plusop_check_values:
 
 					mainStack.push(combined);
 
-				} else if (b.type == CalcValue::REF) {
-					CalcValue* val = b.valAtRef(first_node);
-					if (val != NULL) {
-						b = *val;
-						goto plusop_check_values;
-
-					} else {
-						if (showErrors)
-							std::cerr <<"\aERROR: not enough data to satisfy `+` operator.\n";
-						return p;
-
-					}
-
 				}
 
 			} else if (a.type == CalcValue::NUM) {
@@ -224,33 +215,6 @@ plusop_check_values:
 				} else if (b.type == CalcValue::NUM)
 					mainStack.push(a.getNum() + b.getNum());
 
-				else if (b.type == CalcValue::REF) {
-					CalcValue* val = b.valAtRef(first_node);
-					if (val != NULL) {
-						b = *val;
-						goto plusop_check_values;
-
-					} else {
-						if (showErrors)
-							std::cerr <<"\aERROR: not enough data to satisfy `+` operator.\n";
-						return p;
-
-					}
-
-				}
-
-			} else if (a.type == CalcValue::REF) {
-					CalcValue* val = a.valAtRef(first_node);
-					if (val != NULL) {
-						a = *val;
-						goto plusop_check_values;
-
-					} else {
-						if (showErrors)
-							std::cerr <<"\aERROR: not enough data to satisfy `+` operator.\n";
-						return p;
-
-					}
 			}
 
 		} else if (strcmp(p, "==") == 0) {
@@ -267,74 +231,102 @@ plusop_check_values:
 
 		// char is a unary operator
 			//trig functions
-		else if (strcmp(p, "sin") == 0)
+		else if (strcmp(p, "sin") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(sin(getNextValue(mainStack).getNum()));
-		else if (strcmp(p, "cos") == 0)
+		} else if (strcmp(p, "cos") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(cos(getNextValue(mainStack).getNum()));
-		else if (strcmp(p, "tan") == 0)
+		} else if (strcmp(p, "tan") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(tan(getNextValue(mainStack).getNum()));
 
-		else if (strcmp(p, "asin") == 0)
+		} else if (strcmp(p, "asin") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(asin(getNextValue(mainStack).getNum()));
-		else if (strcmp(p, "acos") == 0)
+		} else if (strcmp(p, "acos") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(acos(getNextValue(mainStack).getNum()));
-		else if (strcmp(p, "atan") == 0)
+		} else if (strcmp(p, "atan") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(atan(getNextValue(mainStack).getNum()));
 
-		else if (strcmp(p, "sinh") == 0)
+		} else if (strcmp(p, "sinh") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(sinh(getNextValue(mainStack).getNum()));
-		else if (strcmp(p, "cosh") == 0)
+		} else if (strcmp(p, "cosh") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(cosh(getNextValue(mainStack).getNum()));
-		else if (strcmp(p, "tanh") == 0)
+		} else if (strcmp(p, "tanh") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(tanh(getNextValue(mainStack).getNum()));
 
-		else if (strcmp(p, "asinh") == 0)
+		} else if (strcmp(p, "asinh") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(asinh(getNextValue(mainStack).getNum()));
-		else if (strcmp(p, "acosh") == 0)
+		} else if (strcmp(p, "acosh") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(acosh(getNextValue(mainStack).getNum()));
-		else if (strcmp(p, "atanh") == 0)
+		} else if (strcmp(p, "atanh") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(atanh(getNextValue(mainStack).getNum()));
 
 		// more unary math functions
-		else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0)
+		} else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(log10(getNextValue(mainStack).getNum()));
-		else if (strcmp(p, "ln") == 0)
+		} else if (strcmp(p, "ln") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(log(getNextValue(mainStack).getNum()));
-		else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0)
+		} else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(sqrt(getNextValue(mainStack).getNum()));
-		else if (strcmp(p, "abs") == 0)
+		} else if (strcmp(p, "abs") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(std::abs(getNextValue(mainStack).getNum()));
 
 
+		// find length of a string
+		} else if (strcmp(p, "strlen") == 0) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type == CalcValue::STR)
+				mainStack.top().setValue((double)strlen(mainStack.top().string));
+			else {
+				if (showErrors)
+					std::cerr <<"\aERROR: strlen expected a string.\n";
+
+				return p;
+			}
+
 		// comments
-		else if (*p == '#') {
-			if (mainStack.size() == 0)
-				return NULL;
+		} else if (*p == '#')
 			break;
 
 		// pi
-		} else if (strcmp(p, "pi") == 0)
-			mainStack.push(M_PI);
+		else if (strcmp(p, "pi") == 0)
+			mainStack.push(M_PI); // defined in math.h
+		else if (strcmp(p, "null") == 0)
+			mainStack.push(NULL_CALCVAL_OBJECT);
+		else if (strcmp(p, "true") == 0)
+			mainStack.push(1.0);
+		else if (strcmp(p, "false") == 0)
+			mainStack.push(0.0);
 
-		// ans
+		// previous answer
 		else if (strcmp(p, "ans") == 0) // p == "ans"
-				mainStack.push(ans);
+			mainStack.push(ans);
 
 		else if (strcmp(p, "print") == 0) {
 			if (mainStack.empty()) {
-
 				if (showErrors)
 					std::cerr <<"\aERROR: not enough data to satisfy print\n";
 
 				return p;
 
 			} else {
-
 				printCalcValueRAW(mainStack.top(), first_node);
 				mainStack.pop();
-
 			}
-
 
 		// user input
 		} else if (strcmp(p, "input") == 0) {
@@ -351,85 +343,44 @@ plusop_check_values:
 
 		// convert to string
 		} else if (strcmp(p, "str") == 0) {
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
-str_convert_process_value:
 		  	if (val.type == CalcValue::STR)
 				mainStack.push(val.getStr());
 			else if (val.type == CalcValue::NUM) {
 				char str[8];
 				snprintf(str, 7, "%g", val.getNum());
 				mainStack.push(str);
-			} else if (val.type == CalcValue::REF) {
-				CalcValue* value = val.valAtRef(first_node);
-
-				while (value != NULL && value->type == CalcValue::REF)
-					value = value->valAtRef(first_node);
-
-				if (value == NULL) {
-					if (showErrors)
-						std::cerr <<"\aERROR: str: broken reference to `$" <<val.string <<"`.\n";
-					return p;
-				} else {
-					val = *value;
-					goto str_convert_process_value;
-				}
 			}
 
 		// convert to number
 		} else if (strcmp(p, "num") == 0) {
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
-num_convert_process_value:
 			if (val.isEmpty())
-			 	return p;
+			 	mainStack.push(0.0);
 		  	else if (val.type == CalcValue::NUM)
 				mainStack.push(val.getNum());
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atof(val.getStr()));
-			else if (val.type == CalcValue::REF) {
-				CalcValue* value = val.valAtRef(first_node);
 
-				while (value != NULL && value->type == CalcValue::REF)
-					value = value->valAtRef(first_node);
-
-				if (value == NULL) {
-					if (showErrors)
-						std::cerr <<"\aERROR: num: broken reference to `$" <<val.string <<"`.\n";
-					return p;
-				} else {
-					val = *value;
-					goto num_convert_process_value;
-				}
-
-			}
 		// convert to an integer
 		} else if (strcmp(p, "int") == 0) {
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
-int_convert_process_value:
 			if (val.isEmpty())
-			 	return p;
+			 	mainStack.push(0.0);
 		  	else if (val.type == CalcValue::NUM)
 				mainStack.push(round(val.getNum()));
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atoi(val.getStr()));
-			else if (val.type == CalcValue::REF) {
-				CalcValue* value = val.valAtRef(first_node);
 
-				while (value != NULL && value->type == CalcValue::REF)
-					value = value->valAtRef(first_node);
-
-				if (value == NULL) {
-					if (showErrors)
-						std::cerr <<"\aERROR: int: broken reference to `$" <<val.string <<"`.\n";
-					return p;
-				} else {
-					val = *value;
-					goto int_convert_process_value;
-				}
-
-			}
 		// starting conditional
 		} else if (strcmp(p, "?:") == 0) {
 			conditional(p + 3, mainStack, first_node, showErrors);
@@ -486,7 +437,7 @@ int_convert_process_value:
 			if (!mainStack.empty()) {
 				if (mainStack.top().isNull()) { // NULL string pointer
 					mainStack.pop();
-					mainStack.push("NULL_PTR");
+					mainStack.push("NULL_VAL");
 
 				} else if (mainStack.top().type == CalcValue::STR) { // string-type
 					mainStack.pop();
@@ -507,7 +458,9 @@ int_convert_process_value:
 		// system call (problem: this conflicts with the current strategy for handling if statements.....)
 		} else if (strcmp(p, "sys") == 0 || strcmp(p, "system") == 0) {
 
-syscall_process_value:
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
+
 			if (mainStack.top().type == CalcValue::STR)
 				system(mainStack.top().getStr()); // gets run in BASH/CMD
 
@@ -516,24 +469,7 @@ syscall_process_value:
 					std::cerr <<"\aERROR: cannot make a system call with a number...\n" <<std::endl;
 				return p;
 
-			} else if (mainStack.top().type == CalcValue::REF) {
-				CalcValue* value = mainStack.top().valAtRef(first_node);
-
-				while (value != NULL && value->type == CalcValue::REF)
-					value = value->valAtRef(first_node);
-
-				if (value == NULL) {
-					if (showErrors)
-						std::cerr <<"\aERROR: " <<p <<": broken reference to `$"
-								  <<value->string <<"`.\n";
-					return p;
-				}
-
-				mainStack.top().setValue(*value);
-				goto syscall_process_value;
-
 			}
-
 			mainStack.pop();
 
 		// bitwise not operator
@@ -606,24 +542,7 @@ syscall_process_value:
 				return p;
 			}
 
-			if (mainStack.top().type == CalcValue::REF) {
-				CalcValue* val = mainStack.top().valAtRef(first_node);
-
-				while (val && val->type == CalcValue::REF)
-					val = valAtRef(*val, first_node);
-
-				if (val != NULL)
-					mainStack.top().setValue(*val);
-				else {
-					if (showErrors)
-						std::cerr <<"\aERROR: broken reference to $" <<mainStack.top().string <<'\n';
-					return p;
-				}
-
-
-			} else
-				{ }// do nothing...
-
+			CONVERT_REFS(mainStack, first_node, showErrors);
 
 		// error reporting can get annoying on final programs
 		} else if (strcmp(p, "errors-off") == 0)
@@ -650,7 +569,8 @@ syscall_process_value:
 
 
 		// anything else
-		} */
+		}
+		*/
 
 		// clear the stack
 		else if  (strcmp(p, "...") == 0)

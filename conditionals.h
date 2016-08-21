@@ -28,12 +28,12 @@ extern FILE* program;
 
 extern char* processLine(
 	std::stack<CalcValue>& mainStack, UserVar* first_node,
-	std::queue<char*>& varNames, bool& showErrors, char*& rpnln
+	bool& showErrors, char*& rpnln
 );
 
 extern void runStringStack(
 	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
-	UserVar* first_node, std::queue<char*>& varNames
+	UserVar* first_node
 );
 
 
@@ -71,8 +71,6 @@ char* conditional(char* str,
 
 	char* string_head = string;
 
-	std::queue<char*> varNames;
-
 
 process_condition:
 
@@ -92,7 +90,7 @@ process_condition:
 
 		if (*string == ':') {
 			*string = '\0';
-			processLine(mainStack, first_node, varNames, showErrors, string_head);
+			processLine(mainStack, first_node, showErrors, string_head);
 			*string += 3;
 		} else {
 			*string = '\0';
@@ -111,7 +109,7 @@ process_condition:
 
 			}
 
-			runStringStack(stk, showErrors, mainStack, first_node, varNames);
+			runStringStack(stk, showErrors, mainStack, first_node);
 
 
 		}
@@ -164,7 +162,7 @@ process_condition:
 
 
 
-	processLine(mainStack, first_node, varNames, showErrors, strHolder);
+	processLine(mainStack, first_node, showErrors, strHolder);
 
 	condition = !mainStack.empty() && mainStack.top().getNum();
 	if (!mainStack.empty())

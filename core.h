@@ -78,10 +78,9 @@ void runFile(char* programFile, bool& errorReporting){
 		char	*rpnln_head = rpnln,
 				*errorToken = NULL;
 		// process the line
-		if ((errorToken = processLine(
-				mainStack, first_node, varNames,
-				errorReporting, rpnln
-			)) && errorReporting
+		if ((errorToken =
+			processLine(mainStack, first_node,errorReporting, rpnln))
+			&& errorReporting
 		) {
 
 		  	// file name and
@@ -113,7 +112,7 @@ void runFile(char* programFile, bool& errorReporting){
 
 	// windows sucks :P
 	#ifdef _WIN32
-		system("PAUSE");
+		std::cin.ignore();
 	#endif
 
 }
@@ -125,7 +124,7 @@ CalcValue ans;
 
 
 void runShell(UserVar* first_node, bool& errorReporting,
-	      std::stack<CalcValue>& mainStack, std::queue<char*>& varNames
+	      std::stack<CalcValue>& mainStack
 ){
 
 
@@ -145,7 +144,7 @@ void runShell(UserVar* first_node, bool& errorReporting,
 
 
 	// process the line
-	bool errors = processLine(mainStack, first_node, varNames, errorReporting, rpnln);
+	bool errors = processLine(mainStack, first_node, errorReporting, rpnln);
 
 	if (errors)
 		emptyStack(mainStack);
@@ -203,10 +202,9 @@ void runStringStack(StrStack& code, bool& errorReporting){
 
 
 		// process the line
-		if ((errorToken = processLine(
-				mainStack, first_node, varNames,
-				errorReporting, rpnln
-			)) && errorReporting
+		if ((errorToken =
+			processLine(mainStack, first_node, errorReporting, rpnln))
+			&& errorReporting
 		) {
 
 		  	// file name and
@@ -240,7 +238,7 @@ void runStringStack(StrStack& code, bool& errorReporting){
 
 void runStringStack(
 	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
-	UserVar* first_node, std::queue<char*>& varNames
+	UserVar* first_node
 ){
 
 	static CalcValue ans(0.0); // here `0` could be a pointer
@@ -264,11 +262,10 @@ void runStringStack(
 
 
 		// process the line
-		if ((errorToken = processLine(
-				mainStack, first_node, varNames,
-				errorReporting, rpnln
-			)) && errorReporting
-		) {
+		if ((errorToken =
+			processLine(mainStack, first_node, errorReporting, rpnln))
+			&& errorReporting)
+		{
 
 		  	// file name and
 		  	textEffect(TERM_CLR_BRIGHT);
@@ -291,15 +288,11 @@ void runStringStack(
 		  	// you're dead :P
 			exit(EXIT_FAILURE);
 
-
 		}
 
-
 	}
-
 
 }
 
 
 #endif
-

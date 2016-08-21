@@ -6,6 +6,7 @@
  * THE CIVILIZED WORLD, and they make me implement my own function
  * just to make this cross-platform... SO ANGRY...
  */
+#ifdef _WIN32
 
 #include <cstdlib>
 #include <cstdio>
@@ -70,6 +71,6 @@ int getline(char **lineptr, size_t *n, FILE *stream) {
 
 }
 
-
+#endif // _WIN32
 
 #endif

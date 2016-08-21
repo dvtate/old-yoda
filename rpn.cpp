@@ -27,9 +27,6 @@
 
 unsigned int line = 0;
 
-// this will get removed in the rewrite...
-uint8_t nestedIf = 0;
-
 #include "process_line.h"
 #include "core.h"
 
@@ -49,14 +46,11 @@ int main(int argc, char** argv){
 
 		bool showErrors = true;
 
-
+		// the most important component to the language
 		std::stack<CalcValue> mainStack;
 
-		// used for storing the name for user variables on a line by line basis
-		std::queue<char*> varNames;
-
 		for (;;)
-			runShell(first_node, showErrors, mainStack, varNames);
+			runShell(first_node, showErrors, mainStack);
 
 
 	// hit 'em up wit dat version info
@@ -68,7 +62,7 @@ it under the terms of the GNU General Public License as published by\n\
 the Free Software Foundation.\n\
 This program is distributed in the hope that it will be useful,\n\
 but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
-MERCHANTIBILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n\
+MERCHANTIBILITY or FITNESS FOR A PARTICULAR PURPOSE. Check the\n\
 GNU General Public License for more details.\n\n\
 You should have received a copy of the GNU General Public License\n\
 along with this program. If not, see <http://www.gnu.org/licenses/>\n";
@@ -83,21 +77,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>\n";
 
 	// run a file
 	} else {
-
 		metaName = *argv;
 
 		bool showErrors = true;
 		runFile(argv[1], showErrors);
-
 
 		// windows sucks :P
 		#ifdef _WIN32
 			std::cin.ignore();
 		#endif
 
-
 	}
-
 	return 0;
-
 }

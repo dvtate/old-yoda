@@ -191,10 +191,10 @@ char* getLineFromFile(const char* filename, size_t lineNumber){
 
 void printCalcValue(CalcValue& val, UserVar* first_node){
 
-  	if (val.type == CalcValue::NUM)
-		std::cout <<val.getNum();
-	else if (val.isNull())
+	if (val.isNull())
 		std::cout <<"null";
+	else if (val.type == CalcValue::NUM)
+		std::cout <<val.getNum();
 	else if (val.type == CalcValue::STR)
 		std::cout <<'\"' <<val.getStr() <<'\"';
 	else if (val.type == CalcValue::REF) {
@@ -249,5 +249,21 @@ find_var:
 
 
 }
+
+#define CONVERT_REFS(MAINSTACK, FIRST_NODE, SHOW_ERRORS) \
+	if (MAINSTACK.top().type == CalcValue::REF) {\
+		CalcValue* val = MAINSTACK.top().valAtRef(FIRST_NODE);\
+\
+		while (val && val->type == CalcValue::REF)\
+			val = valAtRef(*val, FIRST_NODE);\
+\
+		if (val != NULL)\
+			MAINSTACK.top().setValue(*val);\
+		else {\
+			if (SHOW_ERRORS)\
+				std::cerr <<"\aERROR: broken reference to $" <<MAINSTACK.top().string <<'\n';\
+			return p;\
+		}\
+	}
 
 #endif

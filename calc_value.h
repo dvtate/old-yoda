@@ -197,7 +197,7 @@ public:
 
 
 
-#define NULL_CALCVAL_OBJECT CalcValue((char*) NULL);
+#define NULL_CALCVAL_OBJECT CalcValue((char*) NULL)
 
 
 #endif
