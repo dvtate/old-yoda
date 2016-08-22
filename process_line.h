@@ -26,6 +26,32 @@
 
 extern CalcValue ans;
 
+
+#define ASSERT_NOT_EMPTY(OPERATOR)\
+			if (mainStack.empty()) {\
+				if (showErrors)\
+					std::cerr <<"\aERROR: not enough data for `" <<OPERATOR <<"`.\n";\
+				return p;\
+			}
+
+#define CONVERT_REFS(MAINSTACK, FIRST_NODE, SHOW_ERRORS)\
+	if (MAINSTACK.top().type == CalcValue::REF) {\
+		CalcValue* val = MAINSTACK.top().valAtRef(FIRST_NODE);\
+\
+		while (val && val->type == CalcValue::REF)\
+			val = valAtRef(*val, FIRST_NODE);\
+\
+		if (val != NULL)\
+			MAINSTACK.top().setValue(*val);\
+		else {\
+			if (SHOW_ERRORS)\
+				std::cerr <<"\aERROR: broken reference to $" <<MAINSTACK.top().string <<'\n';\
+			return p;\
+		}\
+	}
+
+
+
 char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 	bool& showErrors, char*& rpnln
 ){
@@ -317,16 +343,9 @@ startCheck:
 			mainStack.push(ans);
 
 		else if (strcmp(p, "print") == 0) {
-			if (mainStack.empty()) {
-				if (showErrors)
-					std::cerr <<"\aERROR: not enough data to satisfy print\n";
-
-				return p;
-
-			} else {
-				printCalcValueRAW(mainStack.top(), first_node);
-				mainStack.pop();
-			}
+			ASSERT_NOT_EMPTY("print");
+			printCalcValueRAW(mainStack.top(), first_node);
+			mainStack.pop();
 
 		// user input
 		} else if (strcmp(p, "input") == 0) {
@@ -343,7 +362,7 @@ startCheck:
 
 		// convert to string
 		} else if (strcmp(p, "str") == 0) {
-
+			ASSERT_NOT_EMPTY("str");
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
@@ -357,7 +376,7 @@ startCheck:
 
 		// convert to number
 		} else if (strcmp(p, "num") == 0) {
-
+			ASSERT_NOT_EMPTY("num");
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
@@ -370,7 +389,7 @@ startCheck:
 
 		// convert to an integer
 		} else if (strcmp(p, "int") == 0) {
-
+			ASSERT_NOT_EMPTY("int");
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
@@ -378,6 +397,18 @@ startCheck:
 			 	mainStack.push(0.0);
 		  	else if (val.type == CalcValue::NUM)
 				mainStack.push(round(val.getNum()));
+			else if (val.type == CalcValue::STR)
+				mainStack.push( round( atof( val.getStr() ) ) );
+
+		} else if (strcmp(p, "floor") == 0) {
+			ASSERT_NOT_EMPTY("floor");
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			CalcValue val = getNextValue(mainStack);
+
+			if (val.isEmpty())
+			 	mainStack.push(0.0);
+		  	else if (val.type == CalcValue::NUM)
+				mainStack.push(floor(val.getNum()));
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atoi(val.getStr()));
 
@@ -472,12 +503,9 @@ startCheck:
 			}
 			mainStack.pop();
 
-		// bitwise not operator
-		} else if (*p == '~' && *(p + 1) != '\0')
-			mainStack.push(~atoi(p + 1));
 
 		// assignment operator
-		else if (*p == '=' && *(p + 1) == '\0') { // variable assignment
+		} else if (*p == '=' && *(p + 1) == '\0') { // variable assignment
 
 			if (mainStack.size() < 2) {
 				if (showErrors)
@@ -538,7 +566,7 @@ startCheck:
 		else if (*p == '~' && *(p + 1) == '\0') {
 			if (mainStack.empty()){
 				if (showErrors)
-					std::cerr <<"\aERROR: not enough data for copy operator\n" <<std::endl;
+					std::cerr <<"\aERROR: not enough data for copy operator (`~`)\n" <<std::endl;
 				return p;
 			}
 

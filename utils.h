@@ -147,20 +147,4 @@ find_var:
 
 }
 
-#define CONVERT_REFS(MAINSTACK, FIRST_NODE, SHOW_ERRORS) \
-	if (MAINSTACK.top().type == CalcValue::REF) {\
-		CalcValue* val = MAINSTACK.top().valAtRef(FIRST_NODE);\
-\
-		while (val && val->type == CalcValue::REF)\
-			val = valAtRef(*val, FIRST_NODE);\
-\
-		if (val != NULL)\
-			MAINSTACK.top().setValue(*val);\
-		else {\
-			if (SHOW_ERRORS)\
-				std::cerr <<"\aERROR: broken reference to $" <<MAINSTACK.top().string <<'\n';\
-			return p;\
-		}\
-	}
-
 #endif
