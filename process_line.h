@@ -465,37 +465,40 @@ startCheck:
 
 		// typeof function
 		} else if (strcmp(p, "typeof") == 0) {
-			if (!mainStack.empty()) {
-				if (mainStack.top().isNull()) { // NULL string pointer
-					mainStack.pop();
-					mainStack.push("NULL_VAL");
+			ASSERT_NOT_EMPTY("typeof");
 
-				} else if (mainStack.top().type == CalcValue::STR) { // string-type
-					mainStack.pop();
-					mainStack.push("string"); // STR
+		 	if (mainStack.top().type == CalcValue::REF) {
+				UserVar* var = vars::findVar(first_node, mainStack.top().string);
+				if (var)
+			  		mainStack.top().setValue(var->val);
 
-				} else if (mainStack.top().type == CalcValue::NUM) { // number-type
-					mainStack.pop();
-					mainStack.push("number/boolean"); // NUM/BLN
+			}
 
-				} else if (mainStack.top().type == CalcValue::REF) { // variable reference
-					mainStack.pop();
-					mainStack.push("reference");
+			CalcValue val = mainStack.top();
+		  	mainStack.pop();
 
-				}
-			} else
-				mainStack.push("DataError");
+			if (val.isNull()) // NULL string pointer
+				mainStack.push("NULL_VAL");
+
+			else if (val.type == CalcValue::STR) // string-type
+				mainStack.push("string"); // STR
+
+			else if (val.type == CalcValue::NUM) // number-type
+				mainStack.push("number/boolean"); // NUM/BLN
+
+			else if (val.type == CalcValue::REF) // variable reference
+				mainStack.push("reference");
 
 		// system call (problem: this conflicts with the current strategy for handling if statements.....)
 		} else if (strcmp(p, "sys") == 0 || strcmp(p, "system") == 0) {
 
-
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			if (mainStack.top().type == CalcValue::STR)
 				system(mainStack.top().getStr()); // gets run in BASH/CMD
 
-			else if (mainStack.top().type == CalcValue::STR) {
+			else if (mainStack.top().type == CalcValue::NUM) {
 				if (showErrors)
 					std::cerr <<"\aERROR: cannot make a system call with a number...\n" <<std::endl;
 				return p;
@@ -509,7 +512,7 @@ startCheck:
 
 			if (mainStack.size() < 2) {
 				if (showErrors)
-					std::cerr <<"\aERROR: not enough data for assignment.\n" <<std::endl;
+					std::cerr <<"\aERROR: not enough data for assignment. (takes 2 arguments)\n" <<std::endl;
 				return p;
 
 			} else {
@@ -551,7 +554,7 @@ startCheck:
 				// nothing that can hold data
 				} else {
 					if (showErrors)
-						std::cerr <<"\aERROR: inappropriate use of assignment operator.\n" <<std::endl;
+						std::cerr <<"\aERROR: inappropriate use of assignment operator. (no variable given)\n" <<std::endl;
 					return p;
 				}
 
