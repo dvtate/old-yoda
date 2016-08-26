@@ -1,8 +1,8 @@
 #ifndef USER_VARIABLES_H
 #define USER_VARIABLES_H
 
-#include <cstdlib>
-#include <cstring>
+#include <stdlib.h>
+#include <string.h>
 
 #include "calc_value.h"
 
