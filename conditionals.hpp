@@ -12,7 +12,6 @@
 
 #include "calc_value.h"
 
-
 #include "process_line.h"
 
 
