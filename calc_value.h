@@ -24,7 +24,8 @@ public:
 
 	enum { NUM,	// number/boolean
 		   STR,	// string
-		   REF	// reference to a variable
+		   REF,	// reference to a variable
+		   ARR	// linked-list
 		 } type;
 
 	union {
