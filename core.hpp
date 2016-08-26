@@ -153,7 +153,6 @@ void runShell(UserVar* first_node, bool& errorReporting,
 	// prevent memory leaks...
 	free(rpnln_head);
 
-
 	if (!mainStack.empty()) {
 		ans = mainStack.top();
 		//ans.print(first_node);
