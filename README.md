@@ -1,4 +1,4 @@
-# RPN Calculator / Stack-Based Scripting language
+# RPN Shell / Stack-Based Scripting language
 A stack based script (.sbs) interpreter which is almost a scripting language at this point. Using the shell, it can be used as a calculator by those familiar with the notation, and it should be relatively useful by the time I'm finished.
 
 # Build and Run
