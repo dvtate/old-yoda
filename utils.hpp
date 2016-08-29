@@ -14,7 +14,7 @@
 #include "tokenizer.hpp"
 #include "terminal_colors.h"
 
-void displayHelp(){ // this could all be combined int one print statement...
+void displayHelp(){ // this could all be combined into one print statement...
     std::cout <<"If this is your first time using this language, you should check\
  the README on this project's github page.";
 
