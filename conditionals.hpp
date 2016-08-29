@@ -10,9 +10,9 @@
 #include <string.h>
 
 
-#include "calc_value.h"
+#include "calc_value.hpp"
 
-#include "process_line.h"
+#include "process_line.hpp"
 
 
 /*	WARNING:

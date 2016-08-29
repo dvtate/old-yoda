@@ -12,7 +12,7 @@
 #define COLOR_WHITE		"\x1B[37m"
 
 #include <stdio.h>
-
+#include <inttypes.h>
 #define TERM_CLR_RESET		0
 #define TERM_CLR_BRIGHT 	1
 #define TERM_CLR_DIM		2
@@ -25,6 +25,7 @@
 inline void textColor(uint8_t attr, uint8_t fg, uint8_t bg){
 	printf("\x1B[%d;%d;%dm", attr, fg + 30, bg + 40);
 }
+
 
 inline void textColor(uint8_t attr, uint8_t fg){
 	printf("\x1B[%d;%dm", attr, fg + 30);

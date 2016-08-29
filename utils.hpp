@@ -1,8 +1,6 @@
 #ifndef RPN_UTILS_H
 #define RPN_UTILS_H
 
-#include "calc_value.h"
-
 
 #include <iostream>
 #include <stdlib.h>
@@ -12,12 +10,19 @@
 #include <stack>
 #include <queue>
 
-#include "tokenizer.h"
+#include "calc_value.hpp"
+#include "tokenizer.hpp"
+#include "terminal_colors.h"
 
-
-inline void displayHelp(){
+void displayHelp(){ // this could all be combined int one print statement...
     std::cout <<"If this is your first time using this language, you should check\
-the README on this project's github page. https://github.com/dvtate/rpn" <<std::endl;
+ the README on this project's github page.";
+
+	// I want the URL to be underlined and blink :)
+	textEffect(TERM_CLR_UNDERLINE);
+	textEffect(TERM_CLR_BLINK);
+	std::cout <<"https://github.com/dvtate/rpn/\n";
+	textEffect(); // reset
 }
 
 

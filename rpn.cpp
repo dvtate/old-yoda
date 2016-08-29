@@ -13,22 +13,22 @@
 #include <inttypes.h>
 
 
-#include "string_stack.h"
+#include "string_stack.hpp"
 
 // this is the class used in our stack
-#include "calc_value.h"
+#include "calc_value.hpp"
 
 // user defined variables
-#include "user_variables.h"
+#include "user_variables.hpp"
 
 
 // some useful functions
-#include "utils.h"
+#include "utils.hpp"
 
 unsigned int line = 0;
 
-#include "process_line.h"
-#include "core.h"
+#include "process_line.hpp"
+#include "core.hpp"
 
 char* metaName;
 

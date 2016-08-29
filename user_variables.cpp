@@ -3,9 +3,9 @@
 #include <cstring>
 #include <inttypes.h>
 
-#include "calc_value.h"
+#include "calc_value.hpp"
 
-#include "user_variables.h"
+#include "user_variables.hpp"
 
 namespace vars {
 	

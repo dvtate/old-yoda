@@ -11,16 +11,16 @@
 #include <inttypes.h>
 
 // this is the class used in our stack
-#include "calc_value.h"
+#include "calc_value.hpp"
 
 // user defined variables
-#include "user_variables.h"
+#include "user_variables.hpp"
 
 // some useful functions
-#include "utils.h"
+#include "utils.hpp"
 
 
-#include "process_line.h"
+#include "process_line.hpp"
 
 // don't we all love pretty colors :)))
 #include "terminal_colors.h"

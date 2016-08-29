@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "calc_value.h"
+#include "calc_value.hpp"
 
 // variable names longer than 20chars will be called by their first 19 chars
 

@@ -1,4 +1,4 @@
-#include "string_stack.h"
+#include "string_stack.hpp"
 
 // resets the object to it's original state
 void StrStack::clear(){
