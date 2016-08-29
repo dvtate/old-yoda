@@ -3,8 +3,8 @@
 
 /* An open leter to Micro$oft the authors of Win$hit
  * WHY THE FUCK CANT WINDOWS BE POSTIX-COMPATABLE LIKE THE REST OF
- * THE CIVILIZED WORLD, and they make me implement my own function
- * just to make this cross-platform... SO ANGRY...
+ * THE CIVILIZED WORLD? They make me implement my own function
+ * just to make this cross-platform... SO SALTY...
  */
 #ifdef _WIN32
 
