@@ -22,6 +22,7 @@
 // some useful functions
 #include "utils.hpp"
 
+/// TODO: add a `debug-stack` operator
 
 
 extern CalcValue ans;
@@ -614,10 +615,34 @@ startCheck:
 			if (!mainStack.empty())
 				mainStack.pop();
 
+		// duplicate the top of the stack
+		} else if (strcmp(p, "dup") == 0) {
+			ASSERT_NOT_EMPTY("dup");
+			mainStack.push(mainStack.top());
+
+		} else if (strcmp(p, "dupx") == 0 || strcmp(p, "dupn") == 0) {
+		  	if (mainStack.size() < 2) {
+		  		if (showErrors)
+					std::cerr <<"\aERROR: Not enough data to satisfy `" <<p
+							  <<"` operator." <<std::endl;
+				return p;
+			}
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::NUM) {
+				if (showErrors)
+					std::cerr <<"\aERROR: operator `" <<p <<"` expected a number";
+				return p;
+			}
+
+			double copies = mainStack.top().getNum();
+			mainStack.pop();
+
+			while (copies-- > 1)
+				mainStack.push(mainStack.top());
+
 		// user has given a string :D
 		} else if (*p == '\"')
 			mainStack.push((p + 1));
-
 		// let's try and figure out what this could be...
 		else {
 			// parse input
@@ -643,6 +668,7 @@ startCheck:
 	return (char*) NULL;
 
 }
+
 
 
 
