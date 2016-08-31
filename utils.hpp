@@ -26,16 +26,10 @@ void displayHelp(){ // this could all be combined into one print statement...
 }
 
 
-CalcValue getNextValue(std::stack<CalcValue>& valStack){
-
-  	if (!valStack.empty()) {
-		CalcValue topVal = valStack.top();
-        valStack.pop();
-        return topVal;
-    } else {
-        std::cerr <<"\aERROR: not enough data to satisfy operator.\n" <<std::endl;
-		return CalcValue();
-    }
+inline CalcValue getNextValue(std::stack<CalcValue>& valStack){
+	CalcValue topVal = valStack.top();
+    valStack.pop();
+    return topVal;
 }
 
 
@@ -151,5 +145,23 @@ find_var:
 
 
 }
+
+
+
+
+namespace commands {
+	/* incomplete 
+	inline void debugStack(std::stack<CalcValue> mainStack){
+		while (!mainStack.empty()) {
+
+
+
+
+		}
+
+	}
+	*/
+}
+
 
 #endif
