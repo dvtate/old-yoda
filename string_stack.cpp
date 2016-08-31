@@ -3,7 +3,7 @@
 // resets the object to it's original state
 void StrStack::clear(){
 
-	for (uint8_t i = 0; i < stackDepth; i++)
+	for (size_t i = 0; i < stackDepth; i++)
 		free(*(buffer--));
 
   	// set buffer to it's original size
@@ -66,4 +66,20 @@ void StrStack::pop(){
 		stackDepth--;
 
 	}
+}
+
+
+// modify the top element
+void StrStack::changeTop(const char* str){
+	if (stackDepth) {
+
+		char*& topStr = *(buffer - 1);
+
+		// change the size to fit the new string
+		topStr = (char*) realloc(topStr, strlen(str) + 1);
+
+		strcpy(topStr, str);
+
+	}
+
 }
