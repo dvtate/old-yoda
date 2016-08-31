@@ -53,7 +53,9 @@ public:
 	size_t& size()
 		{ return stackDepth; }
 
-
+	void changeTop(const char* str);
+	void top(const char* str)
+		{ return changeTop(str);}
 
 };
 
