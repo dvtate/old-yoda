@@ -259,56 +259,72 @@ startCheck:
 		// char is a unary operator
 			//trig functions
 		else if (strcmp(p, "sin") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(sin(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "cos") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(cos(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "tan") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(tan(getNextValue(mainStack).getNum()));
 
 		} else if (strcmp(p, "asin") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(asin(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "acos") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(acos(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "atan") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(atan(getNextValue(mainStack).getNum()));
 
 		} else if (strcmp(p, "sinh") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(sinh(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "cosh") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(cosh(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "tanh") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(tanh(getNextValue(mainStack).getNum()));
 
 		} else if (strcmp(p, "asinh") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(asinh(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "acosh") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(acosh(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "atanh") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(atanh(getNextValue(mainStack).getNum()));
 
 		// more unary math functions
 		} else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(log10(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "ln") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(log(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(sqrt(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "abs") == 0) {
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(std::abs(getNextValue(mainStack).getNum()));
 
@@ -668,7 +684,6 @@ startCheck:
 	return (char*) NULL;
 
 }
-
 
 
 
