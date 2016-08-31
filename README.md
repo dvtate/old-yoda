@@ -50,17 +50,17 @@ https://1drv.ms/u/s!AqWtCxMOBjWMhbc0ZRkaWosjm5IWXw
  ```
   Variables are references to data, variables can reference eachother. Changing the value of a reference changes the value of it's referenced variable.  If you want to make a deep copy, use the copy operator (`~`). 
  ```
- >>> $b $a =
- >>>
+ >>> $b $a ~ = # now they both hold the same value
  ```
  - <b>Strings:</b>
   This is a loosely-typed language. Strings are enclosed in double quotes `"` and only need a closing `"` if it would change the meaning without it.
  ```
  >>> "closing quote not needed here
- ans "closing quote not needed here" =
+ "closing quote not needed here
+ "
  
  >>> "hello " "there" + $a = # notice that the `+` operator is overloaded
- ans "hello there" =
+ "hello there"
  
  >>> $a print 
  hello there
@@ -98,18 +98,20 @@ Thanks!
       previous answer, initialized to 0. (access it as you would a variable)
     * `>>> pi` <br/>
       an approximate value for pi (access it as you would `ans`)
+    * `>>> true` <br/>
+      puts 1 on the top of the stack
+    * `>>> false` <br/>
+      puts 0 on the top of the stack
+    * `>>> null` <br/>
+      puts a NULL object on the top of the stack (depricated)
     * `>>> print` <br/>
       prints the element at the top of the stack
+    * `>>> println` <br/>
+      prints the element at the top of the stack and a newline
     * `>>> input` <br/>
       returns user input as a string
-    * `>>> str` <br/>
-      converts a number to a string (or passes a string)
-    * `>>> num` <br/>
-      converts a string to a number (or passes a number)
-    * `>>> int` <br/>
-      converts a string or a number to an integer.
     * `>>> vars` = `>>> listvars` <br/>
-      prints the status of all the variables (useful for debugging)
+      prints the status and types of all the variables (useful for debugging)
     * `>>> typeof`<br/>
       returns the type of the given variable or constant
     * `>>> syscall`<br/>
@@ -160,12 +162,15 @@ Thanks!
 * Stack/flow operators: these are useful in organizing your syntax
   - `...`: empty stack
   - `;`: pop top of stack
+  - `dup`: duplicates the value on the top of the stack (1 arg)
+  - `dupn`: performs `dup` n number or times (2 args)
   
 * Type conversions:
   - `str`: converts to string
   - `num`: converts to a number
   - `int`: converts to a integer (rounding)
   - `floor`: static casts to an int. 
+  - `~`: copy operator, replaces a reference with the basic value it points to
   
 * String functions:
   - `strlen`: returns the length of a given string
