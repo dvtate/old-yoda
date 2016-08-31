@@ -19,11 +19,13 @@
 // some useful functions
 #include "utils.hpp"
 
+#include "string_stack.hpp"
 
 #include "process_line.hpp"
 
 // don't we all love pretty colors :)))
 #include "terminal_colors.h"
+
 
 extern char* metaName;
 
