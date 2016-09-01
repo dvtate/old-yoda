@@ -1,0 +1,36 @@
+# this program adds up US coins
+# it demonstrates the use of 
+# variables and boiltin operators
+
+# Please excuse my terrible 
+# spelling XDDDDDDDDDDDD
+
+# just a prompt
+"Plz gimme monies OvO\n" println
+
+"kwarterz plz: " print  # prompt
+$quarters input num =   # get numerical input
+
+"daims plz: " print
+$dimes input num =
+
+"nikels plz: " print 
+$nickels input num =
+
+"penees plz: " print 
+$pennies input num =
+
+
+"Total monies = $" print
+
+
+# add them up to get the dollar amount
+	$quarters	0.25 *
+	$dimes	 	0.1  *	+
+	$nickels 	0.05 *	+
+	$pennies	0.01 *	+
+
+# round the total to the nearest penny ($0.01)
+	100 * int 100 /
+
+println # print the total
