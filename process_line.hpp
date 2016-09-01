@@ -364,12 +364,19 @@ startCheck:
 			printCalcValueRAW(mainStack.top(), first_node);
 			mainStack.pop();
 
+		} else if (strcmp(p, "println") == 0) {
+			ASSERT_NOT_EMPTY("println");
+			printCalcValueRAW(mainStack.top(), first_node);
+			mainStack.pop();
+
+			std::cout <<std::endl;
+
 		// user input
 		} else if (strcmp(p, "input") == 0) {
 			char* input = (char*) malloc(256);
 			size_t lineLen = 256;
 
-			if (getline(&input, &lineLen, program) == -1) {
+			if (getline(&input, &lineLen, stdin) == -1) {
 				if (showErrors)
 					std::cerr <<"\aERROR: input could not getline()\n";
 				return p;
