@@ -35,6 +35,12 @@ extern CalcValue ans;
 				return p;\
 			}
 
+#define PASS_ERROR(MSG)\
+				if (showErrors)	std::cerr <<MSG;\
+				return p;
+
+
+
 #define CONVERT_REFS(MAINSTACK, FIRST_NODE, SHOW_ERRORS)\
 	if (MAINSTACK.top().type == CalcValue::REF) {\
 		CalcValue* val = MAINSTACK.top().valAtRef(FIRST_NODE);\
@@ -86,17 +92,13 @@ startCheck:
 		) {
 
 			if (mainStack.size() < 2) {
-				if (showErrors)
-					std::cerr <<"\aERROR: Not enough data to satisfy operator `" <<p <<"`." <<std::endl;
-				return p;
+				PASS_ERROR("\aERROR: Not enough data to satisfy operator `" <<p <<"`.\n");
 			}
 
 			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			if (mainStack.top().type != CalcValue::NUM) {
-				if (showErrors)
-					std::cerr <<"ERROR: incompatible data-types! (expected two numbers)";
-				return p;
+				PASS_ERROR("\aERROR: incompatible data-types for operatotr `" <<p <<"`. (expected two numbers)\n");
 			}
 
 			double b = getNextValue(mainStack).getNum();
@@ -104,9 +106,7 @@ startCheck:
 			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			if (mainStack.top().type != CalcValue::NUM) {
-				if (showErrors)
-					std::cerr <<"ERROR: incompatible data-types! (expected two numbers) ";
-				return p;
+				PASS_ERROR("\aERROR: incompatible data-types for operatotr `" <<p <<"`. (expected two numbers)\n");
 			}
 
 			double a = getNextValue(mainStack).getNum();
@@ -161,9 +161,7 @@ startCheck:
 
 
 		  	if (mainStack.size() < 2) {
-		  		if (showErrors)
-					std::cerr <<"\aERROR: Not enough data to satisfy `+` operator." <<std::endl;
-				return p;
+				PASS_ERROR("\aERROR: Not enough data to satisfy `+` operator." <<std::endl);
 			}
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue b = getNextValue(mainStack);
@@ -335,10 +333,7 @@ startCheck:
 			if (mainStack.top().type == CalcValue::STR)
 				mainStack.top().setValue((double)strlen(mainStack.top().string));
 			else {
-				if (showErrors)
-					std::cerr <<"\aERROR: strlen expected a string.\n";
-
-				return p;
+				PASS_ERROR("\aERROR: strlen expected a string.\n");
 			}
 
 		// comments
@@ -377,9 +372,7 @@ startCheck:
 			size_t lineLen = 256;
 
 			if (getline(&input, &lineLen, stdin) == -1) {
-				if (showErrors)
-					std::cerr <<"\aERROR: input could not getline()\n";
-				return p;
+				PASS_ERROR("\aERROR: input could not getline()\n");
 			}
 
 			mainStack.push(input);
@@ -442,10 +435,7 @@ startCheck:
 
 		// should never see this as it is handled by the conditional function
 		} else if (strcmp(p, ":?") == 0) {
-			if (showErrors)
-				std::cerr <<"\aERROR: `:?` without previous `?:`\n" <<std::endl;
-			return p;
-
+			PASS_ERROR("\aERROR: `:?` without previous `?:`\n" <<std::endl);
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
 			|| !strcmp(p, "exit") || !strcmp(p, "quit")
@@ -523,10 +513,7 @@ startCheck:
 				system(mainStack.top().getStr()); // gets run in BASH/CMD
 
 			else if (mainStack.top().type == CalcValue::NUM) {
-				if (showErrors)
-					std::cerr <<"\aERROR: cannot make a system call with a number...\n" <<std::endl;
-				return p;
-
+				PASS_ERROR("\aERROR: cannot make a system call with a number...\n" <<std::endl);
 			}
 			mainStack.pop();
 
@@ -535,10 +522,7 @@ startCheck:
 		} else if (*p == '=' && *(p + 1) == '\0') { // variable assignment
 
 			if (mainStack.size() < 2) {
-				if (showErrors)
-					std::cerr <<"\aERROR: not enough data for assignment. (takes 2 arguments)\n" <<std::endl;
-				return p;
-
+				PASS_ERROR("\aERROR: not enough data for assignment. (takes 2 arguments)\n" <<std::endl);
 			} else {
 
 				CalcValue rhs = getNextValue(mainStack),
@@ -577,9 +561,7 @@ startCheck:
 
 				// nothing that can hold data
 				} else {
-					if (showErrors)
-						std::cerr <<"\aERROR: inappropriate use of assignment operator. (no variable given)\n" <<std::endl;
-					return p;
+					PASS_ERROR("\aERROR: inappropriate use of assignment operator. (no variable given)\n" <<std::endl);
 				}
 
 			}
@@ -592,9 +574,7 @@ startCheck:
 
 		else if (*p == '~' && *(p + 1) == '\0') {
 			if (mainStack.empty()){
-				if (showErrors)
-					std::cerr <<"\aERROR: not enough data for copy operator (`~`)\n" <<std::endl;
-				return p;
+				PASS_ERROR("\aERROR: not enough data for copy operator (`~`)\n");
 			}
 
 			CONVERT_REFS(mainStack, first_node, showErrors);
@@ -645,16 +625,11 @@ startCheck:
 
 		} else if (strcmp(p, "dupx") == 0 || strcmp(p, "dupn") == 0) {
 		  	if (mainStack.size() < 2) {
-		  		if (showErrors)
-					std::cerr <<"\aERROR: Not enough data to satisfy `" <<p
-							  <<"` operator." <<std::endl;
-				return p;
+				PASS_ERROR("\aERROR: Not enough data to satisfy `" <<p <<"` operator." <<std::endl);
 			}
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::NUM) {
-				if (showErrors)
-					std::cerr <<"\aERROR: operator `" <<p <<"` expected a number";
-				return p;
+				PASS_ERROR("\aERROR: operator `" <<p <<"` expected a number\n");
 			}
 
 			double copies = mainStack.top().getNum();
@@ -673,9 +648,7 @@ startCheck:
 
 			// the user is an asshole :T
 			if (number == 0 && *p != '0') {
-				if (showErrors)
-					std::cerr <<"\aSYNTAX ERROR: near `" <<p <<"`" <<std::endl;
-				return p;
+				PASS_ERROR("\aSYNTAX ERROR: near `" <<p <<"`" <<std::endl);
 
 			// the user has given us a number :D
 			} else
