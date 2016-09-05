@@ -22,8 +22,6 @@
 // some useful functions
 #include "utils.hpp"
 
-/// TODO: add a `debug-stack` operator
-
 
 extern CalcValue ans;
 
@@ -476,9 +474,12 @@ startCheck:
 
 			}
 
+		// print the contents of the stack
+		} else if (strcmp(p, "stack") == 0)
+			commands::debugStack(mainStack, first_node);
 
 		// typeof function
-		} else if (strcmp(p, "typeof") == 0) {
+		else if (strcmp(p, "typeof") == 0) {
 			ASSERT_NOT_EMPTY("typeof");
 
 		 	if (mainStack.top().type == CalcValue::REF) {
@@ -664,9 +665,6 @@ startCheck:
 	return (char*) NULL;
 
 }
-
-
-
 
 
 
