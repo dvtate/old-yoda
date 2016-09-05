@@ -150,17 +150,18 @@ find_var:
 
 
 namespace commands {
-	/* incomplete 
-	inline void debugStack(std::stack<CalcValue> mainStack){
+	inline void debugStack(std::stack<CalcValue> mainStack, UserVar* first_node){
+		// since the stack is copied, we can modify it as we wish in here :)
+		size_t index = 0;
 		while (!mainStack.empty()) {
+			std::cout <<index++ <<" : ";
+			printCalcValue(mainStack.top(), first_node);
+			std::cout <<std::endl;
 
-
-
-
+			mainStack.pop();
 		}
 
 	}
-	*/
 }
 
 
