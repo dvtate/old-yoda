@@ -85,7 +85,7 @@ startCheck:
 			|| !strcmp(p, "<<") || !strcmp(p, ">>") || !strcmp(p, "**")
 			|| !strcmp(p, "&&") || !strcmp(p, "||") // logical operators
 			|| !strcmp(p, "<=") || !strcmp(p, ">=")
-			|| !strcmp(p, "logBase") || !strcmp(p, "logBASE") || !strcmp(p, "logbase")
+			|| !strcmp(p, "logBase") || !strcmp(p, "logbase")
 			|| !strcmp(p, "pow") // for those who dont like "**"
 		) {
 
@@ -251,9 +251,8 @@ startCheck:
 		else if (*p == '!' && *(p + 1) == '\0')
 			mainStack.push(getNextValue(mainStack).getNum() == 0);
 
-
-		// char is a unary operator
-			//trig functions
+		
+		//trig functions
 		else if (strcmp(p, "sin") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
@@ -267,6 +266,7 @@ startCheck:
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(tan(getNextValue(mainStack).getNum()));
 
+		// inverse trig functions
 		} else if (strcmp(p, "asin") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
@@ -280,6 +280,7 @@ startCheck:
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(atan(getNextValue(mainStack).getNum()));
 
+		// hyperbolic trig functions
 		} else if (strcmp(p, "sinh") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
@@ -293,6 +294,8 @@ startCheck:
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(tanh(getNextValue(mainStack).getNum()));
 
+
+		// inverse hyperbolic trig functions
 		} else if (strcmp(p, "asinh") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
@@ -307,19 +310,19 @@ startCheck:
 			mainStack.push(atanh(getNextValue(mainStack).getNum()));
 
 		// more unary math functions
-		} else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0) {
+		} else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0) { 
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(log10(getNextValue(mainStack).getNum()));
-		} else if (strcmp(p, "ln") == 0) {
+		} else if (strcmp(p, "ln") == 0) { // natural log
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(log(getNextValue(mainStack).getNum()));
-		} else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0) {
+		} else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0) { // square root
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(sqrt(getNextValue(mainStack).getNum()));
-		} else if (strcmp(p, "abs") == 0) {
+		} else if (strcmp(p, "abs") == 0) { // absolute value
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(std::abs(getNextValue(mainStack).getNum()));
@@ -341,7 +344,7 @@ startCheck:
 		// pi
 		else if (strcmp(p, "pi") == 0)
 			mainStack.push(M_PI); // defined in math.h
-		else if (strcmp(p, "null") == 0)
+		else if (strcmp(p, "null") == 0) // this segfaults................
 			mainStack.push(NULL_CALCVAL_OBJECT);
 		else if (strcmp(p, "true") == 0)
 			mainStack.push(1.0);
@@ -352,11 +355,13 @@ startCheck:
 		else if (strcmp(p, "ans") == 0) // p == "ans"
 			mainStack.push(ans);
 
+		// print to terminal
 		else if (strcmp(p, "print") == 0) {
 			ASSERT_NOT_EMPTY("print");
 			printCalcValueRAW(mainStack.top(), first_node);
 			mainStack.pop();
 
+		// print and end with a newline
 		} else if (strcmp(p, "println") == 0) {
 			ASSERT_NOT_EMPTY("println");
 			printCalcValueRAW(mainStack.top(), first_node);
@@ -665,6 +670,9 @@ startCheck:
 	return (char*) NULL;
 
 }
+
+
+
 
 
 
