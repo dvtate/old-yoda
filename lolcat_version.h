@@ -1,6 +1,8 @@
 #ifndef VERSION_PRINT_H
 #define VERSION_PRINT_H
 
+#define SBS_LANG_VERSION "0.0.3-alpha"
+
 #include <stdio.h>
 void printVersionInfo(){
 	// I got this value from `$ lolcat -f -S 27 -F 0.27 ver_info.txt > color.txt && cat color.txt`
