@@ -1,11 +1,14 @@
 #ifndef VERSION_PRINT_H
 #define VERSION_PRINT_H
 
+#include <stdio.h>
+
 #define SBS_LANG_VERSION "0.0.3-alpha"
 
-#include <stdio.h>
+
+
 void printVersionInfo(){
-	// I got this value from `$ lolcat -f -S 27 -F 0.27 ver_info.txt > color.txt && cat color.txt`
+	// I got this value from `$ lolcat -f -S 27 -F 0.27 ver_info.txt > color.txt`
  	/*contents of "ver_info.txt"
 	*
 	*	Stack Based Scripting Language  - v0.0.3-alpha
@@ -21,7 +24,6 @@ void printVersionInfo(){
 	*
 	*	You should have received a copy of the GNU General Public License
 	*	along with this program. If not, see <http://www.gnu.org/licenses/>
-	*
 	*/
 	puts(
 "\x1B[38;5;208mS\x1B[0m\x1B[38;5;209mt\x1B[0m\x1B[38;5;203ma\x1B[0m\x1B[38;5;203mc\
@@ -199,5 +201,3 @@ void printVersionInfo(){
 }
 
 #endif
-
-
