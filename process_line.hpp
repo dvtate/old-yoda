@@ -22,6 +22,8 @@
 // some useful functions
 #include "utils.hpp"
 
+// version info
+#include "lolcat_version.h"
 
 extern CalcValue ans;
 
@@ -591,6 +593,8 @@ startCheck:
 		else if (strcmp(p, "errors-on") == 0)
 			showErrors = true;
 
+		else if (strcmp(p, "version") == 0)
+			printVersionInfo();
 
 		/*delete a variable
 		else if (strcmp(p, "delete") == 0) {

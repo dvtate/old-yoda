@@ -30,6 +30,8 @@ unsigned int line = 0;
 #include "process_line.hpp"
 #include "core.hpp"
 
+#include "lolcat_version.h"
+
 char* metaName;
 
 int main(int argc, char** argv){
@@ -55,17 +57,7 @@ int main(int argc, char** argv){
 
 	// hit 'em up wit dat version info
 	} else if (strcmp(argv[1], "-V") == 0 || strcmp(argv[1], "--version")  == 0) {
-		std::cout <<"Stack Based Scripting Language  - v0.0.2-alpha\n\
-Copyright (C) 2016 Dustin Van Tate Testa <toast27@gmail.com>\n\
-This program is free software: you can redistribute it and/or modify\n\
-it under the terms of the GNU General Public License as published by\n\
-the Free Software Foundation.\n\
-This program is distributed in the hope that it will be useful,\n\
-but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
-MERCHANTIBILITY or FITNESS FOR A PARTICULAR PURPOSE. Check the\n\
-GNU General Public License for more details.\n\n\
-You should have received a copy of the GNU General Public License\n\
-along with this program. If not, see <http://www.gnu.org/licenses/>\n";
+		printVersionInfo();
 
 	// help a brotha out
 	} else if (strcmp(*argv, "--help") == 0 || strcmp(*argv, "-h") == 0) {
