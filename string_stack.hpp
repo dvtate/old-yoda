@@ -1,8 +1,7 @@
 #ifndef STRING_STACK_H
 #define STRING_STACK_H
 
-#include <cstdlib>
-#include <cstring>
+#include <stdlib.h>
 #include <inttypes.h>
 
 
