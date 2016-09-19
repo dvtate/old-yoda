@@ -1,5 +1,7 @@
 #include "string_stack.hpp"
 
+#include <string.h>
+
 // resets the object to it's original state
 void StrStack::clear(){
 
@@ -42,6 +44,7 @@ void StrStack::grow(){
 
 // pushes a line to the top of the stack
 void StrStack::push(const char* str){
+
 	*buffer = (char*) malloc(strlen(str) + 1);
 
 	// write the string to the buffer
@@ -50,7 +53,9 @@ void StrStack::push(const char* str){
 	// go to next empty space
 	buffer++;
 
-  	stackDepth++;
+	// if the size needs to be doubled after adding a new element
+  	if (++stackDepth == (1U <<sizeFactor) * 256)
+		grow();
 }
 
 
