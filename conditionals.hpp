@@ -16,14 +16,13 @@
 
 
 /*	WARNING:
-* This code is terribly broken. I wrote this without any sleep and I'm suprised
-* I even got it to compile. It might be best to do a total rewrite. Please feel
-* free to fix my mistakes. I've done a pretty shitty job with this... I'm going
-* to sleep now.
+* This code is terribly broken. but I think I'm going to be able to fix it now :)))
 */
 
 
 extern FILE* program;
+
+extern unsigned int line;
 
 extern char* processLine(
 	std::stack<CalcValue>& mainStack, UserVar* first_node,
@@ -37,146 +36,200 @@ extern void runStringStack(
 
 
 
-char* endif(char*& string){
-	if (string && *string) {
-		do {
-			if (*string == ':') {
-				if (*++string == '?')
-					return ++string;
 
-			} else if (*string == '#')
-				return NULL;
-		} while (*++string != '\0');
+inline char* ignoreConditional(char*& str) {
+
+	char* p;
+	uint8_t depth;
+	size_t lineLen = 256; // same value as in core.h
+
+	p = str;
+	while (*p && depth != 0) {
+		if (*p == '?' && *(p + 1) == ':') {
+			depth++;
+			p += 2;
+		} else if (*p == ':' && *(p + 1) == '?') {
+			depth--;
+			p += 2;
+		} else
+			p++;
 	}
+
+	while (depth) {
+
+		str = (char*) malloc(lineLen);
+		if (getline(&str, &lineLen, program) == -1) {
+			std::cerr <<"\aERROR: unterminated conditional; missing `:?`\n";
+			return str;
+		}
+
+		p = str;
+		while (*p && depth != 0) {
+			if (*p == '?' && *(p + 1) == ':') {
+				depth++;
+				p += 2;
+			} else if (*p == ':' && *(p + 1) == '?') {
+				depth--;
+				p += 2;
+			} else
+				p++;
+		}
+	}
+	str = p;
 	return NULL;
 }
 
-// if elseif else
-char* conditional(char* str,
+
+inline char* pushConditional(char*& str, StrStack& block){
+
+	char* p;
+	uint8_t depth = 1;
+	size_t lineLen = 256; // same value as in core.h
+
+	p = str;
+	while (*p && depth != 0) { // for each character
+		if (*p == '?' && *(p + 1) == ':') {
+			depth++;
+			p += 2;
+		} else if (*p == ':' && *(p + 1) == '?') {
+			depth--;
+			p += 2;
+		} else
+			p++;
+		
+	}
+
+	while (depth) { // for each line
+		line++;
+		str = (char*) malloc(lineLen);
+		if (getline(&str, &lineLen, program) == -1) {
+			std::cerr <<"\aERROR: unterminated conditional; missing `:?`\n";
+			return str;
+		}
+
+		p = str;
+		while (*p && depth != 0) { // for each character
+			if (*p == '?' && *(p + 1) == ':') {
+				depth++;
+				p += 2;
+			} else if (*p == ':' && *(p + 1) == '?') {
+				depth--;
+				p += 2;
+			} else
+				p++;
+
+		}
+
+
+	}
+
+	// copy the portion of the line inside the if-block
+	if (depth == 0 && *p) {
+		// copy to a container string
+		size_t len = (p - 2) - str;
+		char lineInsideIf[len + 1];
+		strncpy(lineInsideIf, str, len);
+		lineInsideIf[len] = 0;
+
+		block.push(lineInsideIf);
+	} else
+		block.push(str);
+
+
+
+	str = p;
+
+	return NULL;
+
+}
+
+char* conditional(char*& str,
 				  std::stack<CalcValue>& mainStack,
 				  UserVar* first_node,
 				  bool& showErrors
 ){
-	bool triggered = false;
 
-	bool condition = !mainStack.empty() && mainStack.top().getNum();
-	if (!mainStack.empty())
+	StrStack toRun;
+	bool canRun;
+
+	// process the first condition
+	if (mainStack.top().getNum()) {
 		mainStack.pop();
+		canRun = true;
+		char* err = pushConditional(str, toRun);
+		if (err != NULL)
+			return err;
 
-	// copy the string into a new stack
-	size_t lineLen = strlen(str) + 1;
-	char* string = (char*) malloc(lineLen); // make a copy of this for modification to prevent problems
-	strcpy(string, str);
-
-	char* string_head = string;
-
-
-process_condition:
-
-
-	// run condition and ignore the others
-	if (!triggered && condition) {
-
-		triggered = true;
-
-		// holds the if statement code
-		StrStack stk;
-		//std::cout <<"triggered XDDDDDDDD\n";
-
-		while (*string != '#' && *string != '\0' &&
-			   !(*string == ':' && *(string + 1) == '?'))
-			string++;
-
-		if (*string == ':') {
-			*string = '\0';
-			processLine(mainStack, first_node, showErrors, string_head);
-			*string += 3;
-		} else {
-			*string = '\0';
-			stk.push(string_head);
-
-			for (;;) {
-				string = string_head;
-
-				if (getline(&string, &lineLen, program) == -1) { // EOF
-					std::cerr <<"\aERROR: unterminated conditional; missing `:?`\n";
-					return 0;
-				} else if (endif(string) != NULL) {
-					stk.push(string);
-					break;
-				}
-
-			}
-
-			runStringStack(stk, showErrors, mainStack, first_node);
+		// single block if statement
+		if (!*str)
+			goto conditional_endif;
+	} else {
+		mainStack.pop();
+		char* err = ignoreConditional(str);
+		if (err != NULL)
+			return err;
+		canRun = false;
+	}
 
 
+
+	// process the others
+	while (*str) {
+
+		// find the length of the condition
+		char* p = str;
+		while (*p && (*p != '?' && *(p + 1) != ':')) {
+			p++;
 		}
 
-	} else { // skip this one
+		if (!*p) // endif if there is no elseif
+			goto conditional_endif;
 
-		for (;;) {
-			while (*string != '#' && *string != '\0' &&
-				   !(*string == ':' && *(string + 1) == '?'))
-				string++;
-
-
-			if (*string == ':') {
-				string += 2;
-				break;
-			// another line
-			} else {
-				string = string_head;
-				if (getline(&string, &lineLen, program) == -1) { // EOF
-					std::cerr <<"\aERROR: unterminated conditional; missing `:?`\n";
-					return 0;
-				}
+		// assign the condition to a string
+		size_t len = (p - 1) - str;
+		char cond[len + 1];
+		strncpy(cond, str, len);
+		cond[len] = 0;
+		char* condCpy = cond;
 
 
-			}
+		// push the condition to the stack
+		char* err = processLine(mainStack, first_node, showErrors, condCpy);
+		if (err != NULL)
+			return err;
+
+		str = p;
+
+		// process the first condition
+		if (!canRun && mainStack.top().getNum()) {
+			mainStack.pop();
+			canRun = true;
+			char* err = pushConditional(str, toRun);
+			if (err != NULL)
+				return err;
+
+			// single block if statement
+			if (!*str)
+				goto conditional_endif;
+		} else {
+			mainStack.pop();
+			char* err = ignoreConditional(str);
+			if (err != NULL)
+				return err;
 		}
 
 	}
 
-	char* string_cpy = string;
-
-	while (*string_cpy != '\0' && *string_cpy != '#'
-			&& *string_cpy != '?' && *(string_cpy + 1) != ':')
-		string_cpy++;
-
-	if (*string_cpy == '\0')
-		return string_cpy;
-	if (*string_cpy == '#')
-		return 0;
-
-	uint32_t condition_len = string_cpy - string;
-
-	char* strHolder = (char*) malloc(condition_len + 1);
-
-	// copy the string
-	strncpy(strHolder, string, condition_len);
-
-	// add NULL-terminator
-	*(strHolder + condition_len) = '\0';
 
 
+// end of function/statement
+conditional_endif:
 
-	processLine(mainStack, first_node, showErrors, strHolder);
+	if (canRun)
+		runStringStack(toRun, showErrors, mainStack, first_node);
 
-	condition = !mainStack.empty() && mainStack.top().getNum();
-	if (!mainStack.empty())
-		mainStack.pop();
-
-
-	goto process_condition;
-
-	free(strHolder);
-	//free(string_head);
 	return NULL;
 
 }
-
-
-
 
 #endif
