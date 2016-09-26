@@ -436,11 +436,14 @@ startCheck:
 
 		// starting conditional
 		} else if (strcmp(p, "?:") == 0) {
-			conditional(p + 3, mainStack, first_node, showErrors);
+			p += 3;
+			char* err = conditional(p, mainStack, first_node, showErrors);
+			if (err)
+				return err;
 
 		// should never see this as it is handled by the conditional function
 		} else if (strcmp(p, ":?") == 0) {
-			PASS_ERROR("\aERROR: `:?` without previous `?:`\n" <<std::endl);
+			/*PASS_ERROR("\aERROR: `:?` without previous `?:` (might be my fault...)\n" <<std::endl);*/
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
 			|| !strcmp(p, "exit") || !strcmp(p, "quit")
