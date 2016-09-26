@@ -38,7 +38,6 @@ extern void runStringStack(
 
 
 inline char* ignoreConditional(char*& str) {
-
 	char* p;
 	uint8_t depth;
 	size_t lineLen = 256; // same value as in core.h
@@ -56,8 +55,7 @@ inline char* ignoreConditional(char*& str) {
 	}
 
 	while (depth) {
-
-		str = (char*) malloc(lineLen);
+		str = (char*) realloc(str, lineLen);
 		if (getline(&str, &lineLen, program) == -1) {
 			std::cerr <<"\aERROR: unterminated conditional; missing `:?`\n";
 			return str;
@@ -81,12 +79,12 @@ inline char* ignoreConditional(char*& str) {
 
 
 inline char* pushConditional(char*& str, StrStack& block){
-
-	char* p;
 	uint8_t depth = 1;
-	size_t lineLen = 256; // same value as in core.h
+	size_t lineLen = strlen(str) + 1; // same value as in core.h
 
-	p = str;
+	char* p = (char*) malloc(lineLen);
+	strcpy(p, str);
+
 	while (*p && depth != 0) { // for each character
 		if (*p == '?' && *(p + 1) == ':') {
 			depth++;
@@ -96,7 +94,7 @@ inline char* pushConditional(char*& str, StrStack& block){
 			p += 2;
 		} else
 			p++;
-		
+
 	}
 
 	while (depth) { // for each line
@@ -153,7 +151,7 @@ char* conditional(char*& str,
 	bool canRun;
 
 	// process the first condition
-	if (mainStack.top().getNum()) {
+	if (!mainStack.top().getNum()) {
 		mainStack.pop();
 		canRun = true;
 		char* err = pushConditional(str, toRun);
@@ -201,7 +199,7 @@ char* conditional(char*& str,
 		str = p;
 
 		// process the first condition
-		if (!canRun && mainStack.top().getNum()) {
+		if (!canRun && !mainStack.top().getNum()) {
 			mainStack.pop();
 			canRun = true;
 			char* err = pushConditional(str, toRun);
@@ -227,7 +225,6 @@ conditional_endif:
 
 	if (canRun)
 		runStringStack(toRun, showErrors, mainStack, first_node);
-
 	return NULL;
 
 }
