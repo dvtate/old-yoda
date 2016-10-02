@@ -45,13 +45,18 @@ public:
 
 	CalcValue(const char* const str): type(STR) {
 
-		// allocate memory for the string
-	  	string = (char*) malloc(strlen(str) + 1);
-
-		// write the string to the buffer
-		strcpy(string, str);
 		type = STR;
 
+		if (str) {
+			// allocate memory for the string
+		  	string = (char*) malloc(strlen(str) + 1);
+
+			// write the string to the buffer
+			strcpy(string, str);
+
+		// declaring a NULL_CALCVAL_OBJECT
+		} else
+			string = NULL;
 	}
 
 
@@ -94,8 +99,11 @@ public:
 			  	free(string);
 
 			type = in.type;
-		  	string = (char*) malloc(strlen(in.string) + 1);
-			strcpy(string, in.string);
+			if (in.string != NULL) {
+			  	string = (char*) malloc(strlen(in.string) + 1);
+				strcpy(string, in.string);
+			} else
+				string = NULL;
 		}
 	}
 
@@ -103,7 +111,6 @@ public:
 		setValue(in);
 		return *this;
 	}
-
 
 	CalcValue& setRef(const char* const str){
 

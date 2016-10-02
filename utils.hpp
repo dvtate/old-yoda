@@ -105,10 +105,10 @@ void printCalcValue(CalcValue& val, UserVar* first_node){
 
 void printCalcValueRAW(CalcValue& val, UserVar* first_node){
 
-  	if (val.type == CalcValue::NUM)
-		std::cout <<val.getNum();
-	else if (val.isNull())
+	if (val.isNull())
 		std::cout <<"null";
+  	else if (val.type == CalcValue::NUM)
+		std::cout <<val.getNum();
 	else if (val.type == CalcValue::STR)
 		std::cout <<val.getStr();
 	else if (val.type == CalcValue::REF) {
@@ -164,5 +164,16 @@ namespace commands {
 	}
 }
 
+inline char* trimStr(char* string){
+	while (isspace(*string))
+		string++;
 
+	char* ret = string;
+	while (!isspace(*string) && *string != '\0')
+		string++;
+
+	*(string + 1) = 0;
+
+	return ret;
+}
 #endif

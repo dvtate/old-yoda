@@ -4,10 +4,11 @@
 #include <iostream>
 #include <stack>
 #include <queue>
-#include <cstring>
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
+#include <string.h>
+#include <string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include <inttypes.h>
 
 // this is the class used in our stack
@@ -346,8 +347,12 @@ startCheck:
 		// pi
 		else if (strcmp(p, "pi") == 0)
 			mainStack.push(M_PI); // defined in math.h
+		// e
+		else if (*p == 'e' && *(p + 1) == '\0')
+			mainStack.push(M_E); // defined in math.h
+		//
 		else if (strcmp(p, "null") == 0) // this segfaults................
-			mainStack.push(NULL_CALCVAL_OBJECT);
+			mainStack.push((char*) NULL);
 		else if (strcmp(p, "true") == 0)
 			mainStack.push(1.0);
 		else if (strcmp(p, "false") == 0)
@@ -391,9 +396,12 @@ startCheck:
 		  	if (val.type == CalcValue::STR)
 				mainStack.push(val.getStr());
 			else if (val.type == CalcValue::NUM) {
-				char str[8];
-				snprintf(str, 7, "%g", val.getNum());
-				mainStack.push(str);
+				char str[26];
+				snprintf(str, 26, "%*.*g", 10, 16, val.getNum());
+				mainStack.push(trimStr(str));
+
+				// c++ solutions don't always work as desired :P
+				//mainStack.push(std::to_string(val.getNum()).c_str());
 			}
 
 		// convert to number
