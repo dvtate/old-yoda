@@ -6,7 +6,7 @@
 #define SBS_LANG_VERSION "0.0.3-alpha"
 
 
-// I got this value from `$ lolcat -f -S 27 -F 0.27 ver_info.txt > color.txt && xxd -i color.txt > version_info.h`
+// I got this value from `$ lolcat -f -S 27 -F 0.27 ver_info.txt > color.txt && xxd -i color.txt > version_info.h && rm color.txt`
 											
 /*contents of "ver_info.txt"
 *
