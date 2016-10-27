@@ -41,11 +41,11 @@ int main(int argc, char** argv){
 	// give 'em da shell
 	if (argc == 1) {
 
-
-
+		// set up a namespace for variables
 		UserVar* first_node = new UserVar(NULL, " ", 0.0);
 		first_node->first = first_node;
 
+		// the shell is designed for testing small ideas
 		bool showErrors = true;
 
 		// the most important component to the language
@@ -54,16 +54,15 @@ int main(int argc, char** argv){
 		for (;;)
 			runShell(first_node, showErrors, mainStack);
 
-
 	// hit 'em up wit dat version info
 	} else if (strcmp(argv[1], "-V") == 0 || strcmp(argv[1], "--version")  == 0) {
 		printVersionInfo();
 
 	// help a brotha out
 	} else if (strcmp(*argv, "--help") == 0 || strcmp(*argv, "-h") == 0) {
-		std::cout <<"Usage: a.out [ option | file ] ...\nOptions:"
-					"   -h\t\t: display's this help message (also --help)\n"
-					"   -V\t\t: display's version information (also --version)\n\n";
+		std::cout <<"Usage: sbs [ option | file ] ...\nOptions:"
+					"   -h,\t--help\t: display's this help message (also --help)\n"
+					"   -V,\t--version\t: display's version information (also --version)\n\n";
 
 		displayHelp();
 
@@ -80,5 +79,5 @@ int main(int argc, char** argv){
 		#endif
 
 	}
-	return 0;
+
 }
