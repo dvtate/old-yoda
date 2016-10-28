@@ -1,7 +1,7 @@
 #ifndef TERMINAL_COLORS_H
 #define TERMINAL_COLORS_H
 
-// idk if these are winshit comptible
+// these are winshit comptible for windoge 10...
 #define COLOR_RESET		"\x1B[0m"
 #define COLOR_RED		"\x1B[31m"
 #define COLOR_GREEN		"\x1B[32m"
@@ -22,29 +22,22 @@
 #define TERM_CLR_HIDDEN		8
 
 
-inline void textColor(uint8_t attr, uint8_t fg, uint8_t bg){
-	printf("\x1B[%d;%d;%dm", attr, fg + 30, bg + 40);
-}
+inline void textColor(uint8_t attr, uint8_t fg, uint8_t bg)
+	{ printf("\x1B[%d;%d;%dm", attr, fg + 30, bg + 40); }
 
+inline void textColor(uint8_t attr, uint8_t fg)
+	{ printf("\x1B[%d;%dm", attr, fg + 30); }
 
-inline void textColor(uint8_t attr, uint8_t fg){
-	printf("\x1B[%d;%dm", attr, fg + 30);
-}
+inline void textColor(uint8_t fg)
+	{ printf("\x1B[%dm", fg + 30); }
 
-inline void textColor(uint8_t fg){
-	printf("\x1B[%dm", fg + 30);
-}
+inline void textEffect(uint8_t eff)
+	{ printf("\x1B[%dm", eff); }
 
-inline void textEffect(uint8_t eff){
-	printf("\x1B[%dm", eff);
-}
+inline void textColor()
+	{ printf(COLOR_RESET); }
 
-inline void textColor(){
-	puts(COLOR_RESET);
-}
-
-inline void textEffect(){
-  	textColor();
-}
+inline void textEffect()
+	{ textColor(); }
 
 #endif
