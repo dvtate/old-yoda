@@ -2,8 +2,6 @@
 # it demonstrates the use of 
 # variables and boiltin operators
 
-# Please excuse my terrible 
-# spelling XDDDDDDDDDDDD
 
 # just a prompt
 "Plz gimme monies OvO\n" println
@@ -31,6 +29,11 @@ $pennies input num =
 	$pennies	0.01 *	+
 
 # round the total to the nearest penny ($0.01)
+# not needed as I fixed the bug with fp numbers
 	100 * int 100 /
 
-println # print the total
+
+
+# print the total
+println 
+​
