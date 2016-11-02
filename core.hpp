@@ -158,8 +158,8 @@ void runShell(UserVar* first_node, bool& errorReporting,
 	if (!mainStack.empty()) {
 		ans = mainStack.top();
 		//ans.print(first_node);
-		printCalcValue(ans, first_node);
-		std::cout <<std::endl;
+		if (!printCalcValue(ans, first_node))
+			std::cout <<'\n';
 	}
 
    	// this allows the ans keyword to function
