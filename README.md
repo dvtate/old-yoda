@@ -120,7 +120,6 @@ Thanks!
       enable/disable errors (by default they are on)
 
 
-
 # A incomplete list of built-in operators and functions:
  * Mathematical operators:
   - `+`: add (also concatenates when one or more of the arguments is a string)
@@ -164,6 +163,7 @@ Thanks!
   - `;`: pop top of stack
   - `dup`: duplicates the value on the top of the stack (1 arg)
   - `dupn`: performs `dup` n number or times (2 args)
+  - `swap`: swaps the top 2 elements in the stack
   
 * Type conversions:
   - `str`: converts to string
