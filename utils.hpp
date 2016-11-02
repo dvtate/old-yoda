@@ -27,7 +27,7 @@ inline void displayHelp(){ // this could all be combined into one print statemen
 
 
 inline CalcValue getNextValue(std::stack<CalcValue>& valStack){
-	CalcValue topVal = valStack.top();
+	const CalcValue topVal = valStack.top();
     valStack.pop();
     return topVal;
 }
@@ -85,7 +85,7 @@ char* getLineFromFile(const char* filename, size_t lineNumber){
 }
 
 
-void printCalcValue(CalcValue& val, UserVar* first_node){
+bool printCalcValue(CalcValue& val, UserVar* first_node){
 
 	if (val.isNull())
 		std::cout <<"null";
@@ -100,10 +100,26 @@ void printCalcValue(CalcValue& val, UserVar* first_node){
 		if (ret)
 			return printCalcValue(*ret, first_node);
 
+		// find the broken reference
+		ret = val.valAtRef(first_node);
+		if (ret)
+			while (ret->type == CalcValue::REF)
+				if (ret->valAtRef(first_node))
+					ret = ret->valAtRef(first_node);
+				else
+					break;
+		else
+			ret = &val;
+
+		std::cerr <<"\aERROR: broken reference to `$" <<(ret->string) <<"`.\n";
+		return 1;
 	}
+
+
+	return 0;
 }
 
-void printCalcValueRAW(CalcValue& val, UserVar* first_node){
+bool printCalcValueRAW(CalcValue& val, UserVar* first_node){
 
 	if (val.isNull())
 		std::cout <<"null";
@@ -118,7 +134,22 @@ void printCalcValueRAW(CalcValue& val, UserVar* first_node){
 		if (ret)
 			return printCalcValueRAW(*ret, first_node);
 
+		// find the broken reference
+		ret = val.valAtRef(first_node);
+		if (ret)
+			while (ret->type == CalcValue::REF)
+				if (ret->valAtRef(first_node))
+					ret = ret->valAtRef(first_node);
+				else
+					break;
+		else
+			ret = &val;
+
+		std::cerr <<"\aERROR: broken reference to `$" <<(ret->string) <<"`.\n";
+		return 1;
 	}
+
+	return 0;
 
 }
 
@@ -136,7 +167,6 @@ find_var:
 	CalcValue* ret = &var->val;
 
 
-
 	if (ret->type == CalcValue::REF) {
 		cv = *ret;
 		goto find_var;
@@ -147,7 +177,49 @@ find_var:
 }
 
 
+/*
+CalcValue* valAtRef(const CalcValue& cv, UserVar* first){
 
+find_var:
+	if (cv.type != CalcValue::REF)
+		return (CalcValue*) NULL;
+
+	UserVar* var = vars::findVar(first, cv.string);
+	if (var == NULL)
+		return (CalcValue*) NULL;
+
+	CalcValue* ret = &var->val;
+
+	if (ret->type == CalcValue::REF) {
+		cv = *ret;
+		goto find_var;
+	} else
+		return ret;
+
+
+}
+
+char*& valAtRef_debug(const CalcValue& cv, UserVar* first){
+
+find_var:
+	if (cv.type != CalcValue::REF)
+		return (char*) NULL;
+
+	UserVar* var = vars::findVar(first, cv.string);
+	if (var == NULL)
+		return cv.string;
+
+	CalcValue* ret = &var->val;
+
+	if (ret->type == CalcValue::REF) {
+		cv = *ret;
+		goto find_var;
+	} else
+		return (char*) NULL;
+
+
+}
+*/
 
 namespace commands {
 	inline void debugStack(std::stack<CalcValue> mainStack, UserVar* first_node){
@@ -176,4 +248,6 @@ inline char* trimStr(char* string){
 
 	return ret;
 }
+
+
 #endif
