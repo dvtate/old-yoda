@@ -17,7 +17,7 @@ int getline(char **lineptr, size_t *n, FILE *stream) {
 	char *bufptr = NULL,
 		 *p = bufptr;
 
-	size_t size;
+	ssize_t size;
 	int c;
 
 	if (lineptr == NULL)
