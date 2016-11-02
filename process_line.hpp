@@ -365,13 +365,17 @@ startCheck:
 		// print to terminal
 		else if (strcmp(p, "print") == 0) {
 			ASSERT_NOT_EMPTY("print");
-			printCalcValueRAW(mainStack.top(), first_node);
+			if (printCalcValueRAW(mainStack.top(), first_node))
+				return p;
+
 			mainStack.pop();
 
 		// print and end with a newline
 		} else if (strcmp(p, "println") == 0) {
 			ASSERT_NOT_EMPTY("println");
-			printCalcValueRAW(mainStack.top(), first_node);
+			if (printCalcValueRAW(mainStack.top(), first_node))
+				return p;
+
 			mainStack.pop();
 
 			std::cout <<std::endl;
@@ -630,20 +634,33 @@ startCheck:
 
 		// clear the stack
 		else if  (strcmp(p, "...") == 0)
-
 			emptyStack(mainStack);
 
 		// pop the top of the stack
 		else if  (*p == ';' && *(p + 1) == '\0') {
-
 			if (!mainStack.empty())
 				mainStack.pop();
+
+		// swap the top 2 elements in the stack
+		} else if (strcmp(p, "swap") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: Not enough data to satisfy `" <<p <<"` operator." <<std::endl);
+			}
+			// take the top 2 elements from the top
+			CalcValue val1 = getNextValue(mainStack);
+			CalcValue val2 = getNextValue(mainStack);
+
+			// push them back in reverse order
+			mainStack.push(val1);
+			mainStack.push(val2);
+
 
 		// duplicate the top of the stack
 		} else if (strcmp(p, "dup") == 0) {
 			ASSERT_NOT_EMPTY("dup");
 			mainStack.push(mainStack.top());
 
+		// duplicate the top elements a set number of times
 		} else if (strcmp(p, "dupx") == 0 || strcmp(p, "dupn") == 0) {
 		  	if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: Not enough data to satisfy `" <<p <<"` operator." <<std::endl);
@@ -685,10 +702,6 @@ startCheck:
 	return (char*) NULL;
 
 }
-
-
-
-
 
 
 #endif
