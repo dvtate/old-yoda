@@ -4,6 +4,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+
+#include "string_stack.hpp"
+
 #define USERVAR_NAME_MAXLENGHT 20
 // to be defined later
 class CalcValue;
@@ -14,9 +17,6 @@ namespace vars {
 }
 
 
-//void printCalcValue(CalcValue val, UserVar* first_node);
-
-
 /// a temporary value to hold user data in
 class CalcValue {
 
@@ -25,12 +25,14 @@ public:
 	enum { NUM,	// number/boolean
 		   STR,	// string
 		   REF,	// reference to a variable
-		   ARR	// linked-list
+		   ARR,	// linked-list
+		   STK	// string-stack (subroutine)
 		 } type;
 
 	union {
-		double number;
-		char* string;
+		double		number;
+		char*		string;
+		StrStack*	block;
 	};
 
   	// Null object
@@ -58,7 +60,13 @@ public:
 		} else
 			string = NULL;
 	}
+/*
+	CalcValue(const StrStack& codeBlock): type(STK) {
+		block= new StrStack();
 
+
+	}
+*/
 
 	// this causes a core dump (QwQ)
 	/*~CalcValue(){

@@ -7,16 +7,22 @@
 "Plz gimme monies OvO\n" println
 
 "kwarterz plz: " print  # prompt
-$quarters input num =   # get numerical input
+input num $quarters =   # get numerical input
 
 "daims plz: " print
-$dimes input num =
+input num $dimes =
 
 "nikels plz: " print 
-$nickels input num =
+input num $nickels =
 
 "penees plz: " print 
-$pennies input num =
+input
+
+dup typeof "string" != ! ?:
+	"fuck you" println
+:? 
+
+num $pennies =
 
 
 "Total monies = $" print
@@ -30,10 +36,9 @@ $pennies input num =
 
 # round the total to the nearest penny ($0.01)
 # not needed as I fixed the bug with fp numbers
-	100 * int 100 /
+	# 100 * int 100 /
 
 
 
 # print the total
 println 
-​

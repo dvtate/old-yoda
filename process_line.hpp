@@ -486,11 +486,13 @@ startCheck:
 
 			while (var != NULL) {
 				if (var->val.type == CalcValue::NUM)
-					std::cout <<"[NUM] @ " <<var <<": $"<<var->name <<' ' <<var->val.getNum() <<" = \n";
+					std::cout <<"[NUM] @ " <<var <<": $" <<var->name <<' ' <<var->val.getNum() <<" =\n";
+				else if (var->val.type == CalcValue::STR && var->val.isNull())
+					std::cout <<"[NIL] @ " <<var <<": $" <<var->name <<' ' <<"null =\n";
 				else if (var->val.type == CalcValue::STR)
-					std::cout <<"[STR] @ " <<var <<": $"<<var->name <<" \"" <<var->val.getStr() <<"\" = \n";
+					std::cout <<"[STR] @ " <<var <<": $" <<var->name <<" \"" <<var->val.getStr() <<"\" =\n";
 				else if (var->val.type == CalcValue::REF)
-					std::cout <<"[REF] @ " <<var <<": $"<<var->name <<" $" <<var->val.getRef() <<" = \n";
+					std::cout <<"[REF] @ " <<var <<": $" <<var->name <<" $" <<var->val.getRef() <<" =\n";
 
 				var = var->next;
 
@@ -702,6 +704,10 @@ startCheck:
 	return (char*) NULL;
 
 }
+
+
+
+
 
 
 #endif

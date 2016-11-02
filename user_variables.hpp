@@ -44,10 +44,14 @@ public:
 	  	if (contents.type == CalcValue::NUM) {
 			val.type = CalcValue::NUM;
 		  	val.number = contents.number;
-		} else {
-			val.type = CalcValue::STR;
-	  	  	val.string = (char*) malloc(strlen(contents.string) + 1);
-		  	strcpy(val.string, contents.string);
+		} else if (contents.type == CalcValue::STR || contents.type == CalcValue::REF) {
+			val.type = contents.type;
+			if (contents.isNull())
+				val.string = (char*) NULL;
+			else {
+		  	  	val.string = (char*) malloc(strlen(contents.string) + 1);
+			  	strcpy(val.string, contents.string);
+		  	}
 		}
 	}
 

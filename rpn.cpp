@@ -34,6 +34,7 @@ unsigned int line = 0;
 
 char* metaName;
 
+
 int main(int argc, char** argv){
 
 	metaName = *argv;
@@ -79,5 +80,10 @@ int main(int argc, char** argv){
 		#endif
 
 	}
+
+}
+
+void doNothing(){
+	std::cout <<"fml";
 
 }

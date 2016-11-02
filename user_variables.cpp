@@ -126,6 +126,6 @@ namespace vars {
 
 	}
 
-
+	//char* valueAtVar_debug()
 }
 
