@@ -40,4 +40,49 @@ inline void textColor()
 inline void textEffect()
 	{ textColor(); }
 
+
+
+
+inline void color_puts(const char* text, uint8_t red, uint8_t green, uint8_t blue){
+		printf("\x1B[38;2;%d;%d;%dm%s\x1B[0m", red, green, blue, text); 
+}	
+
+// prints an rgb format string
+void color_printf(uint8_t red, uint8_t green, uint8_t blue, const char* format, ...){
+
+	va_list args;
+	va_start(args, format);
+
+	printf("\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
+
+	vprintf(format, args); // print the format
+
+	va_end(args);
+
+	printf(COLOR_RESET); // reset color
+
+}	
+
+
+namespace colors {
+	// this might get used in the distant future
+	inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi){
+
+		if (curHi == 0) {
+			v0--; v1++;
+		} else if (curHi == 1) {
+			v1--; v2++;
+		} else if (curHi == 2) {
+			v2--; v0++;
+		}
+
+		if (v0 <= 0 && curHi == 0)
+			curHi = 1;
+		else if (v1 <= 0 && curHi == 1)
+			curHi = 2;
+		else if (v2 <= 0 && curHi == 2)
+			curHi = 0;
+	}
+}
+
 #endif
