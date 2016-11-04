@@ -12,7 +12,7 @@
 
 #include "calc_value.hpp"
 #include "tokenizer.hpp"
-#include "terminal_colors.h"
+#include "terminal_colors.hpp"
 
 inline void displayHelp(){ // this could all be combined into one print statement...
     std::cout <<"If this is your first time using this language, you should check\
