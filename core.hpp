@@ -24,7 +24,7 @@
 #include "process_line.hpp"
 
 // don't we all love pretty colors :)))
-#include "terminal_colors.h"
+#include "terminal_colors.hpp"
 
 
 extern char* metaName;
