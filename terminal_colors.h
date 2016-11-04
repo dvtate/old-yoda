@@ -1,6 +1,11 @@
 #ifndef TERMINAL_COLORS_H
 #define TERMINAL_COLORS_H
 
+
+#include <stdio.h>
+#include <inttypes.h>
+#include <stdarg.h> // va_args
+
 // these are winshit comptible for windoge 10...
 #define COLOR_RESET		"\x1B[0m"
 #define COLOR_RED		"\x1B[31m"
@@ -11,8 +16,6 @@
 #define COLOR_CYAN		"\x1B[36m"
 #define COLOR_WHITE		"\x1B[37m"
 
-#include <stdio.h>
-#include <inttypes.h>
 #define TERM_CLR_RESET		0
 #define TERM_CLR_BRIGHT 	1
 #define TERM_CLR_DIM		2
@@ -41,41 +44,35 @@ inline void textEffect()
 	{ textColor(); }
 
 
+namespace rgb {
+	// prints a string in rgb
+	inline void color_puts(const char* text, uint8_t red, uint8_t green, uint8_t blue)
+		{ printf("\x1B[38;2;%d;%d;%dm%s\x1B[0m", red, green, blue, text); }
 
+	// prints an rgb format string
+	void color_printf(uint8_t red, uint8_t green, uint8_t blue, const char* format, ...){
+		printf("\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
 
-inline void color_puts(const char* text, uint8_t red, uint8_t green, uint8_t blue){
-		printf("\x1B[38;2;%d;%d;%dm%s\x1B[0m", red, green, blue, text); 
-}	
+		va_list args;
+		va_start(args, format);
+		vprintf(format, args); // print the format
+		va_end(args);
 
-// prints an rgb format string
-void color_printf(uint8_t red, uint8_t green, uint8_t blue, const char* format, ...){
+		printf(COLOR_RESET); // reset color
 
-	va_list args;
-	va_start(args, format);
+	}
 
-	printf("\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
-
-	vprintf(format, args); // print the format
-
-	va_end(args);
-
-	printf(COLOR_RESET); // reset color
-
-}	
-
-
-namespace colors {
 	// this might get used in the distant future
 	inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi){
-
-		if (curHi == 0) {
-			v0--; v1++;
-		} else if (curHi == 1) {
-			v1--; v2++;
-		} else if (curHi == 2) {
-			v2--; v0++;
-		}
-
+		// modify color
+		if (curHi == 0)
+			{ v0--; v1++; }
+		else if (curHi == 1)
+			{ v1--; v2++; }
+		else if (curHi == 2)
+			{ v2--; v0++; }
+		
+		// change colors as needed
 		if (v0 <= 0 && curHi == 0)
 			curHi = 1;
 		else if (v1 <= 0 && curHi == 1)
