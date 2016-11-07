@@ -22,6 +22,7 @@ class CalcValue {
 
 public:
 
+	// which type is represented by the data union
 	enum { NUM,	// number/boolean
 		   STR,	// string
 		   REF,	// reference to a variable
@@ -29,6 +30,7 @@ public:
 		   STK	// string-stack (subroutine)
 		 } type;
 
+	// this contains the data
 	union {
 		double		number;
 		char*		string;
@@ -62,17 +64,17 @@ public:
 	}
 /*
 	CalcValue(const StrStack& codeBlock): type(STK) {
-		block= new StrStack();
+		block = new StrStack();
 
 
 	}
 */
 
 	// this causes a core dump (QwQ)
-	/*~CalcValue(){
-		if (type == STR)
+	~CalcValue(){
+		if (type == STR && !isEmpty())
 			free(string);
-	}*/
+	}
 
 	void setValue(const char* const str) {
 
