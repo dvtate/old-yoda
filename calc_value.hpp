@@ -74,6 +74,8 @@ public:
 	~CalcValue(){
 		if (type == STR && !isEmpty())
 			free(string);
+		else if (type == STK)
+			delete block;
 	}
 
 	void setValue(const char* const str) {
