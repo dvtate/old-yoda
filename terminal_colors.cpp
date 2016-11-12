@@ -72,6 +72,93 @@ static unsigned short int countSpaces(char* str){
 
 }
 
+void color_printf(const char* ccolor, const char* format, ...){
+
+	va_list args;
+	va_start(args, format);
+
+	// no color given, this could be desired (pass no error)
+	if (!ccolor || strlen(ccolor) == 0) {
+		vprintf(format, args); // print the format
+		goto end_printf;
+	}
+
+	char* color = (char*) malloc(strlen(ccolor));
+	char* color_cpy = color;
+	strcpy(color, ccolor);
+
+	// skip leading spaces
+	while (*color && isspace(*color))
+		color++;
+
+	// delete trailing spaces
+	while (isspace(color[strlen(color) - 1]))
+		color[strlen(color) - 1] = '\0';
+
+
+	// hex color
+	if (*color == '#') {
+		color++;
+		if (strlen(color) == 3) {
+			color_printf(hex3ToClr(color), format, args);
+		} else if (strlen(color) == 6) {
+			color_printf(hexToClr(color), format, args);
+		} else {
+			std::cerr <<"\aERROR: invalid hex color \"" <<(color - 1) <<"\".\n";
+			vprintf(format, args); // print the format
+		}
+		va_end(args);
+		goto end_printf;
+	}
+
+	// rgb ()
+	else if (strlen(color) >= 6
+		&& (*color == 'r' || *color == 'R')
+		&& (*(color + 1) == 'g' || *(color + 1) == 'G')
+		&& (*(color + 2) == 'b' || *(color + 2) == 'B')
+	){
+		color += 3;
+
+		// skip spaces
+		while (*color && isspace(*color))
+			color++;
+
+		// skip to the first number
+		if (*color && !isdigit(*color))
+			color++;
+
+
+		char* token = strtok(color, ", ");
+		uint8_t vals[3];
+		for (uint8_t i = 0; i < 3; i++) {
+
+			if (token == NULL || *token == ')') {
+				std::cerr <<"\aERROR: rgb() expected 3 arguments, " <<i + 1 <<" provided.";
+				break;
+			}
+			vals[i] = atoi(token);
+			token = strtok(NULL, ", ");
+		}
+		color_printf(vals[0], vals[1], vals[2], format, args);
+		va_end(args);
+		goto end_printf;
+	}
+
+	// color by name (worst performance)
+	else if (!isdigit(*color)) {
+		RGB_t clr = nameToColor(color);
+		if (clr.val == 0 && notBlack(color))
+			std::cerr <<"\aERROR: invalid HTML color. `" <<color <<"` doesn't name a color.";
+		color_printf(clr, format, args);
+		va_end(args);
+		goto end_printf;
+	}
+
+end_printf:
+	free(color_cpy);
+
+}
+
 
 static inline bool notBlack(char* clr){
 	if (clr) {
@@ -171,90 +258,6 @@ RGB_t hex3ToClr(const char* hex){
 		}
 	}
 	return ret;
-}
-void color_printf(const char* ccolor, const char* format, ...){
-	va_list args;
-	va_start(args, format);
-
-	char* color = (char*) malloc(strlen(ccolor));
-	char* color_cpy = color;
-	strcpy(color, ccolor);
-
-	// skip leading spaces
-	while (*color && isspace(*color))
-		color++;
-
-	// delete trailing spaces
-	while (isspace(color[strlen(color) - 1]))
-		color[strlen(color) - 1] = '\0';
-
-	// no color given, this could be desired (pass no error)
-	if (strlen(color) == 0) {
-		vprintf(format, args); // print the format
-		return;
-	}
-
-	// hex color
-	if (*color == '#') {
-		color++;
-		if (strlen(color) == 3) {
-			color_printf(hex3ToClr(color), format, args);
-		} else if (strlen(color) == 6) {
-			color_printf(hexToClr(color), format, args);
-		} else {
-			std::cerr <<"\aERROR: invalid hex color \"" <<(color - 1) <<"\".\n";
-			vprintf(format, args); // print the format
-		}
-		va_end(args);
-		return;
-	}
-
-	// rgb ()
-	else if (strlen(color) >= 6
-		&& (*color == 'r' || *color == 'R')
-		&& (*(color + 1) == 'g' || *(color + 1) == 'G')
-		&& (*(color + 2) == 'b' || *(color + 2) == 'B')
-	){
-		color += 3;
-
-		// skip spaces
-		while (*color && isspace(*color))
-			color++;
-
-		// skip to the first number
-		if (*color && !isdigit(*color))
-			color++;
-
-
-		char* token = strtok(color, ", ");
-		uint8_t vals[3];
-		for (uint8_t i = 0; i < 3; i++) {
-
-			if (token == NULL || *token == ')') {
-				std::cerr <<"\aERROR: rgb() expected 3 arguments, " <<i + 1 <<" provided.";
-				break;
-			}
-			vals[i] = atoi(token);
-			token = strtok(NULL, ", ");
-		}
-		color_printf(vals[0], vals[1], vals[2], format, args);
-		va_end(args);
-		goto end_printf;
-	}
-
-	// color by name (worst performance)
-	else if (!isdigit(*color)) {
-		RGB_t clr = nameToColor(color);
-		if (clr.val == 0 && notBlack(color))
-			std::cerr <<"\aERROR: invalid HTML color. `" <<color <<"` doesn't name a color.";
-		color_printf(clr, format, args);
-		va_end(args);
-		goto end_printf;
-	}
-
-end_printf:
-	free(color_cpy);
-
 }
 
 
