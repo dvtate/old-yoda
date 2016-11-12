@@ -72,6 +72,83 @@ static unsigned short int countSpaces(char* str){
 
 }
 
+
+// used when differentiating between the color black
+// and the color returned on error
+static inline bool notBlack(char* clr){
+	if (clr) {
+		for (int16_t i = strlen(clr); i >= 0; i--)
+			*(clr + i) = tolower(*(clr + i));
+
+		return strcmp(clr, "black");
+	}
+
+	return true;
+}
+
+
+RGB_t hexToClr(const char* hex){
+	RGB_t ret = { 0 };
+
+	for (uint8_t i = 0; i < 6; i++) {
+		ret.val <<= 4;
+		switch (hex[i]){
+			case '0': break;
+			case '1': ret.val += 1; break;
+			case '2': ret.val += 2; break;
+			case '3': ret.val += 3; break;
+			case '4': ret.val += 4; break;
+			case '5': ret.val += 5; break;
+			case '6': ret.val += 6; break;
+			case '7': ret.val += 7; break;
+			case '8': ret.val += 8;	break;
+			case '9': ret.val += 9;	break;
+			case 'A': case 'a': ret.val += 10; break;
+			case 'B': case 'b': ret.val += 11; break;
+			case 'C': case 'c': ret.val += 12; break;
+			case 'D': case 'd': ret.val += 13; break;
+			case 'E': case 'e': ret.val += 14; break;
+			case 'F': case 'f': ret.val += 15; break;
+			default:
+				return (RGB_t) { 0 };
+		}
+	}
+
+	return ret;
+}
+
+RGB_t hex3ToClr(const char* hex){
+	RGB_t ret = { 0 };
+
+	for (uint8_t i = 0; i < 3; i++) {
+		for (uint8_t b = 0; b < 2; b++){
+			ret.val <<= 4;
+			switch (hex[i]){
+				case '0': break;
+				case '1': ret.val += 1; break;
+				case '2': ret.val += 2; break;
+				case '3': ret.val += 3; break;
+				case '4': ret.val += 4; break;
+				case '5': ret.val += 5; break;
+				case '6': ret.val += 6; break;
+				case '7': ret.val += 7; break;
+				case '8': ret.val += 8; break;
+				case '9': ret.val += 9; break;
+				case 'A': case 'a': ret.val += 10; break;
+				case 'B': case 'b': ret.val += 11; break;
+				case 'C': case 'c': ret.val += 12; break;
+				case 'D': case 'd': ret.val += 13; break;
+				case 'E': case 'e': ret.val += 14; break;
+				case 'F': case 'f': ret.val += 15; break;
+				default:
+					return (RGB_t) { 0 };
+			}
+		}
+	}
+
+	return ret;
+}
+
 void color_printf(const char* ccolor, const char* format, ...){
 
 	va_list args;
@@ -80,7 +157,7 @@ void color_printf(const char* ccolor, const char* format, ...){
 	// no color given, this could be desired (pass no error)
 	if (!ccolor || strlen(ccolor) == 0) {
 		vprintf(format, args); // print the format
-		goto end_printf;
+		return;
 	}
 
 	char* color = (char*) malloc(strlen(ccolor));
@@ -160,107 +237,6 @@ end_printf:
 }
 
 
-static inline bool notBlack(char* clr){
-	if (clr) {
-		for (int16_t i = strlen(clr); i >= 0; i--)
-			*(clr + i) = tolower(*(clr + i));
-
-		return strcmp(clr, "black");
-	}
-
-	return true;
-}
-
-
-RGB_t hexToClr(const char* hex){
-	RGB_t ret = { 0 };
-
-	for (uint8_t i = 0; i < 6; i++) {
-		ret.val <<= 4;
-		switch (hex[i]){
-		case '0': break;
-		case '1': ret.val += 1; break;
-		case '2': ret.val += 2; break;
-		case '3': ret.val += 3; break;
-		case '4': ret.val += 4; break;
-		case '5': ret.val += 5; break;
-		case '6': ret.val += 6; break;
-		case '7': ret.val += 7; break;
-		case '8':
-			ret.val += 8;
-			break;
-		case '9':
-			ret.val += 9;
-			break;
-		case 'A': case 'a':
-			ret.val += 10;
-			break;
-		case 'B': case 'b':
-			ret.val += 11;
-			break;
-		case 'C': case 'c':
-			ret.val += 12;
-			break;
-		case 'D': case 'd':
-			ret.val += 13;
-			break;
-		case 'E': case 'e':
-			ret.val += 14;
-			break;
-		case 'F': case 'f':
-			ret.val += 15;
-			break;
-		default:
-			return (RGB_t) { 0 };
-		}
-	}
-	return ret;
-}
-
-RGB_t hex3ToClr(const char* hex){
-	RGB_t ret = {0};
-
-	for (uint8_t i = 0; i < 3; i++) {
-		for (uint8_t b = 0; b < 2; b++){
-			ret.val <<= 4;
-			switch (hex[i]){
-			case '0': break;
-			case '1': ret.val += 1; break;
-			case '2': ret.val += 2; break;
-			case '3': ret.val += 3; break;
-			case '4': ret.val += 4; break;
-			case '5': ret.val += 5; break;
-			case '6': ret.val += 6; break;
-			case '7': ret.val += 7; break;
-			case '8': ret.val += 8; break;
-			case '9': ret.val += 9; break;
-			case 'A': case 'a':
-				ret.val += 10;
-				break;
-			case 'B': case 'b':
-				ret.val += 11;
-				break;
-			case 'C': case 'c':
-				ret.val += 12;
-				break;
-			case 'D': case 'd':
-				ret.val += 13;
-				break;
-			case 'E': case 'e':
-				ret.val += 14;
-				break;
-			case 'F': case 'f':
-				ret.val += 15;
-				break;
-			default:
-				return (RGB_t) { 0 };
-			}
-		}
-	}
-	return ret;
-}
-
-
 const RGB_t nameToColor(const char* cname){
 	if (!cname)
 		return (RGB_t) { 0 };
@@ -273,37 +249,37 @@ const RGB_t nameToColor(const char* cname){
 		*(name + i) = tolower(*(name + i));
 
 	// most used colors come first
-	if (strcmp(name, "black") == 0) // useful
+	if (strcmp(name, "black") == 0)
 		return (RGB_t) { 0 };
-	else if (strcmp(name, "white") == 0) // useful
+	else if (strcmp(name, "white") == 0)
 		return (RGB_t) { 16777215 };
-	else if (strcmp(name, "red") == 0) // useful
+	else if (strcmp(name, "red") == 0)
 		return (RGB_t) { 16711680 };
-	else if (strcmp(name, "cyan") == 0 || strcmp(name, "aqua") == 0) // useful
+	else if (strcmp(name, "cyan") == 0 || strcmp(name, "aqua") == 0)
 		return (RGB_t) { 65535 };
-	else if (strcmp(name, "magenta") == 0 || strcmp(name, "fuchsia") == 0)//useful
+	else if (strcmp(name, "magenta") == 0 || strcmp(name, "fuchsia") == 0)
 		return (RGB_t) { 16711935 };
-	else if (strcmp(name, "blue") == 0) // useful
+	else if (strcmp(name, "blue") == 0)
 		return (RGB_t) { 255 };
-	else if (strcmp(name, "gray") == 0)  // useful
+	else if (strcmp(name, "gray") == 0)
 		return (RGB_t) { 8421504 };
-	else if (strcmp(name, "yellow") == 0) // useful
+	else if (strcmp(name, "yellow") == 0)
 		return (RGB_t) { 16776960 };
-	else if (strcmp(name, "green") == 0) // useful
+	else if (strcmp(name, "green") == 0)
 		return (RGB_t) { 32768 };
-	else if (strcmp(name, "pink") == 0) // useful
+	else if (strcmp(name, "pink") == 0)
 		return (RGB_t) { 16761035 };
-	else if (strcmp(name, "orange") == 0) // useful
+	else if (strcmp(name, "orange") == 0)
 		return (RGB_t) { 16753920 };
-	else if (strcmp(name, "gold") == 0) // useful
+	else if (strcmp(name, "gold") == 0)
 		return (RGB_t) { 16766720 };
-	else if (strcmp(name, "purple") == 0) // useful
+	else if (strcmp(name, "purple") == 0)
 		return (RGB_t) { 8388736 };
-	else if (strcmp(name, "indigo") == 0) // useful
+	else if (strcmp(name, "indigo") == 0)
 		return (RGB_t) { 4915330 };
-	else if (strcmp(name, "brown") == 0) // useful
+	else if (strcmp(name, "brown") == 0)
 		return (RGB_t) { 10824234 };
-	else if (strcmp(name, "navy") == 0) // useful
+	else if (strcmp(name, "navy") == 0)
 		return (RGB_t) { 128 };
 
 
