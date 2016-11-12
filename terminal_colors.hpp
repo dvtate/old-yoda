@@ -44,42 +44,57 @@ inline void textEffect()
 	{ textColor(); }
 
 
-namespace rgb {
-	// prints a string in rgb
-	inline void color_puts(const char* text, uint8_t red, uint8_t green, uint8_t blue)
-		{ printf("\x1B[38;2;%d;%d;%dm%s\x1B[0m", red, green, blue, text); }
+// this solution is dependent on endianess, and is thus not cross-platform
+typedef struct RGB_t {
+		union {
+			unsigned int val : 32;
 
-	// prints an rgb format string
-	void color_printf(uint8_t red, uint8_t green, uint8_t blue, const char* format, ...){
-		printf("\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
+			struct {
+				// NOTE: this program does not handle middle-endian and
+				// may produce undefined behavior on such archatectures
+				#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+					unsigned char b, g, r;
+				#else // __ORDER_BIG_ENDIAN__
+					unsigned char r, g, b;
+				#endif // __ORDER_PDP_ENDIAN__
+			};
 
-		va_list args;
-		va_start(args, format);
-		vprintf(format, args); // print the format
-		va_end(args);
+		};
+} RGB_t;
 
-		printf(COLOR_RESET); // reset color
+// prints a string in rgb
+inline void color_puts(const char* text, uint8_t red, uint8_t green, uint8_t blue)
+	{ printf("\x1B[38;2;%d;%d;%dm%s\x1B[0m", red, green, blue, text); }
 
-	}
+// prints an rgb format string
+void color_printf(const uint8_t red, const uint8_t green, const uint8_t blue, const char* format, ...);
+void color_printf(const RGB_t color, const char* format, ...);
 
-	// this might get used in the distant future
-	inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi){
-		// modify color
-		if (curHi == 0)
-			{ v0--; v1++; }
-		else if (curHi == 1)
-			{ v1--; v2++; }
-		else if (curHi == 2)
-			{ v2--; v0++; }
-		
-		// change colors as needed
-		if (v0 <= 0 && curHi == 0)
-			curHi = 1;
-		else if (v1 <= 0 && curHi == 1)
-			curHi = 2;
-		else if (v2 <= 0 && curHi == 2)
-			curHi = 0;
-	}
+// prints a format string in a color defined by a string
+void color_printf(const char* color, const char* format, ...);
+
+RGB_t hexToRGB(const char* hex);
+RGB_t hex3ToRGB(const char* hex);
+
+// this might get used in the distant future
+inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi){
+	// modify color
+	if (curHi == 0)
+		{ v0--; v1++; }
+	else if (curHi == 1)
+		{ v1--; v2++; }
+	else if (curHi == 2)
+		{ v2--; v0++; }
+
+	// change colors as needed
+	if (v0 <= 0 && curHi == 0)
+		curHi = 1;
+	else if (v1 <= 0 && curHi == 1)
+		curHi = 2;
+	else if (v2 <= 0 && curHi == 2)
+		curHi = 0;
 }
+
+const RGB_t nameToColor(const char* cname);
 
 #endif
