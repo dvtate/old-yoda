@@ -9,11 +9,6 @@
 #include "terminal_colors.hpp"
 
 
-void resetASCII(){
-	printf("\x1B[0m");
-}
-
-
 // prints an rgb format string
 void color_printf(const uint8_t red, const uint8_t green, const uint8_t blue, const char* format, ...){
 	printf("\x1B[38;2;%d;%d;%dm", red, green, blue); // set color

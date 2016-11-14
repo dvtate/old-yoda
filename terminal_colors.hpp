@@ -55,17 +55,22 @@
 // 56 - 59 = reserved
 // all of the other effects are rarely supported or non-standard
 
+
+
+
 // why do I have to define this in the .cpp?
 // it would do perfectly fine here
-void resetASCII();
+//void resetASCII();
+inline void resetASCII(){
+	printf("\x1B[0m");
+}
 
-inline void setEffect(uint8_t eff)
+// sets text effects as defined in the above macros
+inline void setTermEffect(uint8_t eff)
 {
 	printf("\x1B[%dm", eff);
 	atexit(resetASCII);
 }
-
-
 
 
 // this solution is dependent on endianess, and is thus not cross-platform
@@ -114,7 +119,7 @@ void setFgColor(const uint8_t red, const uint8_t green, const uint8_t blue);
 void setFgColor(const RGB_t color);
 void setFgColor(const char* color);
 inline void setFgColor()
-	{  setEffect(TERM_EFF_DEFAULT_FG); }
+	{  setTermEffect(TERM_EFF_DEFAULT_FG); }
 
 
 // change the background color
@@ -122,10 +127,10 @@ void setBgColor(const uint8_t red, const uint8_t green, const uint8_t blue);
 void setBgColor(const RGB_t color);
 void setBgColor(const char* color);
 inline void setBgColor()
-	{  setEffect(TERM_EFF_DEFAULT_BG); }
+	{  setTermEffect(TERM_EFF_DEFAULT_BG); }
 
 // this might get used in the distant future
-inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi){
+static inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi){
 	// modify color
 	if (curHi == 0)
 		{ v0--; v1++; }
