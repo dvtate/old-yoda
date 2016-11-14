@@ -60,7 +60,6 @@
 
 // why do I have to define this in the .cpp?
 // it would do perfectly fine here
-//void resetASCII();
 inline void resetASCII(){
 	printf("\x1B[0m");
 }
