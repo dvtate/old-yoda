@@ -457,7 +457,7 @@ _end:
 
 }
 
-const RGB_t nameToColor(const char* cname){
+const RGB_t nameToColor(const char* const cname){
 	if (!cname)
 		return (RGB_t) { 0 };
 

@@ -65,7 +65,7 @@ inline void resetASCII(){
 }
 
 // sets text effects as defined in the above macros
-inline void setTermEffect(uint8_t eff)
+inline void setTermEffect(const uint8_t eff)
 {
 	printf("\x1B[%dm", eff);
 	atexit(resetASCII);
