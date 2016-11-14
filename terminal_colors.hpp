@@ -6,22 +6,59 @@
 #include <inttypes.h>
 #include <stdarg.h> // va_args
 
-// I'm doubing this supports windoge as linux support is also lacking
+// I'm doubing this supports windoge
+// see https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_codes
 #define COLOR_RESET		"\x1B[0m"
 #define TERM_EFF_CLR_RESET	0
 #define TERM_EFF_BOLD		1
 #define TERM_EFF_FAINT		2
 #define TERM_EFF_ITALIC_ON	3
 #define TERM_EFF_UNDERLINE	4
-#define TERM_EFF_BLINK		5
-#define TERM_EFF_FASTBLINK	6
+#define TERM_EFF_BLINK		5 // < 150 / minute
+#define TERM_EFF_FASTBLINK	6 // MS-DOS ANSI.SYS; 150+ per minute; not widely supported
 #define TERM_EFF_INVERT		7
 #define TERM_EFF_HIDDEN		8
 #define TERM_EFF_CROSSOUT	9
 #define TERM_EFF_MAIN_FONT	9
+#define TERM_EFF_ALT_FONT_1	10
+#define TERM_EFF_ALT_FONT_2	11
+#define TERM_EFF_ALT_FONT_3	12
+#define TERM_EFF_ALT_FONT_4	13
+#define TERM_EFF_ALT_FONT_5	14
+#define TERM_EFF_ALT_FONT_6	15
+#define TERM_EFF_ALT_FONT_7	16
+#define TERM_EFF_ALT_FONT_8	17
+#define TERM_EFF_ALT_FONT_9	18
+#define TERM_EFF_ALT_FONT_10 19
+#define TERM_EFF_FRAKTUR	20
+// effect#21 = bold:off or Underline:double ||| Bold off not widely supported; double underline hardly ever supported.
+#define TERM_EFF_NORM_CLR	22
+#define TERM_EFF_ITALIC_OFF	23 // also disables fraktur
+#define TERM_EFF_UNDERLINE_NONE 24
+#define TERM_EFF_BLINK_OFF	25
+// #26 = reserved
+#define TERM_EFF_IMG_POS	27
+#define TERM_EFF_HIDDEN_OFF	28
+#define TERM_EFF_CROSSOUT_OFF 29
+// 30 - 37 = reserved for fg colors
+// #38 = reserved for fg colors
+#define TERM_EFF_DEFAULT_FG	39
+// 40 - 47 = reserved for fg colors
+// #48 = reserved for bg colors
+#define TERM_EFF_DEFAULT_BG	49
+// #50 = reserved
+#define TERM_EFF_FRAME		51
+#define TERM_EFF_ENCIRCLE	52
+#define TERM_EFF_OVERLINE	53
+#define TERM_EFF_FRAME_ENCIRCLE_OFF	54
+#define TERM_EFF_OVERLINE_OFF 55
+// 56 - 59 = reserved
+// all of the other effects are rarely supported or non-standard
 
-
+// why do I have to define this in the .cpp?
+// it would do perfectly fine here
 void resetASCII();
+
 inline void setEffect(uint8_t eff)
 {
 	printf("\x1B[%dm", eff);
@@ -76,12 +113,16 @@ const RGB_t nameToColor(const char* cname);
 void setFgColor(const uint8_t red, const uint8_t green, const uint8_t blue);
 void setFgColor(const RGB_t color);
 void setFgColor(const char* color);
+inline void setFgColor()
+	{  setEffect(TERM_EFF_DEFAULT_FG); }
+
 
 // change the background color
 void setBgColor(const uint8_t red, const uint8_t green, const uint8_t blue);
 void setBgColor(const RGB_t color);
 void setBgColor(const char* color);
-
+inline void setBgColor()
+	{  setEffect(TERM_EFF_DEFAULT_BG); }
 
 // this might get used in the distant future
 inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi){
