@@ -9,6 +9,11 @@
 #include "terminal_colors.hpp"
 
 
+void resetASCII(){
+	printf("\x1B[0m");
+}
+
+
 // prints an rgb format string
 void color_printf(const uint8_t red, const uint8_t green, const uint8_t blue, const char* format, ...){
 	printf("\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
@@ -44,7 +49,6 @@ void color_printf(const RGB_t color, const char* format, va_list args){
 	printf(COLOR_RESET); // reset color
 
 }
-
 
 void color_printf(const RGB_t color, const char* format, ...){
 	printf("\x1B[38;2;%d;%d;%dm", color.r, color.g, color.b); // set color
@@ -181,7 +185,7 @@ void color_printf(const char* ccolor, const char* format, ...){
 		} else if (strlen(color) == 6) {
 			color_printf(hexToClr(color), format, args);
 		} else {
-			std::cerr <<"\aERROR: invalid hex color \"" <<(color - 1) <<"\".\n";
+			std::cerr <<"\aERROR: color_printf(): invalid hex color \"" <<(color - 1) <<"\".\n";
 			vprintf(format, args); // print the format
 		}
 		va_end(args);
@@ -210,7 +214,7 @@ void color_printf(const char* ccolor, const char* format, ...){
 		for (uint8_t i = 0; i < 3; i++) {
 
 			if (token == NULL || *token == ')') {
-				std::cerr <<"\aERROR: rgb() expected 3 arguments, " <<i + 1 <<" provided.";
+				std::cerr <<"\aERROR: color_printf(): rgb() expected 3 arguments, " <<i + 1 <<" provided.";
 				break;
 			}
 			vals[i] = atoi(token);
@@ -224,10 +228,15 @@ void color_printf(const char* ccolor, const char* format, ...){
 	// color by name (worst performance)
 	else if (!isdigit(*color)) {
 		RGB_t clr = nameToColor(color);
-		if (clr.val == 0 && notBlack(color))
-			std::cerr <<"\aERROR: invalid HTML color. `" <<color <<"` doesn't name a color.";
+		if (clr.val == 0 && notBlack(color)) {
+			std::cerr <<"\aERROR: color_printf(): invalid HTML color. `" <<color <<"` doesn't name a color.";
+			vprintf(format, args);
+			return;
+		}
 		color_printf(clr, format, args);
+
 		va_end(args);
+
 		goto end_printf;
 	}
 
@@ -236,6 +245,221 @@ end_printf:
 
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+inline void setFgColor(const uint8_t red, const uint8_t green, const uint8_t blue){
+	printf("\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
+}
+inline void setFgColor(const RGB_t color){
+	printf("\x1B[38;2;%d;%d;%dm", color.r, color.g, color.b); // set color
+}
+
+void setFgColor(const char* ccolor){
+
+	// no color given, this could be desired (pass no error)
+	if (!ccolor || strlen(ccolor) == 0)
+		return;
+
+	// copy the color out of the const qualifier
+	char* color = (char*) malloc(strlen(ccolor));
+	char* color_cpy = color;
+	strcpy(color, ccolor);
+
+
+	// skip leading spaces
+	while (*color && isspace(*color))
+		color++;
+
+	// delete trailing spaces (is this needed?)
+	while (isspace(color[strlen(color) - 1]))
+		color[strlen(color) - 1] = '\0';
+
+
+	// hex color
+	if (*color == '#') {
+		color++;
+		if (strlen(color) == 3)
+			setFgColor(hex3ToClr(color));
+		else if (strlen(color) == 6)
+			setFgColor(hexToClr(color));
+		else
+			std::cerr <<"\aERROR: invalid hex color \"" <<(color - 1) <<"\".\n";
+
+		goto _end;
+	}
+
+	// rgb ()
+	else if (strlen(color) >= 6
+		&& (*color == 'r' || *color == 'R')
+		&& (*(color + 1) == 'g' || *(color + 1) == 'G')
+		&& (*(color + 2) == 'b' || *(color + 2) == 'B')
+	){
+		color += 3;
+
+		// skip spaces
+		while (*color && isspace(*color))
+			color++;
+
+		// skip to the first number
+		if (*color && !isdigit(*color))
+			color++;
+
+		// tokenize the arguments into an array
+		char* token = strtok(color, ", ");
+		uint8_t vals[3];
+		for (uint8_t i = 0; i < 3; i++) {
+
+			if (token == NULL || *token == ')') {
+				std::cerr <<"\aERROR: \"rgb(r,g,b)\" expected 3 arguments, " <<i + 1 <<" provided.";
+				break;
+			}
+			vals[i] = atoi(token);
+			token = strtok(NULL, ", ");
+		}
+
+		setFgColor(vals[0], vals[1], vals[2]);
+		goto _end;
+	}
+
+	// color by name (worst performance)
+	else if (!isdigit(*color)) {
+		RGB_t clr = nameToColor(color);
+
+		// color was not in the list
+		if (clr.val == 0 && notBlack(color))
+			std::cerr <<"\aERROR: invalid HTML color. `" <<color <<"` doesn't name a color.";
+
+		setFgColor(clr);
+
+		goto _end;
+	} else
+		std::cerr <<"\aERROR: invalid HTML color. `" <<color <<'\n';
+
+_end:
+	free(color_cpy);
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+inline void setBgColor(const uint8_t red, const uint8_t green, const uint8_t blue){
+	printf("\x1B[48;2;%d;%d;%dm", red, green, blue); // set color
+}
+inline void setBgColor(const RGB_t color){
+	printf("\x1B[48;2;%d;%d;%dm", color.r, color.g, color.b); // set color
+}
+
+void setBgColor(const char* ccolor){
+
+	// no color given, this could be desired (pass no error)
+	if (!ccolor || strlen(ccolor) == 0)
+		return;
+
+	// copy the color out of the const qualifier
+	char* color = (char*) malloc(strlen(ccolor));
+	char* color_cpy = color;
+	strcpy(color, ccolor);
+
+
+	// skip leading spaces
+	while (*color && isspace(*color))
+		color++;
+
+	// delete trailing spaces (is this needed?)
+	while (isspace(color[strlen(color) - 1]))
+		color[strlen(color) - 1] = '\0';
+
+
+	// hex color
+	if (*color == '#') {
+		color++;
+		if (strlen(color) == 3)
+			setBgColor(hex3ToClr(color));
+		else if (strlen(color) == 6)
+			setBgColor(hexToClr(color));
+		else
+			std::cerr <<"\aERROR: invalid hex color \"" <<(color - 1) <<"\".\n";
+
+		goto _end;
+	}
+
+	// rgb ()
+	else if (strlen(color) >= 6
+		&& (*color == 'r' || *color == 'R')
+		&& (*(color + 1) == 'g' || *(color + 1) == 'G')
+		&& (*(color + 2) == 'b' || *(color + 2) == 'B')
+	){
+		color += 3;
+
+		// skip spaces
+		while (*color && isspace(*color))
+			color++;
+
+		// skip to the first number
+		if (*color && !isdigit(*color))
+			color++;
+
+		// tokenize the arguments into an array
+		char* token = strtok(color, ", ");
+		uint8_t vals[3];
+		for (uint8_t i = 0; i < 3; i++) {
+
+			if (token == NULL || *token == ')') {
+				std::cerr <<"\aERROR: \"rgb(r,g,b)\" expected 3 arguments, " <<i + 1 <<" provided.";
+				break;
+			}
+			vals[i] = atoi(token);
+			token = strtok(NULL, ", ");
+		}
+
+		setBgColor(vals[0], vals[1], vals[2]);
+		goto _end;
+	}
+
+	// color by name (worst performance)
+	else if (!isdigit(*color)) {
+		RGB_t clr = nameToColor(color);
+
+		// color was not in the list
+		if (clr.val == 0 && notBlack(color)) {
+			std::cerr <<"\aERROR: invalid HTML color. `" <<color <<"` doesn't name a color.";
+			return;
+		}
+		setBgColor(clr);
+
+		goto _end;
+	} else
+		std::cerr <<"\aERROR: invalid HTML color. `" <<color <<'\n';
+
+_end:
+	free(color_cpy);
+
+}
 
 const RGB_t nameToColor(const char* cname){
 	if (!cname)

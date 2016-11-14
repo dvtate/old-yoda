@@ -1,47 +1,34 @@
 #ifndef TERMINAL_COLORS_H
 #define TERMINAL_COLORS_H
 
-
+#include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
 #include <stdarg.h> // va_args
 
-// these are winshit comptible for windoge 10...
+// I'm doubing this supports windoge as linux support is also lacking
 #define COLOR_RESET		"\x1B[0m"
-#define COLOR_RED		"\x1B[31m"
-#define COLOR_GREEN		"\x1B[32m"
-#define COLOR_YELLOW	"\x1B[33m"
-#define COLOR_BLUE		"\x1B[34m"
-#define COLOR_MAGENTA	"\x1B[35m"
-#define COLOR_CYAN		"\x1B[36m"
-#define COLOR_WHITE		"\x1B[37m"
-
-#define TERM_CLR_RESET		0
-#define TERM_CLR_BRIGHT 	1
-#define TERM_CLR_DIM		2
-#define TERM_CLR_UNDERLINE	3
-#define TERM_CLR_BLINK		4
-#define TERM_CLR_REVERSE	7
-#define TERM_CLR_HIDDEN		8
+#define TERM_EFF_CLR_RESET	0
+#define TERM_EFF_BOLD		1
+#define TERM_EFF_FAINT		2
+#define TERM_EFF_ITALIC_ON	3
+#define TERM_EFF_UNDERLINE	4
+#define TERM_EFF_BLINK		5
+#define TERM_EFF_FASTBLINK	6
+#define TERM_EFF_INVERT		7
+#define TERM_EFF_HIDDEN		8
+#define TERM_EFF_CROSSOUT	9
+#define TERM_EFF_MAIN_FONT	9
 
 
-inline void textColor(uint8_t attr, uint8_t fg, uint8_t bg)
-	{ printf("\x1B[%d;%d;%dm", attr, fg + 30, bg + 40); }
+void resetASCII();
+inline void setEffect(uint8_t eff)
+{
+	printf("\x1B[%dm", eff);
+	atexit(resetASCII);
+}
 
-inline void textColor(uint8_t attr, uint8_t fg)
-	{ printf("\x1B[%d;%dm", attr, fg + 30); }
 
-inline void textColor(uint8_t fg)
-	{ printf("\x1B[%dm", fg + 30); }
-
-inline void textEffect(uint8_t eff)
-	{ printf("\x1B[%dm", eff); }
-
-inline void textColor()
-	{ printf(COLOR_RESET); }
-
-inline void textEffect()
-	{ textColor(); }
 
 
 // this solution is dependent on endianess, and is thus not cross-platform
@@ -50,17 +37,23 @@ typedef struct RGB_t {
 			unsigned int val : 32;
 
 			struct {
+
 				// NOTE: this program does not handle middle-endian and
 				// may produce undefined behavior on such archatectures
+				// TBH, I'm not even sure it would work on anything but
+				// little-endian, as I've only tested on x86_64 and ARM
+
 				#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 					unsigned char b, g, r;
 				#else // __ORDER_BIG_ENDIAN__
 					unsigned char r, g, b;
 				#endif // __ORDER_PDP_ENDIAN__
+
 			};
 
 		};
 } RGB_t;
+
 
 // prints a string in rgb
 inline void color_puts(const char* text, uint8_t red, uint8_t green, uint8_t blue)
@@ -73,8 +66,22 @@ void color_printf(const RGB_t color, const char* format, ...);
 // prints a format string in a color defined by a string
 void color_printf(const char* color, const char* format, ...);
 
+// making colors
 RGB_t hexToRGB(const char* hex);
 RGB_t hex3ToRGB(const char* hex);
+const RGB_t nameToColor(const char* cname);
+
+
+// change the forground color
+void setFgColor(const uint8_t red, const uint8_t green, const uint8_t blue);
+void setFgColor(const RGB_t color);
+void setFgColor(const char* color);
+
+// change the background color
+void setBgColor(const uint8_t red, const uint8_t green, const uint8_t blue);
+void setBgColor(const RGB_t color);
+void setBgColor(const char* color);
+
 
 // this might get used in the distant future
 inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi){
@@ -95,6 +102,5 @@ inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi){
 		curHi = 0;
 }
 
-const RGB_t nameToColor(const char* cname);
 
 #endif
