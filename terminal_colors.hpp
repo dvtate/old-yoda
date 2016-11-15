@@ -60,15 +60,22 @@
 
 // why do I have to define this in the .cpp?
 // it would do perfectly fine here
-inline void resetASCII(){
+inline void resetANSI(){
 	printf("\x1B[0m");
 }
-
+inline void fresetANSI(FILE* file){
+	fprintf(file, "\x1B[0m");
+}
 // sets text effects as defined in the above macros
 inline void setTermEffect(const uint8_t eff)
 {
 	printf("\x1B[%dm", eff);
-	atexit(resetASCII);
+	atexit(resetANSI);
+}
+inline void fsetTermEffect(FILE* file, const uint8_t eff)
+{
+	fprintf(file, "\x1B[%dm", eff);
+	atexit(resetANSI);
 }
 
 
@@ -114,17 +121,33 @@ const RGB_t nameToColor(const char* cname);
 
 
 // change the forground color
+void fsetFgColor(FILE* file, const uint8_t red, const uint8_t green, const uint8_t blue);
+void fsetFgColor(FILE* file, const RGB_t color);
+void fsetFgColor(FILE* file, const char* color);
+inline void setFgColor(FILE* file)
+	{  fsetTermEffect(file, TERM_EFF_DEFAULT_FG); }
 void setFgColor(const uint8_t red, const uint8_t green, const uint8_t blue);
 void setFgColor(const RGB_t color);
-void setFgColor(const char* color);
+inline void setFgColor(const char* ccolor){
+	fsetFgColor(stdout, ccolor);
+}
 inline void setFgColor()
 	{  setTermEffect(TERM_EFF_DEFAULT_FG); }
 
 
 // change the background color
+void fsetBgColor(FILE* file, const uint8_t red, const uint8_t green, const uint8_t blue);
+void fsetBgColor(FILE* file, const RGB_t color);
+void fsetBgColor(FILE* file, const char* color);
+inline void setBgColor(FILE* file)
+	{  fsetTermEffect(file, TERM_EFF_DEFAULT_BG); }
 void setBgColor(const uint8_t red, const uint8_t green, const uint8_t blue);
 void setBgColor(const RGB_t color);
-void setBgColor(const char* color);
+inline void setBgColor(const char* ccolor){
+	fsetBgColor(stdout, ccolor);
+}
+
+
 inline void setBgColor()
 	{  setTermEffect(TERM_EFF_DEFAULT_BG); }
 

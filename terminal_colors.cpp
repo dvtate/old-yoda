@@ -57,7 +57,7 @@ void color_printf(const RGB_t color, const char* format, ...){
 
 
 }
-/* this would get used if I added un guarded numbers 
+/* this would get used if I added un guarded numbers
 *	ie - #333 = 333; #444444 = 444444; rgb(12,3,5) = 12 3 5
 static inline unsigned short int countSpaces(char* str){
 	if (str == NULL)
@@ -259,14 +259,20 @@ end_printf:
 
 
 
-inline void setFgColor(const uint8_t red, const uint8_t green, const uint8_t blue){
-	printf("\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
+inline void fsetFgColor(FILE* file, const uint8_t red, const uint8_t green, const uint8_t blue){
+	fprintf(file, "\x1B[38;2;%d;%d;%dm", red, green, blue);
 }
-inline void setFgColor(const RGB_t color){
-	printf("\x1B[38;2;%d;%d;%dm", color.r, color.g, color.b); // set color
+inline void fsetFgColor(FILE* file, const RGB_t color){
+	fprintf(file, "\x1B[38;2;%d;%d;%dm", color.r, color.g, color.b);
+}
+inline void fsetFgColor(const uint8_t red, const uint8_t green, const uint8_t blue){
+	printf("\x1B[38;2;%d;%d;%dm", red, green, blue);
+}
+inline void fsetFgColor(const RGB_t color){
+	printf("\x1B[38;2;%d;%d;%dm", color.r, color.g, color.b);
 }
 
-void setFgColor(const char* ccolor){
+void fsetFgColor(FILE* file, const char* ccolor){
 
 	// no color given, this could be desired (pass no error)
 	if (!ccolor || strlen(ccolor) == 0)
@@ -291,9 +297,9 @@ void setFgColor(const char* ccolor){
 	if (*color == '#') {
 		color++;
 		if (strlen(color) == 3)
-			setFgColor(hex3ToClr(color));
+			fsetFgColor(file, hex3ToClr(color));
 		else if (strlen(color) == 6)
-			setFgColor(hexToClr(color));
+			fsetFgColor(file, hexToClr(color));
 		else
 			std::cerr <<"\aERROR: invalid hex color \"" <<(color - 1) <<"\".\n";
 
@@ -329,7 +335,7 @@ void setFgColor(const char* ccolor){
 			token = strtok(NULL, ", ");
 		}
 
-		setFgColor(vals[0], vals[1], vals[2]);
+		fsetFgColor(file, vals[0], vals[1], vals[2]);
 		goto _end;
 	}
 
@@ -341,7 +347,7 @@ void setFgColor(const char* ccolor){
 		if (clr.val == 0 && notBlack(color))
 			std::cerr <<"\aERROR: invalid HTML color. `" <<color <<"` doesn't name a color.";
 
-		setFgColor(clr);
+		fsetFgColor(file, clr);
 
 		goto _end;
 	} else
@@ -364,13 +370,20 @@ _end:
 
 
 inline void setBgColor(const uint8_t red, const uint8_t green, const uint8_t blue){
-	printf("\x1B[48;2;%d;%d;%dm", red, green, blue); // set color
+	printf("\x1B[48;2;%d;%d;%dm", red, green, blue);
 }
 inline void setBgColor(const RGB_t color){
-	printf("\x1B[48;2;%d;%d;%dm", color.r, color.g, color.b); // set color
+	printf("\x1B[48;2;%d;%d;%dm", color.r, color.g, color.b);
 }
 
-void setBgColor(const char* ccolor){
+inline void fsetBgColor(FILE* file, const uint8_t red, const uint8_t green, const uint8_t blue){
+	fprintf(file, "\x1B[48;2;%d;%d;%dm", red, green, blue);
+}
+inline void fsetBgColor(FILE* file, const RGB_t color){
+	fprintf(file, "\x1B[48;2;%d;%d;%dm", color.r, color.g, color.b);
+}
+
+void fsetBgColor(FILE* file, const char* ccolor){
 
 	// no color given, this could be desired (pass no error)
 	if (!ccolor || strlen(ccolor) == 0)
@@ -395,9 +408,9 @@ void setBgColor(const char* ccolor){
 	if (*color == '#') {
 		color++;
 		if (strlen(color) == 3)
-			setBgColor(hex3ToClr(color));
+			fsetBgColor(file, hex3ToClr(color));
 		else if (strlen(color) == 6)
-			setBgColor(hexToClr(color));
+			fsetBgColor(file, hexToClr(color));
 		else
 			std::cerr <<"\aERROR: invalid hex color \"" <<(color - 1) <<"\".\n";
 
@@ -433,7 +446,7 @@ void setBgColor(const char* ccolor){
 			token = strtok(NULL, ", ");
 		}
 
-		setBgColor(vals[0], vals[1], vals[2]);
+		fsetBgColor(file, vals[0], vals[1], vals[2]);
 		goto _end;
 	}
 
@@ -446,7 +459,7 @@ void setBgColor(const char* ccolor){
 			std::cerr <<"\aERROR: invalid HTML color. `" <<color <<"` doesn't name a color.";
 			return;
 		}
-		setBgColor(clr);
+		fsetBgColor(file, clr);
 
 		goto _end;
 	} else
@@ -456,6 +469,11 @@ _end:
 	free(color_cpy);
 
 }
+
+
+
+
+
 
 const RGB_t nameToColor(const char* const cname){
 	if (!cname)
