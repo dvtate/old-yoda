@@ -421,7 +421,7 @@ void color_fprintf(FILE* file, const char* ccolor, const char* format, ...){
 		else if (strlen(color) == 6)
 			color_fprintf(file, hexToClr(color), format, args);
 		else {
-			std::cerr <<"\aERROR: color_printf(): invalid hex color \"" <<(color - 1) <<"\".\n";
+			std::cerr <<"\aERROR: color_fprintf(): invalid hex color \"" <<(color - 1) <<"\".\n";
 			vfprintf(file, format, args); // print the format
 		}
 
@@ -451,7 +451,7 @@ void color_fprintf(FILE* file, const char* ccolor, const char* format, ...){
 		for (uint8_t i = 0; i < 3; i++) {
 
 			if (token == NULL || *token == ')') {
-				std::cerr <<"\aERROR: color_printf(): rgb() expected 3 arguments, " <<i + 1 <<" provided.";
+				std::cerr <<"\aERROR: color_fprintf(): rgb() expected 3 arguments, " <<i + 1 <<" provided.";
 				break;
 			}
 			vals[i] = atoi(token);
@@ -467,7 +467,7 @@ void color_fprintf(FILE* file, const char* ccolor, const char* format, ...){
 	else if (!isdigit(*color)) {
 		RGB_t clr = nameToColor(color);
 		if (clr.val == 0 && notBlack(color)) {
-			std::cerr <<"\aERROR: color_printf(): invalid HTML color. `" <<color <<"` doesn't name a color.";
+			std::cerr <<"\aERROR: color_fprintf(): invalid HTML color. `" <<color <<"` doesn't name a color.";
 			vfprintf(file, format, args);
 			return;
 		}
