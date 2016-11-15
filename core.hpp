@@ -43,10 +43,16 @@ void runFile(char* programFile, bool& errorReporting){
   	// file error
 	if (program == NULL) {
 
-		textEffect(TERM_CLR_BRIGHT);
-	  	std::cerr <<metaName <<": " <<COLOR_RED <<"error: " <<COLOR_RESET;
-	  	std::cerr <<": could not open file \'" <<programFile <<'\'' <<std::endl;
+		setTermEffect(TERM_EFF_BOLD);
+
+	  	std::cerr <<metaName <<": ";
+	  	color_fputs(stderr, "error: ", 255, 0, 0);
+	  	std::cerr <<": could not open file \'" <<programFile <<"\'\n";
+
+	  	setTermEffect();
+
 		exit(EXIT_FAILURE);
+
 	}
 
 
@@ -86,17 +92,19 @@ void runFile(char* programFile, bool& errorReporting){
 		) {
 
 		  	// file name and
-		  	textEffect(TERM_CLR_BRIGHT);
-			std::cerr <<programFile <<":" <<line <<':' <<errorToken - rpnln_head <<':';
-			textEffect();
+		  	setTermEffect(TERM_EFF_BOLD);
+			std::cerr <<programFile <<":" <<line <<':' <<errorToken - rpnln_head <<":\n";
+			setTermEffect();
 
 			// print the problem statement
-			std::cerr <<'\t' <<COLOR_RED <<getLineFromFile(programFile, line) <<'\t';
+			color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(programFile, line));
+
 
 		  	// point to the problem area
-		  	while (rpnln_head++ != rpnln)
-				std::cout <<' ';
-			std::cout <<'^' <<COLOR_RESET <<std::endl;
+			for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
+				std::cerr <<' ';
+
+			color_fputs(stderr, "^\n", 255, 0, 0);
 
 			// windows sucks :P
 			#ifdef _WIN32
@@ -137,7 +145,7 @@ void runShell(UserVar* first_node, bool& errorReporting,
 	size_t lineLen = 256;
 
 	if (getline(&rpnln, &lineLen, stdin) == -1) {
-		std::cerr <<"\aERROR: Input failed...\n" <<std::endl;
+		std::cerr <<"\aERROR: Input failed... email toast27@gmail.com if this persists\n\n";
 		return;
 	}
 
@@ -209,17 +217,17 @@ void runStringStack(StrStack& code, bool& errorReporting){
 		) {
 
 		  	// file name and
-		  	textEffect(TERM_CLR_BRIGHT);
-			std::cerr <<progName <<":" <<line <<':' <<errorToken - rpnln_head <<':';
-			textEffect();
+		  	setTermEffect(TERM_EFF_BOLD);
+			std::cerr <<progName <<":" <<line <<':' <<errorToken - rpnln_head <<":\n";
+			setTermEffect();
 
 			// print the problem statement
-			std::cerr <<'\t' <<COLOR_RED <<getLineFromFile(progName, line) <<'\t';
+			color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(progName, line));
 
 		  	// point to the problem area
-		  	while (rpnln_head++ != rpnln)
-				std::cout <<' ';
-			std::cout <<'^' <<COLOR_RESET <<std::endl;
+		  	for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
+				std::cerr <<' ';
+			color_fputs(stderr, "^\n", 255, 0, 0);
 
 			// windows sucks :P
 			#ifdef _WIN32
@@ -231,10 +239,7 @@ void runStringStack(StrStack& code, bool& errorReporting){
 
 
 		}
-
-
 	}
-
 }
 
 void runStringStack(
@@ -269,17 +274,17 @@ void runStringStack(
 		{
 
 		  	// file name and
-		  	textEffect(TERM_CLR_BRIGHT);
-			std::cerr <<progName <<":" <<line <<':' <<errorToken - rpnln_head <<':';
-			textEffect();
+		  	setTermEffect(TERM_EFF_BOLD);
+			std::cerr <<progName <<":" <<line <<':' <<errorToken - rpnln_head <<":\n";
+			setTermEffect();
 
 			// print the problem statement
-			std::cerr <<'\t' <<COLOR_RED <<getLineFromFile(progName, line) <<'\t';
+			color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(progName, line));
 
 		  	// point to the problem area
 		  	while (rpnln_head++ != rpnln)
-				std::cout <<' ';
-			std::cout <<'^' <<COLOR_RESET <<std::endl;
+				std::cerr <<' ';
+			color_fputs(stderr, "^\n", 255, 0, 0);
 
 			// windows sucks :P
 			#ifdef _WIN32

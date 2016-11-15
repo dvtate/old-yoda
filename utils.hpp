@@ -19,10 +19,10 @@ inline void displayHelp(){ // this could all be combined into one print statemen
  the README on this project's github page.";
 
 	// I want the URL to be underlined and blink :)
-	textEffect(TERM_CLR_UNDERLINE);
-	textEffect(TERM_CLR_BLINK);
+	setTermEffect(TERM_EFF_BLINK);
+	setTermEffect(TERM_EFF_UNDERLINE);
 	std::cout <<"https://github.com/dvtate/rpn/\n";
-	textEffect(); // reset
+	setTermEffect();
 }
 
 

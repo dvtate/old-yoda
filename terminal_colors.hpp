@@ -9,7 +9,7 @@
 // I'm doubing this supports windoge
 // see https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_codes
 #define COLOR_RESET		"\x1B[0m"
-#define TERM_EFF_CLR_RESET	0
+#define TERM_EFF_RESET		0
 #define TERM_EFF_BOLD		1
 #define TERM_EFF_FAINT		2
 #define TERM_EFF_ITALIC_ON	3
@@ -67,12 +67,12 @@ inline void fresetANSI(FILE* file){
 	fprintf(file, "\x1B[0m");
 }
 // sets text effects as defined in the above macros
-inline void setTermEffect(const uint8_t eff)
+inline void setTermEffect(const uint8_t eff = TERM_EFF_RESET)
 {
 	printf("\x1B[%dm", eff);
 	atexit(resetANSI);
 }
-inline void fsetTermEffect(FILE* file, const uint8_t eff)
+inline void fsetTermEffect(FILE* file, const uint8_t eff = TERM_EFF_RESET)
 {
 	fprintf(file, "\x1B[%dm", eff);
 	atexit(resetANSI);
