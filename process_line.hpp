@@ -380,6 +380,52 @@ startCheck:
 
 			std::cout <<std::endl;
 
+		// prints in color
+		} else if (strcmp(p, "color_print") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: not enough data for function `print_color`. (takes 2 arguments)\n\n");
+			}
+			CalcValue val = getNextValue(mainStack);
+			if (!val.isStr()) {
+				PASS_ERROR("\aERROR: print_color expected a string containing a valid HTML color\n\n");
+			}
+
+			setFgColor(val.string);
+
+			CalcValue msg = getNextValue(mainStack);
+			if (printCalcValueRAW(msg, first_node)) {
+				setFgColor();
+				return p;
+			}
+
+			setFgColor();
+
+		// changes the terminal background color for text
+		} else if (strcmp(p, "setBgColor") == 0) {
+			ASSERT_NOT_EMPTY("setBgColor");
+			if (!mainStack.top().isStr()) {
+				mainStack.pop();
+				PASS_ERROR("\aERROR: setBgColor expected a string containing a valid HTML color.\n\n");
+			}
+
+			setBgColor(mainStack.top().string);
+			mainStack.pop();
+
+
+		// changes the terminal foreground color for text
+		} else if (strcmp(p, "setFgColor") == 0) {
+			ASSERT_NOT_EMPTY("setFgColor");
+			if (!mainStack.top().isStr()) {
+				mainStack.pop();
+				PASS_ERROR("\aERROR: setFgColor expected a string containing a valid HTML color.\n\n");
+			}
+
+			setFgColor(mainStack.top().string);
+			mainStack.pop();
+
+		} else if (strcmp(p, "reset_color") == 0) {
+			resetANSI();
+
 		// user input
 		} else if (strcmp(p, "input") == 0) {
 			char* input = (char*) malloc(256);
@@ -390,6 +436,8 @@ startCheck:
 			}
 
 			mainStack.push(input);
+
+			free(input);
 
 		// convert to string
 		} else if (strcmp(p, "str") == 0) {
@@ -534,7 +582,7 @@ startCheck:
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 
-			if (mainStack.top().type == CalcValue::STR)
+			if (mainStack.top().isStr())
 				system(mainStack.top().getStr()); // gets run in BASH/CMD
 
 			else if (mainStack.top().type == CalcValue::NUM) {

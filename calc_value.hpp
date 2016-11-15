@@ -71,12 +71,12 @@ public:
 */
 
 	// this causes a core dump (QwQ)
-	~CalcValue(){
-		if (type == STR && !isEmpty())
+	/*~CalcValue(){
+		if (type == STR)
 			free(string);
 		else if (type == STK)
 			delete block;
-	}
+	}*/
 
 	void setValue(const char* const str) {
 
@@ -205,7 +205,7 @@ public:
 
 
 	bool isRef()
-		{ return type == REF; }
+		{ return !isEmpty() && type == REF; }
 	bool isStr()
 		{ return type == STR; }
 	bool isNum()
