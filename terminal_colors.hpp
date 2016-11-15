@@ -106,6 +106,8 @@ typedef struct RGB_t {
 // prints a string in rgb
 inline void color_puts(const char* text, uint8_t red, uint8_t green, uint8_t blue)
 	{ printf("\x1B[38;2;%d;%d;%dm%s\x1B[0m", red, green, blue, text); }
+inline void color_fputs(FILE* file, const char* text, uint8_t red, uint8_t green, uint8_t blue)
+	{ fprintf(file, "\x1B[38;2;%d;%d;%dm%s\x1B[0m", red, green, blue, text); }
 
 // prints an rgb format string
 void color_printf(const uint8_t red, const uint8_t green, const uint8_t blue, const char* format, ...);
@@ -113,6 +115,17 @@ void color_printf(const RGB_t color, const char* format, ...);
 
 // prints a format string in a color defined by a string
 void color_printf(const char* color, const char* format, ...);
+
+// prints an rgb format string to a file
+void color_fprintf(FILE* file, const uint8_t red, const uint8_t green, const uint8_t blue, const char* format, ...);
+void color_fprintf(FILE* file, const RGB_t color, const char* format, ...);
+
+// prints a format string in a color defined by a string to a file
+void color_fprintf(FILE* file, const char* color, const char* format, ...);
+
+
+
+
 
 // making colors
 RGB_t hexToRGB(const char* hex);
@@ -128,9 +141,8 @@ inline void setFgColor(FILE* file)
 	{  fsetTermEffect(file, TERM_EFF_DEFAULT_FG); }
 void setFgColor(const uint8_t red, const uint8_t green, const uint8_t blue);
 void setFgColor(const RGB_t color);
-inline void setFgColor(const char* ccolor){
-	fsetFgColor(stdout, ccolor);
-}
+inline void setFgColor(const char* ccolor)
+	{ return fsetFgColor(stdout, ccolor); }
 inline void setFgColor()
 	{  setTermEffect(TERM_EFF_DEFAULT_FG); }
 
@@ -143,11 +155,8 @@ inline void setBgColor(FILE* file)
 	{  fsetTermEffect(file, TERM_EFF_DEFAULT_BG); }
 void setBgColor(const uint8_t red, const uint8_t green, const uint8_t blue);
 void setBgColor(const RGB_t color);
-inline void setBgColor(const char* ccolor){
-	fsetBgColor(stdout, ccolor);
-}
-
-
+inline void setBgColor(const char* ccolor)
+	{ return fsetBgColor(stdout, ccolor); }
 inline void setBgColor()
 	{  setTermEffect(TERM_EFF_DEFAULT_BG); }
 
