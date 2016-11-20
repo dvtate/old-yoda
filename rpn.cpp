@@ -82,8 +82,3 @@ int main(int argc, char** argv){
 	}
 
 }
-
-void doNothing(){
-	std::cout <<"fml";
-
-}
