@@ -1,5 +1,6 @@
 #include "string_stack.hpp"
 
+#include <iostream>
 #include <string.h>
 
 // resets the object to it's original state
@@ -20,22 +21,21 @@ void StrStack::grow(){
 
   	// don't copy the contents of an empty buffer
 	if (stackDepth == 0)
-		buffer = (char**) realloc(buffer, (1 << ++sizeFactor) * 256);
+		stackHead = buffer = (char**) realloc(buffer, ((1 << ++sizeFactor) * 256) * sizeof(char*));
 
 	else {
 
 	  	// make a new buffer twice as big as the old one
-		char** buffer2 = (char**) malloc((1 << ++sizeFactor) * 256);
+		char** buffer2 = stackHead = (char**) malloc(((1 << ++sizeFactor) * 256) * sizeof(char*));
 
 	  	// copy all the strings into their new locations
-	  	for (uint8_t i = 0; i < stackDepth; i++)
-			*(buffer2 + i) = *(buffer + i);
-
+	  	for (size_t i = 0; i < stackDepth; i++)
+			*(buffer2 + i) = *(buffer--);
 		// delete the old buffer
-	  	free(buffer);
+	  	free(stackHead);
 
 	  	// replace buffer with buffer2
-	  	stackHead = buffer = buffer2;
+	  	buffer = buffer2;
 
 	}
 
@@ -54,7 +54,7 @@ void StrStack::push(const char* str){
 	buffer++;
 
 	// if the size needs to be doubled after adding a new element
-  	if (++stackDepth == (1U <<sizeFactor) * 256)
+  	if (stackDepth++ == (1U <<sizeFactor) * 256)
 		grow();
 }
 
