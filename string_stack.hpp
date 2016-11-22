@@ -25,12 +25,11 @@ public:
   	}
 
   	~StrStack(){
-
-		for (; stackDepth > 0; stackDepth--)
+		// plz don't ask me why this works... 'cause idfk
+		for (; stackDepth > 1; stackDepth--)
 			free(*(--buffer));
 
-		free(buffer); // still should be used.. even if memory leaks are possible..
-
+		free(buffer);
 	}
 
 	// resets the object
