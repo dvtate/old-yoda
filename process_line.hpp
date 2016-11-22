@@ -426,8 +426,13 @@ startCheck:
 		} else if (strcmp(p, "reset_color") == 0) {
 			resetANSI();
 
+		} else if (strcmp(p, "resetFgColor") == 0)
+			setFgColor();
+		else if (strcmp(p, "resetBgColor") == 0)
+			setBgColor();
+
 		// user input
-		} else if (strcmp(p, "input") == 0 || strcmp(p, "getline") == 0) {
+		else if (strcmp(p, "input") == 0 || strcmp(p, "getline") == 0) {
 			char* input = (char*) malloc(256);
 			size_t lineLen = 256;
 
