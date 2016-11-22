@@ -2,7 +2,7 @@
 A stack based script (.sbs) interpreter which is almost a scripting language at this point. Using the shell, it can be used as a calculator by those familiar with the notation, and it should be relatively useful by the time I'm finished.
 
 # Build and Run
-If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>warning:</b> it's old). <b>Warning</b>, I cross-compiled this on Linux and have only run it in a virtual machine, so it might not be perfect.<br/> <h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o sbs.exe</pre></h6>
+If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>warning:</b> it's old). <b>Warning</b>, I cross-compiled this on Linux and have only run it in a virtual machine, so it might not be perfect.<br/> <!--<h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o sbs.exe</pre></h6>-->
 https://1drv.ms/u/s!AqWtCxMOBjWMhbc0ZRkaWosjm5IWXw
 - Compiling:
 `rpn $ g++ *.cpp -o rpn`
@@ -42,7 +42,7 @@ https://1drv.ms/u/s!AqWtCxMOBjWMhbc0ZRkaWosjm5IWXw
   4
   ```
  - <b>Variables:</b>
-  This calculator supports user-defined variables created as soon as you start using them. All variable names must start with a `$` to prevent them from clashing with other keywords, functions and numbers. Here's how to define one:
+  Variables are created as soon as you start using them. All variable names must start with a `$` to prevent them from clashing with other keywords and literals. Here's an example:
  ```
  >>> $a 4 =
  >>> $a print
@@ -50,23 +50,22 @@ https://1drv.ms/u/s!AqWtCxMOBjWMhbc0ZRkaWosjm5IWXw
  ```
   Variables are references to data, variables can reference eachother. Changing the value of a reference changes the value of it's referenced variable.  If you want to make a deep copy, use the copy operator (`~`). 
  ```
- >>> $b $a ~ = # now they both hold the same value
+ >>> $a 8 =    # now $a is a reference to the number 8 
+ >>> $b $a =   # now $b is a reference to $a and $a is a reference to the number 8
+ >>> $b $a ~ = # now they are both references to the number 8
  ```
  - <b>Strings:</b>
-  This is a loosely-typed language. Strings are enclosed in double quotes `"` and only need a closing `"` if it would change the meaning without it.
+  This is a loosely-typed language. Strings are enclosed in double quotes `"` and only need a closing `"` if it would change the meaning without it. (ie - end-of-line automatically adds a '\n' and ends the quote)
  ```
- >>> "closing quote not needed here
- "closing quote not needed here
- "
- 
  >>> "hello " "there" + $a = # notice that the `+` operator is overloaded
  "hello there"
  
  >>> $a print 
  hello there
  ```
+ 
  - <b>Conditionals:</b>
-  Sometimes code should only run under certain conditions. Conditionals are initiated after a boolean with a `?:` and are ended with a `:?`. An empty conditional can also be used as a multi-line comment. Currently conditionals aren't fully implemented.
+  Sometimes code should only run under certain conditions. Conditionals are initiated after a boolean with a `?:` and are ended with a `:?`. An empty conditional can also be used as a multi-line comment. Currently conditionals aren't fully implemented. `NOTE: this is going to be changed do not familiarize yourself with this`
 ```
 >>> # prompt the user for the day of the week and assign it to $day
 >>> "What day of the week is it?" print     $day input =  
@@ -92,24 +91,26 @@ Thanks!
       resets the line numbering and variables
     * `>>> exit` <br/>
       closes the program
-    * `>>> q` <br/>
+    * `>>> q`<br/>
       same as `exit`
-    * `>>> ans` <br/>
+    * `>>> ans`<br/>
       previous answer, initialized to 0. (access it as you would a variable)
-    * `>>> pi` <br/>
+    * `>>> pi`<br/>
       an approximate value for pi (access it as you would `ans`)
-    * `>>> true` <br/>
+    * `>>> true`<br/>
       puts 1 on the top of the stack
-    * `>>> false` <br/>
+    * `>>> false`<br/>
       puts 0 on the top of the stack
-    * `>>> null` <br/>
+    * `>>> null`<br/>
       puts a NULL object on the top of the stack (depricated)
-    * `>>> print` <br/>
+    * `>>> print`<br/>
       prints the element at the top of the stack
-    * `>>> println` <br/>
+    * `>>> println`<br/>
       prints the element at the top of the stack and a newline
-    * `>>> input` <br/>
+    * `>>> input`<br/>
       returns user input as a string
+    * `>>> getchar`<br/>
+      inputs a single character from the user as a string
     * `>>> vars` = `>>> listvars` <br/>
       prints the status and types of all the variables (useful for debugging)
     * `>>> typeof`<br/>
@@ -118,12 +119,17 @@ Thanks!
       calls `system()` on the given string.
     * `>>> errors-on` & `>>> errors-off`<br/>
       enable/disable errors (by default they are on)
-    * `>>> color_print` <br/>
+    * `>>> color_print`<br/>
       prints a value (string, number, etc.) to the terminal in a given HTML color in a string. The color should be on top
     * `>>> setFgColor` & `>>> setFgColor`<br/>
       changes the terminal color to a given html color contained in a string
-    * `>>> reset_color` & `>>> resetFgColor` & `>>> resetBgColor`  <br/>
+    * `>>> reset_color` & `>>> resetFgColor` & `>>> resetBgColor` <br/>
       resets the background and/or foreground colors
+    * `>>> file_get_contents`<br/>
+      loads the contents of a file into a string
+    * `>>> file_put_contents`<br/>
+      loads the contents of a string into a file
+      
 # A incomplete list of built-in operators and functions:
  * Mathematical operators:
   - `+`: add (also concatenates when one or more of the arguments is a string)
