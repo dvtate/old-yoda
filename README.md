@@ -118,9 +118,12 @@ Thanks!
       calls `system()` on the given string.
     * `>>> errors-on` & `>>> errors-off`<br/>
       enable/disable errors (by default they are on)
-
-
-
+    * `>>> color_print` <br/>
+      prints a value (string, number, etc.) to the terminal in a given HTML color in a string. The color should be on top
+    * `>>> setFgColor` & `>>> setFgColor`<br/>
+      changes the terminal color to a given html color contained in a string
+    * `>>> reset_color` & `>>> resetFgColor` & `>>> resetBgColor`  <br/>
+      resets the background and/or foreground colors
 # A incomplete list of built-in operators and functions:
  * Mathematical operators:
   - `+`: add (also concatenates when one or more of the arguments is a string)
@@ -164,6 +167,7 @@ Thanks!
   - `;`: pop top of stack
   - `dup`: duplicates the value on the top of the stack (1 arg)
   - `dupn`: performs `dup` n number or times (2 args)
+  - `swap`: swaps the top 2 elements in the stack
   
 * Type conversions:
   - `str`: converts to string
