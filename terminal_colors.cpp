@@ -9,21 +9,25 @@
 #include "terminal_colors.hpp"
 
 
-/* this would get used if I added un guarded numbers
-*	ie - #333 = 333; #444444 = 444444; rgb(12,3,5) = 12 3 5
+// used for unguarded numbers
+//	ie - #333 = 333; #444444 = 444444; rgb(12,3,5) = 12 3 5
 static inline unsigned short int countSpaces(char* str){
 	if (str == NULL)
 		return 0;
 
 	unsigned short int ret = 0;
 	while (*(str++))
-		if (isspace(*(str)))
+		if (isspace(*str) || *str == ':' || *str == ',')
 			ret++;
+
+	// trailing spaces don't count
+	str--;
+	if (isspace(*str) || *str == ':' || *str == ',')
+		ret--;
 
 	return ret;
 
 }
-*/
 
 // used when differentiating between the color black
 // and the color returned on error
@@ -37,7 +41,21 @@ static inline bool notBlack(char* clr){
 
 	return true;
 }
+/*
+static bool isHexColor(const char* color){
+	if (!color)
+		return color;
 
+	do
+		if (!isdigit(*color) || *color == 'a' || *color == 'b' || *color == 'c'
+			|| *color == 'd' || *color == 'e' || *color == 'f')
+			return false;
+	while (*(color++));
+
+	return true;
+
+}
+*/
 
 RGB_t hexToClr(const char* hex){
 	RGB_t ret = { 0 };
@@ -143,6 +161,7 @@ void fsetFgColor(FILE* file, const char* ccolor){
 	// hex color
 	if (*color == '#') {
 		color++;
+hex_color:
 		if (strlen(color) == 3)
 			fsetFgColor(file, hex3ToClr(color));
 		else if (strlen(color) == 6)
@@ -169,6 +188,7 @@ void fsetFgColor(FILE* file, const char* ccolor){
 		if (*color && !isdigit(*color))
 			color++;
 
+tri_color:
 		// tokenize the arguments into an array
 		char* token = strtok(color, ", ");
 		uint8_t vals[3];
@@ -197,7 +217,12 @@ void fsetFgColor(FILE* file, const char* ccolor){
 		fsetFgColor(file, clr);
 
 		goto _end;
-	} else
+	}
+	else if (countSpaces(color) == 0)
+		goto hex_color;
+	else if (countSpaces(color) >= 2)
+		goto tri_color;
+	else
 		std::cerr <<"\aERROR: invalid HTML color. `" <<color <<'\n';
 
 _end:
@@ -252,6 +277,8 @@ void fsetBgColor(FILE* file, const char* ccolor){
 	// hex color
 	if (*color == '#') {
 		color++;
+
+hex_color:
 		if (strlen(color) == 3)
 			fsetBgColor(file, hex3ToClr(color));
 		else if (strlen(color) == 6)
@@ -278,6 +305,7 @@ void fsetBgColor(FILE* file, const char* ccolor){
 		if (*color && !isdigit(*color))
 			color++;
 
+tri_color:
 		// tokenize the arguments into an array
 		char* token = strtok(color, ", ");
 		uint8_t vals[3];
@@ -307,8 +335,15 @@ void fsetBgColor(FILE* file, const char* ccolor){
 		fsetBgColor(file, clr);
 
 		goto _end;
-	} else
+	}
+	// non-guarded colors
+	else if (countSpaces(color) == 0)
+		goto hex_color;
+	else if (countSpaces(color) >= 2)
+		goto tri_color;
+	else
 		std::cerr <<"\aERROR: invalid HTML color. `" <<color <<'\n';
+
 
 _end:
 	free(color_cpy);
@@ -326,41 +361,41 @@ void color_printf(const uint8_t red, const uint8_t green, const uint8_t blue, co
 	vprintf(format, args); // print the format
 	va_end(args);
 
-	printf(COLOR_RESET); // reset color
+	setFgColor(); // reset color
 
 }
 
 void color_fprintf(FILE* file, const uint8_t red, const uint8_t green, const uint8_t blue, const char* format, ...){
-	printf("\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
+	fprintf(file, "\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
 
 	va_list args;
 	va_start(args, format);
 	vfprintf(file, format, args); // print the format
 	va_end(args);
 
-	printf(COLOR_RESET); // reset color
+	setFgColor(file); // reset color
 
 }
 
 // prints an rgb format string
 static void color_fprintf(FILE* file, const uint8_t red, const uint8_t green, const uint8_t blue, const char* format, va_list& args){
-	printf("\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
+	fprintf(file, "\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
 
 	vfprintf(file, format, args); // print the format
 
-	printf(COLOR_RESET); // reset color
+	setFgColor(file); // reset color
 
 }
 
 void color_fprintf(FILE* file, const RGB_t color, const char* format, ...){
-	printf("\x1B[38;2;%d;%d;%dm", color.r, color.g, color.b); // set color
+	fprintf(file, "\x1B[38;2;%d;%d;%dm", color.r, color.g, color.b); // set color
 
 	va_list args;
 	va_start(args, format);
 	vfprintf(file, format, args); // print the format
 	va_end(args);
 
-	printf(COLOR_RESET); // reset color
+	setFgColor(file); // reset color
 
 
 }
@@ -373,18 +408,17 @@ void color_printf(const RGB_t color, const char* format, ...){
 	vprintf(format, args); // print the format
 	va_end(args);
 
-	printf(COLOR_RESET); // reset color
+	setFgColor(); // reset color
 
 
 }
 
 // prints an rgb format string
 void color_fprintf(FILE* file, const RGB_t color, const char* format, va_list& args){
-	printf("\x1B[38;2;%d;%d;%dm", color.r, color.g, color.b); // set color
+	fprintf(file, "\x1B[38;2;%d;%d;%dm", color.r, color.g, color.b); // set color
 
 	vfprintf(file, format, args); // print the format
-
-	printf(COLOR_RESET); // reset color
+	setFgColor(file); // reset color
 
 }
 
@@ -416,6 +450,7 @@ void color_fprintf(FILE* file, const char* ccolor, const char* format, ...){
 	// hex color
 	if (*color == '#') {
 		color++;
+hex_color:
 		if (strlen(color) == 3)
 			color_fprintf(file, hex3ToClr(color), format, args);
 		else if (strlen(color) == 6)
@@ -427,6 +462,7 @@ void color_fprintf(FILE* file, const char* ccolor, const char* format, ...){
 
 		va_end(args);
 		goto end_printf;
+
 	}
 
 	// rgb ()
@@ -445,7 +481,7 @@ void color_fprintf(FILE* file, const char* ccolor, const char* format, ...){
 		if (*color && !isdigit(*color))
 			color++;
 
-
+tri_color:
 		char* token = strtok(color, ", ");
 		uint8_t vals[3];
 		for (uint8_t i = 0; i < 3; i++) {
@@ -478,6 +514,14 @@ void color_fprintf(FILE* file, const char* ccolor, const char* format, ...){
 		goto end_printf;
 
 	}
+	// non-guarded colors
+	else if (countSpaces(color) == 0)
+		goto hex_color;
+	else if (countSpaces(color) >= 2)
+		goto tri_color;
+	else
+		std::cerr <<"\aERROR: invalid HTML color. `" <<color <<'\n';
+
 
 end_printf:
 	free(color_cpy);
@@ -511,6 +555,7 @@ void color_printf(const char* ccolor, const char* format, ...){
 	// hex color
 	if (*color == '#') {
 		color++;
+hex_color:
 		if (strlen(color) == 3)
 			color_printf(hex3ToClr(color), format, args);
 		else if (strlen(color) == 6)
@@ -540,7 +585,7 @@ void color_printf(const char* ccolor, const char* format, ...){
 		if (*color && !isdigit(*color))
 			color++;
 
-
+tri_color:
 		char* token = strtok(color, ", ");
 		uint8_t vals[3];
 		for (uint8_t i = 0; i < 3; i++) {
@@ -562,7 +607,9 @@ void color_printf(const char* ccolor, const char* format, ...){
 	else if (!isdigit(*color)) {
 		RGB_t clr = nameToColor(color);
 		if (clr.val == 0 && notBlack(color)) {
-			std::cerr <<"\aERROR: color_printf(): invalid HTML color. `" <<color <<"` doesn't name a color.";
+			if (color)
+				std::cerr <<"\aERROR: color_printf(): invalid HTML color. `" <<color <<"` doesn't name a color.";
+
 			vprintf(format, args);
 			return;
 		}
@@ -574,6 +621,17 @@ void color_printf(const char* ccolor, const char* format, ...){
 		va_end(args);
 		goto end_printf;
 	}
+	// non-guarded colors (here there be dragons)
+	else if (countSpaces(color) >= 2)
+		goto tri_color;
+	else if (countSpaces(color) == 0)
+		// problems with unguarded hex colors:
+		//		- if the color starts with an a,b,c,d,e,f, the hex will be confused
+		// 		- should I even include this feature???
+		goto hex_color;
+	else
+		std::cerr <<"\aERROR: invalid HTML color. `" <<color <<'\n';
+
 
 end_printf:
 	free(color_cpy);
