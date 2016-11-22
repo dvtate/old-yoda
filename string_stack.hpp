@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include <inttypes.h>
-
+#include <iostream>
 
 class StrStack {
 public:
@@ -18,17 +18,18 @@ public:
 
   	StrStack():
   		sizeFactor(0),
-  		buffer((char**) malloc(256)),
-  		stackDepth(0),
-  		stackHead(buffer)
-  	{}
+  		buffer((char**) malloc(256 * sizeof(char*))),
+  		stackDepth(0)
+  	{
+  		stackHead = buffer;
+  	}
 
   	~StrStack(){
 
-		for ( ; stackDepth > 0; stackDepth--)
-			free(*(buffer--));
+		for (; stackDepth > 0; stackDepth--)
+			free(*(--buffer));
 
-		free(buffer);
+		free(buffer); // still should be used.. even if memory leaks are possible..
 
 	}
 

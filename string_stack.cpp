@@ -25,14 +25,19 @@ void StrStack::grow(){
 
 	else {
 
+		char** oldHead = stackHead;
+
 	  	// make a new buffer twice as big as the old one
 		char** buffer2 = stackHead = (char**) malloc(((1 << ++sizeFactor) * 256) * sizeof(char*));
 
 	  	// copy all the strings into their new locations
-	  	for (size_t i = 0; i < stackDepth; i++)
-			*(buffer2 + i) = *(buffer--);
+	  	for (ssize_t i = 0; i < buffer - oldHead - 1; i++)
+			*(buffer2 + i) = *(oldHead + i);
+
+		buffer2 += buffer - oldHead - 1;
+
 		// delete the old buffer
-	  	free(stackHead);
+	  	free(oldHead);
 
 	  	// replace buffer with buffer2
 	  	buffer = buffer2;
