@@ -352,7 +352,7 @@ startCheck:
 			mainStack.push(M_E); // defined in math.h
 		//
 		else if (strcmp(p, "null") == 0) // this segfaults................
-			mainStack.push((char*) NULL);
+			mainStack.push(NULL_CALCVAL_OBJECT); // (char*) NULL
 		else if (strcmp(p, "true") == 0)
 			mainStack.push(1.0);
 		else if (strcmp(p, "false") == 0)
@@ -454,6 +454,9 @@ startCheck:
 
 			ASSERT_NOT_EMPTY("file_get_contents");
 
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
+
 			// didn't recieve an string...
 			if (!mainStack.top().isStr()) {
 				PASS_ERROR("\aERROR: file_get_contents expected a string for the file name.\n\n");
@@ -465,26 +468,59 @@ startCheck:
 			// open the file
 			FILE *input_file = fopen(mainStack.top().string, "rb");
 			mainStack.pop();
+			if (!input_file) {
+				// if file not found pass a null calc_value object
+				//PASS_ERROR("\aERROR: file_get_contents: file `" <<mainStack.top().string <<"` not found.";
+				mainStack.push(NULL_CALCVAL_OBJECT);
+			} else {
 
-			// get size of file
-			fseek(input_file, 0, SEEK_END);
-			input_file_size = ftell(input_file);
-			rewind(input_file);
+				// get size of file
+				fseek(input_file, 0, SEEK_END);
+				input_file_size = ftell(input_file);
+				rewind(input_file);
 
-			// allocate memory for the string
-			file_contents = (char*) malloc(input_file_size + 1);
-			fread(file_contents, sizeof(char), input_file_size, input_file);
+				// allocate memory for the string
+				file_contents = (char*) malloc(input_file_size + 1);
+				fread(file_contents, sizeof(char), input_file_size, input_file);
 
-			// push the string to the stack
-			file_contents[input_file_size] = '\0';
-			mainStack.push(file_contents);
+				// push the string to the stack
+				file_contents[input_file_size] = '\0';
+				mainStack.push(file_contents);
 
-			// cleanup
-			fclose(input_file);
-			free(file_contents);
+				// cleanup
+				fclose(input_file);
+				free(file_contents);
+
+			}
+
 
 		// load the contents of a string to a file
-		} else if (strcmp(p, "fileGetContents") == 0) {
+		} else if (strcmp(p, "file_put_contents") == 0) {
+			// takes a string and a filename
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: not enough data for function `file_put_contents`. (takes 2 strings)\n\n");
+			}
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
+
+			// takes a string for the filename
+			if (!mainStack.top().isStr()) {
+				PASS_ERROR("\aERROR: file_get_contents expected a string for the file name.\n\n");
+			}
+
+			FILE* output_file = fopen(mainStack.top().string, "w");
+			mainStack.pop();
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
+
+			// takes a string for the contents
+			if (!mainStack.top().isStr()) {
+				PASS_ERROR("\aERROR: file_get_contents expected a string for the contents to write.\n\n");
+			}
+
+   			fwrite(mainStack.top().string, 1, strlen(mainStack.top().string) + 1, output_file);
+			mainStack.pop();
+			fclose(output_file);
 
 
 		// convert to string
