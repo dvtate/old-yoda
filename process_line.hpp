@@ -440,6 +440,9 @@ startCheck:
 				PASS_ERROR("\aERROR: input could not getline()\n");
 			}
 
+			if (input[strlen(input) - 1] == '\n')
+				input[strlen(input) - 1] = '\0';
+
 			mainStack.push(input);
 
 			free(input);
