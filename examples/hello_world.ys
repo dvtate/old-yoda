@@ -1,0 +1,9 @@
+# "\n" is newline
+
+# prints:
+# Hello World!
+# To YodaScript welcome.
+
+"Hello World!\n To YodaScript welcome." println
+
+# like master yoda's speach, this language flows backwards at times
