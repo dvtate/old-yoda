@@ -3,61 +3,100 @@
 
 #include <stdlib.h>
 #include <inttypes.h>
+#include <string.h>
 #include <iostream>
 
 class StrStack {
+
 public:
+        // how many times to double the number of lines
+        uint8_t sizeFactor;
 
-	// how many times to double the number of lines
-	uint8_t sizeFactor;
+        char** buffer;
+        size_t stackDepth;
 
-	char** buffer;
-  	size_t stackDepth;
+        char** stackHead;
 
-	char** stackHead;
 
-  	StrStack():
-  		sizeFactor(0),
-  		buffer((char**) malloc(256 * sizeof(char*))),
-  		stackDepth(0)
-  	{
-  		stackHead = buffer;
-  	}
+        StrStack():
+                sizeFactor(0),
+                buffer((char**) malloc(256 * sizeof(char*))),
+                stackDepth(0),
+                stackHead(buffer)
+        { }
 
-  	~StrStack(){
-		// plz don't ask me why this works... 'cause idfk
-		for (; stackDepth > 1; stackDepth--)
-			free(*(--buffer));
+        StrStack(const StrStack& cpy):
+                sizeFactor(cpy.sizeFactor),
+                buffer((char**) malloc((1 << cpy.sizeFactor) * 256 * sizeof(char*))),
+                stackDepth(cpy.stackDepth),
+                stackHead(buffer)
+        {
+                char** sh = cpy.stackHead;
+                while (sh != cpy.buffer) {
+                        *buffer = (char*) malloc ( strlen(*sh) + 1 );
+                        strcpy(*buffer++, *sh++);
+                }
 
-		free(buffer);
-	}
+        }
 
-	// resets the object
-	void clear();
+        ~StrStack(){
+                for (; stackDepth > 0; stackDepth--)
+                        free(*(--buffer));
 
-	// doubles the size of the buffer
-	void grow();
+                free(buffer);
+        }
 
-	// pushes a line to the top of the stack
-	void push(const char* str);
+        // resets the object
+        void clear();
 
-	// deletes the string at the top of the stack.
-	void pop();
+        // doubles the size of the buffer
+        void grow();
 
-	// the string at the top of the stack
-	/// be sure to copy it before calling pop()
-	char* top()
-		{ return stackDepth ? *(buffer - 1) : NULL; }
+        // pushes a line to the top of the stack
+        void push(const char* str);
 
-	size_t& size()
-		{ return stackDepth; }
+        // deletes the string at the top of the stack.
+        void pop();
 
-	void changeTop(const char* str);
-	void top(const char* str)
-		{ return changeTop(str);}
+        // the string at the top of the stack
+        /// be sure to copy it before calling pop()
+        char* top()
+                { return stackDepth ? *(buffer - 1) : NULL; }
+
+        size_t& size()
+                { return stackDepth; }
+
+        void changeTop(const char* str);
+        void top(const char* str)
+                { return changeTop(str);}
+
+
+        StrStack& operator=(const StrStack cpy){
+                sizeFactor = cpy.sizeFactor;
+                buffer = (char**) malloc((1 << cpy.sizeFactor) * 256 * sizeof(char*));
+                stackDepth = cpy.stackDepth;
+                stackHead = buffer;
+
+                char** sh = cpy.stackHead;
+                while (sh != cpy.buffer) {
+                        *buffer = (char*) malloc ( strlen(*sh) + 1 );
+                        strcpy(*buffer++, *sh++);
+                }
+
+                return *this;
+        }
 
 };
 
+/*
+namespace strstk {
 
+
+	StrStack* getStrStack(FILE* file, char* current, )
+
+
+
+}
+*/
 
 #endif

@@ -583,7 +583,7 @@ startCheck:
 
 		// starting conditional
 		} else if (strcmp(p, "?:") == 0) {
-			p += 3;
+			//p += 3;
 			char* err = conditional(p, mainStack, first_node, showErrors);
 			if (err)
 				return err;

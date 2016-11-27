@@ -31,10 +31,10 @@ void StrStack::grow(){
 		char** buffer2 = stackHead = (char**) malloc(((1 << ++sizeFactor) * 256) * sizeof(char*));
 
 	  	// copy all the strings into their new locations
-	  	for (ssize_t i = 0; i < buffer - oldHead - 1; i++)
+	  	for (ssize_t i = 0; i < buffer - oldHead; i++)
 			*(buffer2 + i) = *(oldHead + i);
 
-		buffer2 += buffer - oldHead - 1;
+		buffer2 += buffer - oldHead ;
 
 		// delete the old buffer
 	  	free(oldHead);

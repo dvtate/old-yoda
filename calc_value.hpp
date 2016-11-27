@@ -27,7 +27,7 @@ public:
 		   STR,	// string
 		   REF,	// reference to a variable
 		   ARR,	// linked-list
-		   STK	// string-stack (subroutine)
+		   BLK	// Block of code (StrStack) (subroutine)
 		 } type;
 
 	// this contains the data
@@ -62,13 +62,13 @@ public:
 		} else
 			string = NULL;
 	}
-/*
-	CalcValue(const StrStack& codeBlock): type(STK) {
-		block = new StrStack();
+
+	CalcValue(const StrStack& codeBlock): type(BLK) {
+		block = new StrStack(codeBlock);
 
 
 	}
-*/
+
 
 	// this causes a core dump (QwQ)
 	/*~CalcValue(){

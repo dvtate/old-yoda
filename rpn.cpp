@@ -47,6 +47,7 @@ int main(int argc, char** argv){
 		first_node->first = first_node;
 
 		// the shell is designed for testing small ideas
+		// therefore we want the most verbose errors possible
 		bool showErrors = true;
 
 		// the most important component to the language
