@@ -81,7 +81,7 @@ RGB_t hexToClr(const char* hex){
 			case 'E': case 'e': ret.val += 14; break;
 			case 'F': case 'f': ret.val += 15; break;
 			default:
-				return (RGB_t) { 0 };
+				return (RGB_t) { { 0 } };
 		}
 	}
 
