@@ -29,6 +29,7 @@ static inline unsigned short int countSpaces(char* str){
 
 }
 
+
 // used when differentiating between the color black
 // and the color returned on error
 static inline bool notBlack(char* clr){
@@ -58,7 +59,7 @@ static bool isHexColor(const char* color){
 */
 
 RGB_t hexToClr(const char* hex){
-	RGB_t ret = { 0 };
+	RGB_t ret = { { 0 } };
 
 	for (uint8_t i = 0; i < 6; i++) {
 		ret.val <<= 4;
@@ -88,7 +89,7 @@ RGB_t hexToClr(const char* hex){
 }
 
 RGB_t hex3ToClr(const char* hex){
-	RGB_t ret = { 0 };
+	RGB_t ret = { { 0 } };
 
 	for (uint8_t i = 0; i < 3; i++) {
 		for (uint8_t b = 0; b < 2; b++){
@@ -111,7 +112,7 @@ RGB_t hex3ToClr(const char* hex){
 				case 'E': case 'e': ret.val += 14; break;
 				case 'F': case 'f': ret.val += 15; break;
 				default:
-					return (RGB_t) { 0 };
+					return (RGB_t) { { 0 } };
 			}
 		}
 	}
@@ -645,7 +646,7 @@ end_printf:
 
 const RGB_t nameToColor(const char* const cname){
 	if (!cname)
-		return (RGB_t) { 0 };
+		return (RGB_t) { { 0 } };
 
 	char name[strlen(cname) + 1];
 	strcpy(name, cname);
