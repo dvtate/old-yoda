@@ -1,0 +1,8 @@
+language: cpp
+sudo: true
+
+compiler:
+  - gcc
+  - clang
+  
+script: sudo g++ *.cpp -Wall -Wextra -o /usr/bin/yoda
