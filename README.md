@@ -8,7 +8,21 @@ https://1drv.ms/u/s!AqWtCxMOBjWMhbc0ZRkaWosjm5IWXw
 `rpn $ g++ *.cpp -o rpn`
 - Running:
 `rpn $ ./rpn`
+# About YodaScript
+YodaScript is a stack-based language based on reverse polish notation.
 
+- Some features which I plan on implementing:
+  + functions and subroutines
+  + lists
+  + loops and if statements that actually work (these aren't implemented correctly)
+  + scoping (maybe)
+  + proper string manipulation funcitons and such
+  + regular expressions
+  
+- Some features I will not implement:
+  + OOP (unless implemented by someone else)
+  + goto's (essentially impossible given my current design)
+  
 # How to use (note- out of date)
  - <b>Comments:</b>
    Anything after the `#` symbol will be ignored.
