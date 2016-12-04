@@ -56,13 +56,17 @@ int main(int argc, char** argv){
 		for (;;)
 			runShell(first_node, showErrors, mainStack);
 
+		return 0;
+
+
+
 	// hit 'em up wit dat version info
 	} else if (strcmp(argv[1], "-V") == 0 || strcmp(argv[1], "--version")  == 0) {
 		printVersionInfo();
 
 	// help a brotha out
 	} else if (strcmp(*argv, "--help") == 0 || strcmp(*argv, "-h") == 0) {
-		std::cout <<"Usage: sbs [ option | file ] ...\nOptions:"
+		std::cout <<"Usage: yoda [ option | file ] ...\nOptions:"
 					"   -h,\t--help\t: display's this help message (also --help)\n"
 					"   -V,\t--version\t: display's version information (also --version)\n\n";
 
