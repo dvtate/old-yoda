@@ -16,13 +16,19 @@
 
 inline void displayHelp(){ // this could all be combined into one print statement...
     std::cout <<"If this is your first time using this language, you should check\
- the README on this project's github page.";
+ the README on this project's github page for a short intro.\n";
 
 	// I want the URL to be underlined and blink :)
-	setTermEffect(TERM_EFF_BLINK);
-	setTermEffect(TERM_EFF_UNDERLINE);
-	std::cout <<"https://github.com/dvtate/rpn/\n";
-	setTermEffect();
+	#ifndef _WIN32
+		setTermEffect(TERM_EFF_BLINK);
+		setTermEffect(TERM_EFF_UNDERLINE);
+	#endif
+	
+	std::cout <<"<https://github.com/dvtate/rpn/>\n";
+	
+	#ifndef __WIN32
+		setTermEffect();
+	#endif
 }
 
 
