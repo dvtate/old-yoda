@@ -42,6 +42,7 @@ static inline bool notBlack(char* clr){
 
 	return true;
 }
+
 /*
 static bool isHexColor(const char* color){
 	if (!color)
@@ -124,19 +125,22 @@ RGB_t hex3ToClr(const char* hex){
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+// setFgColor()
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-inline void fsetFgColor(FILE* file, const uint8_t red, const uint8_t green, const uint8_t blue){
-	fprintf(file, "\x1B[38;2;%d;%d;%dm", red, green, blue);
-}
-inline void fsetFgColor(FILE* file, const RGB_t color){
-	fprintf(file, "\x1B[38;2;%d;%d;%dm", color.r, color.g, color.b);
-}
-inline void setFgColor(const uint8_t red, const uint8_t green, const uint8_t blue){
-	printf("\x1B[38;2;%d;%d;%dm", red, green, blue);
-}
-inline void setFgColor(const RGB_t color){
-	printf("\x1B[38;2;%d;%d;%dm", color.r, color.g, color.b);
-}
+inline void fsetFgColor(FILE* file, const uint8_t red, const uint8_t green,
+						const uint8_t blue)
+	{ fprintf(file, "\x1B[38;2;%d;%d;%dm", red, green, blue); }
+
+inline void fsetFgColor(FILE* file, const RGB_t color)
+	{ fprintf(file, "\x1B[38;2;%d;%d;%dm", color.r, color.g, color.b); }
+
+inline void setFgColor(const uint8_t red, const uint8_t green, const uint8_t blue)
+	{ printf("\x1B[38;2;%d;%d;%dm", red, green, blue); }
+
+inline void setFgColor(const RGB_t color)
+	{ printf("\x1B[38;2;%d;%d;%dm", color.r, color.g, color.b); }
 
 void fsetFgColor(FILE* file, const char* ccolor){
 
@@ -196,7 +200,8 @@ tri_color:
 		for (uint8_t i = 0; i < 3; i++) {
 
 			if (token == NULL || *token == ')') {
-				std::cerr <<"\aERROR: \"rgb(r,g,b)\" expected 3 arguments, " <<i + 1 <<" provided.";
+				std::cerr <<"\aERROR: \"rgb(r,g,b)\" expected 3 arguments, "
+						  <<i + 1 <<" provided.";
 				break;
 			}
 			vals[i] = atoi(token);
@@ -213,7 +218,8 @@ tri_color:
 
 		// color was not in the list
 		if (clr.val == 0 && notBlack(color))
-			std::cerr <<"\aERROR: invalid HTML color. `" <<color <<"` doesn't name a color.";
+			std::cerr <<"\aERROR: invalid HTML color. `" <<color
+					  <<"` doesn't name a color.";
 
 		fsetFgColor(file, clr);
 
@@ -236,23 +242,22 @@ _end:
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+// setBgColor()
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+inline void setBgColor(const uint8_t red, const uint8_t green, const uint8_t blue)
+	{ printf("\x1B[48;2;%d;%d;%dm", red, green, blue); }
 
+inline void setBgColor(const RGB_t color)
+	{ printf("\x1B[48;2;%d;%d;%dm", color.r, color.g, color.b); }
 
+inline void fsetBgColor(FILE* file, const uint8_t red, const uint8_t green,
+						const uint8_t blue)
+	{ fprintf(file, "\x1B[48;2;%d;%d;%dm", red, green, blue); }
 
-inline void setBgColor(const uint8_t red, const uint8_t green, const uint8_t blue){
-	printf("\x1B[48;2;%d;%d;%dm", red, green, blue);
-}
-inline void setBgColor(const RGB_t color){
-	printf("\x1B[48;2;%d;%d;%dm", color.r, color.g, color.b);
-}
-
-inline void fsetBgColor(FILE* file, const uint8_t red, const uint8_t green, const uint8_t blue){
-	fprintf(file, "\x1B[48;2;%d;%d;%dm", red, green, blue);
-}
-inline void fsetBgColor(FILE* file, const RGB_t color){
-	fprintf(file, "\x1B[48;2;%d;%d;%dm", color.r, color.g, color.b);
-}
+inline void fsetBgColor(FILE* file, const RGB_t color)
+	{ fprintf(file, "\x1B[48;2;%d;%d;%dm", color.r, color.g, color.b); }
 
 void fsetBgColor(FILE* file, const char* ccolor){
 
@@ -313,7 +318,8 @@ tri_color:
 		for (uint8_t i = 0; i < 3; i++) {
 
 			if (token == NULL || *token == ')') {
-				std::cerr <<"\aERROR: \"rgb(r,g,b)\" expected 3 arguments, " <<i + 1 <<" provided.";
+				std::cerr <<"\aERROR: \"rgb(r,g,b)\" expected 3 arguments, "
+						  <<i + 1 <<" provided.";
 				break;
 			}
 			vals[i] = atoi(token);
@@ -330,7 +336,8 @@ tri_color:
 
 		// color was not in the list
 		if (clr.val == 0 && notBlack(color)) {
-			std::cerr <<"\aERROR: invalid HTML color. `" <<color <<"` doesn't name a color.";
+			std::cerr <<"\aERROR: invalid HTML color. `" <<color
+					  <<"` doesn't name a color.";
 			return;
 		}
 		fsetBgColor(file, clr);
@@ -354,7 +361,9 @@ _end:
 
 
 // prints an rgb format string
-void color_printf(const uint8_t red, const uint8_t green, const uint8_t blue, const char* format, ...){
+void color_printf(const uint8_t red, const uint8_t green, const uint8_t blue,
+				  const char* format, ...)
+{
 	printf("\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
 
 	va_list args;
@@ -366,7 +375,9 @@ void color_printf(const uint8_t red, const uint8_t green, const uint8_t blue, co
 
 }
 
-void color_fprintf(FILE* file, const uint8_t red, const uint8_t green, const uint8_t blue, const char* format, ...){
+void color_fprintf(FILE* file, const uint8_t red, const uint8_t green,
+				   const uint8_t blue, const char* format, ...)
+{
 	fprintf(file, "\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
 
 	va_list args;
@@ -379,7 +390,9 @@ void color_fprintf(FILE* file, const uint8_t red, const uint8_t green, const uin
 }
 
 // prints an rgb format string
-static void color_fprintf(FILE* file, const uint8_t red, const uint8_t green, const uint8_t blue, const char* format, va_list& args){
+static void color_fprintf(FILE* file, const uint8_t red, const uint8_t green,
+						  const uint8_t blue, const char* format, va_list& args)
+{
 	fprintf(file, "\x1B[38;2;%d;%d;%dm", red, green, blue); // set color
 
 	vfprintf(file, format, args); // print the format
@@ -457,7 +470,8 @@ hex_color:
 		else if (strlen(color) == 6)
 			color_fprintf(file, hexToClr(color), format, args);
 		else {
-			std::cerr <<"\aERROR: color_fprintf(): invalid hex color \"" <<(color - 1) <<"\".\n";
+			std::cerr <<"\aERROR: color_fprintf(): invalid hex color \""
+					  <<(color - 1) <<"\".\n";
 			vfprintf(file, format, args); // print the format
 		}
 
@@ -488,7 +502,8 @@ tri_color:
 		for (uint8_t i = 0; i < 3; i++) {
 
 			if (token == NULL || *token == ')') {
-				std::cerr <<"\aERROR: color_fprintf(): rgb() expected 3 arguments, " <<i + 1 <<" provided.";
+				std::cerr <<"\aERROR: color_fprintf(): rgb() expected 3 arguments, "
+						  <<i + 1 <<" provided.";
 				break;
 			}
 			vals[i] = atoi(token);
@@ -504,7 +519,9 @@ tri_color:
 	else if (!isdigit(*color)) {
 		RGB_t clr = nameToColor(color);
 		if (clr.val == 0 && notBlack(color)) {
-			std::cerr <<"\aERROR: color_fprintf(): invalid HTML color. `" <<color <<"` doesn't name a color.";
+			std::cerr <<"\aERROR: color_fprintf(): invalid HTML color. `"
+					  <<color <<"` doesn't name a color.";
+
 			vfprintf(file, format, args);
 			return;
 		}
@@ -562,7 +579,8 @@ hex_color:
 		else if (strlen(color) == 6)
 			color_printf(hexToClr(color), format, args);
 		else {
-			std::cerr <<"\aERROR: color_printf(): invalid hex color \"" <<(color - 1) <<"\".\n";
+			std::cerr <<"\aERROR: color_printf(): invalid hex color \""
+					  <<(color - 1) <<"\".\n";
 			vprintf(format, args); // print the format
 		}
 		va_end(args);
@@ -592,7 +610,8 @@ tri_color:
 		for (uint8_t i = 0; i < 3; i++) {
 
 			if (token == NULL || *token == ')') {
-				std::cerr <<"\aERROR: color_printf(): rgb() expected 3 arguments, " <<i + 1 <<" provided.";
+				std::cerr <<"\aERROR: color_printf(): rgb() expected 3 arguments, "
+						  <<i + 1 <<" provided.";
 				break;
 			}
 			vals[i] = atoi(token);
@@ -609,7 +628,8 @@ tri_color:
 		RGB_t clr = nameToColor(color);
 		if (clr.val == 0 && notBlack(color)) {
 			if (color)
-				std::cerr <<"\aERROR: color_printf(): invalid HTML color. `" <<color <<"` doesn't name a color.";
+				std::cerr <<"\aERROR: color_printf(): invalid HTML color. `"
+						  <<color <<"` doesn't name a color.";
 
 			vprintf(format, args);
 			return;
@@ -663,18 +683,18 @@ const RGB_t nameToColor(const char* const cname){
 		return (RGB_t) { { 16777215 } };
 	else if (strcmp(name, "red") == 0)
 		return (RGB_t) { { 16711680 } };
+	else if (strcmp(name, "blue") == 0)
+		return (RGB_t) { { 255 } };
+	else if (strcmp(name, "green") == 0)
+		return (RGB_t) { { 32768 } };
 	else if (strcmp(name, "cyan") == 0 || strcmp(name, "aqua") == 0)
 		return (RGB_t) { { 65535 } };
 	else if (strcmp(name, "magenta") == 0 || strcmp(name, "fuchsia") == 0)
 		return (RGB_t) { { 16711935 } };
-	else if (strcmp(name, "blue") == 0)
-		return (RGB_t) { { 255 } };
 	else if (strcmp(name, "gray") == 0)
 		return (RGB_t) { { 8421504 } };
 	else if (strcmp(name, "yellow") == 0)
 		return (RGB_t) { { 16776960 } };
-	else if (strcmp(name, "green") == 0)
-		return (RGB_t) { { 32768 } };
 	else if (strcmp(name, "pink") == 0)
 		return (RGB_t) { { 16761035 } };
 	else if (strcmp(name, "orange") == 0)
@@ -683,12 +703,12 @@ const RGB_t nameToColor(const char* const cname){
 		return (RGB_t) { { 16766720 } };
 	else if (strcmp(name, "purple") == 0)
 		return (RGB_t) { { 8388736 } };
-	else if (strcmp(name, "indigo") == 0)
-		return (RGB_t) { { 4915330 } };
 	else if (strcmp(name, "brown") == 0)
 		return (RGB_t) { { 10824234 } };
 	else if (strcmp(name, "navy") == 0)
 		return (RGB_t) { { 128 } };
+	else if (strcmp(name, "indigo") == 0)
+		return (RGB_t) { { 4915330 } };
 
 
 	// reds
