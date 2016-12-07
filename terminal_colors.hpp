@@ -60,12 +60,12 @@
 
 // why do I have to define this in the .cpp?
 // it would do perfectly fine here
-inline void resetANSI(){
-	printf("\x1B[0m");
-}
-inline void fresetANSI(FILE* file){
-	fprintf(file, "\x1B[0m");
-}
+inline void resetANSI()
+	{ printf("\x1B[0m"); }
+
+inline void fresetANSI(FILE* file)
+	{ fprintf(file, "\x1B[0m"); }
+
 // sets text effects as defined in the above macros
 inline void setTermEffect(const uint8_t eff = TERM_EFF_RESET)
 {
@@ -161,7 +161,8 @@ inline void setBgColor()
 	{  setTermEffect(TERM_EFF_DEFAULT_BG); }
 
 // this might get used in the distant future
-static inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi){
+static inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi)
+{
 	// modify color
 	if (curHi == 0)
 		{ v0--; v1++; }
@@ -169,7 +170,7 @@ static inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi)
 		{ v1--; v2++; }
 	else if (curHi == 2)
 		{ v2--; v0++; }
-
+	
 	// change colors as needed
 	if (v0 <= 0 && curHi == 0)
 		curHi = 1;
