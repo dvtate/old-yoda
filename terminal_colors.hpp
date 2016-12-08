@@ -80,22 +80,24 @@ inline void fsetTermEffect(FILE* file, const uint8_t eff = TERM_EFF_RESET)
 
 
 // this solution is dependent on endianess, and is thus not cross-platform
+// this structure is used to store a 24bit color.
 typedef struct RGB_t {
 		union {
-			unsigned int val : 32;
+
+			// this is used as a handle. an example application is for converting
+			// hex strings to rgb values. (see hexToClr())
+			unsigned int val : 24;
 
 			struct {
 
-				// NOTE: this program does not handle middle-endian and
+				// NOTE: this solutiondoes not handle middle-endian and
 				// may produce undefined behavior on such archatectures
-				// TBH, I'm not even sure it would work on anything but
-				// little-endian, as I've only tested on x86_64 and ARM
 
 				#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-					unsigned char b, g, r;
+					unsigned int b : 8, g : 8, r : 8;
 				#else // __ORDER_BIG_ENDIAN__
-					unsigned char r, g, b;
-				#endif // __ORDER_PDP_ENDIAN__
+					unsigned int r : 8, g : 8, b : 8;
+				#endif // __ORDER_PDP_ENDIAN__ not supported
 
 			};
 
@@ -170,7 +172,7 @@ static inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi)
 		{ v1--; v2++; }
 	else if (curHi == 2)
 		{ v2--; v0++; }
-	
+
 	// change colors as needed
 	if (v0 <= 0 && curHi == 0)
 		curHi = 1;
