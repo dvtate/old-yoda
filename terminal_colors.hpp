@@ -3,8 +3,16 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <inttypes.h>
+#include <stdint.h>
 #include <stdarg.h> // va_args
+
+/* This doesnt make sense here
+#if !(defined(__linux__) || defined(__FreeBSD__) || defined(unix) || defined(__unix__) || defined(__unix))
+	#warning "Your OS is probably not supported by this library. Please feel free to test it out and report back to https://github.com/dvtate/terminal-colors/"
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	#warning "Your platform hasn't been tested yet, please contact me <toast27@gmail.com> so I can see if a solution I added to support your system was successful."
+#endif
+*/
 
 // I'm doubing this supports windoge
 // see https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_codes
@@ -95,13 +103,24 @@ typedef struct RGB_t {
 
 				#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 					unsigned int b : 8, g : 8, r : 8;
-				#else // __ORDER_BIG_ENDIAN__
+				#else // __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 					unsigned int r : 8, g : 8, b : 8;
 				#endif // __ORDER_PDP_ENDIAN__ not supported
 
 			};
 
 		};
+
+		// constructor for the weirdos (this is C++...) :/
+		RGB_t(const unsigned char rColor,const unsigned char gColor, const unsigned char bColor){	
+			r = rColor;
+			g = gColor;
+			b = bColor;
+		}
+
+		RGB_t(){};
+		RGB_t(const uint32_t clrVal): val(clrVal) {}
+
 } RGB_t;
 
 
@@ -127,13 +146,10 @@ void color_fprintf(FILE* file, const char* color, const char* format, ...);
 
 
 
-
-
 // making colors
 RGB_t hexToRGB(const char* hex);
 RGB_t hex3ToRGB(const char* hex);
 const RGB_t nameToColor(const char* cname);
-
 
 // change the forground color
 void fsetFgColor(FILE* file, const uint8_t red, const uint8_t green, const uint8_t blue);
