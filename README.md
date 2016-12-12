@@ -9,8 +9,8 @@ https://1drv.ms/u/s!AqWtCxMOBjWMhqRo9xkCgNeJKjWgNA
 - Running:
 `rpn $ ./yoda`
 - Installing:
-`rpn $ sudo mv yoda /usr/bin/yoda`
-
+`rpn $ sudo mv yoda /usr/bin/yoda` <br/>
+After installing, you can run yoda as you would any other program from the terminal.
 # About YodaScript
 YodaScript is a stack-based language based on reverse polish notation.
 
