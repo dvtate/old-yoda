@@ -110,7 +110,7 @@ typedef struct RGB_t {
 			};
 
 		};
-
+/*
 		// constructor for the weirdos (this is C++...) :/
 		RGB_t(const unsigned char rColor,const unsigned char gColor, const unsigned char bColor){	
 			r = rColor;
@@ -120,7 +120,7 @@ typedef struct RGB_t {
 
 		RGB_t(){};
 		RGB_t(const uint32_t clrVal): val(clrVal) {}
-
+*/
 } RGB_t;
 
 
