@@ -5,9 +5,12 @@ A Yoda-Script (.ys) interpreter which isn't turing complete yet due to issues, b
 If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>warning:</b> it's old [2016.12.5]). <b>Warning</b>, I cross-compiled this on Linux and have only run it in a virtual machine, so it might not be perfect.<br/> <!--<h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o sbs.exe</pre></h6>-->
 https://1drv.ms/u/s!AqWtCxMOBjWMhqRo9xkCgNeJKjWgNA 
 - Compiling:
-`rpn $ g++ *.cpp -o rpn`
+`rpn $ g++ *.cpp -o yoda`
 - Running:
-`rpn $ ./rpn`
+`rpn $ ./yoda`
+- Installing:
+`rpn $ sudo mv yoda /usr/bin/yoda`
+
 # About YodaScript
 YodaScript is a stack-based language based on reverse polish notation.
 
