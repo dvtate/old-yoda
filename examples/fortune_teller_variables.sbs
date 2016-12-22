@@ -8,10 +8,9 @@
 "So, what is your name? " print
 
 # get the name from the user
-$name input =
+$name input str =
 
 "My records show there is more than one " $name + ". So, how old are you? " + print
 $age input num =
 
 "Well " $name + ", I can assure you that in 10 years you will be " $age 10 + + "." + println
-
