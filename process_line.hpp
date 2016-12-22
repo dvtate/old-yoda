@@ -37,8 +37,8 @@ extern CalcValue ans;
 			}
 
 #define PASS_ERROR(MSG)\
-				if (showErrors)	std::cerr <<MSG;\
-				return p;
+	if (showErrors)	std::cerr <<MSG;\
+		return p;
 
 
 
@@ -63,6 +63,10 @@ extern CalcValue ans;
 char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 	bool& showErrors, char*& rpnln
 ){
+
+	// probably won't even use these 2 vars but its good to have them...
+	size_t lineLen = strlen(rpnln);
+	char* pInit = rpnln;
 
 	// get first token from the input
 	char* p = qtok(rpnln, &rpnln);
@@ -254,7 +258,7 @@ startCheck:
 		else if (*p == '!' && *(p + 1) == '\0')
 			mainStack.push(getNextValue(mainStack).getNum() == 0);
 
-		
+
 		//trig functions
 		else if (strcmp(p, "sin") == 0) {
 			ASSERT_NOT_EMPTY(p);
@@ -313,7 +317,7 @@ startCheck:
 			mainStack.push(atanh(getNextValue(mainStack).getNum()));
 
 		// more unary math functions
-		} else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0) { 
+		} else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(log10(getNextValue(mainStack).getNum()));
@@ -340,7 +344,7 @@ startCheck:
 				PASS_ERROR("\aERROR: strlen expected a string.\n");
 			}
 
-		// comments
+		// line-comments
 		} else if (*p == '#')
 			break;
 
@@ -449,7 +453,7 @@ startCheck:
 
 		// get a single character from stdin
 		} else if (strcmp(p, "getchar") == 0) {
-			char input[2] = { (char) getc(stdin), 0 };
+			char input[2] = { (char) getc(stdin), '\0' };
 			mainStack.push(input);
 
 		// load the contents of a file into a string
@@ -581,6 +585,43 @@ startCheck:
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atoi(val.getStr()));
 
+		// initialize a strStack
+		} else if (*p == '{') {
+
+			char* newLine;
+
+			if (lineLen - (p - pInit) > 1) { // { more code....
+				p += 2;
+				newLine = NULL;
+
+			} else { // {\n
+				newLine = (char*) malloc(256);
+				size_t lineLen = 256;
+
+				if (getline(&newLine, &lineLen, stdin) == -1) {
+					PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
+				} else
+					line++;
+
+				p = newLine;
+
+			}
+
+			//free's mem allocated for line
+			free(newLine);
+
+
+			StrStack* execArr = strstk::getStrStack(p);
+
+			if (execArr == NULL) {
+				PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
+				return p;
+
+			} else {
+				mainStack.push(execArr);
+			}
+
+
 		// starting conditional
 		} else if (strcmp(p, "?:") == 0) {
 			//p += 3;
@@ -662,6 +703,9 @@ startCheck:
 
 			else if (val.type == CalcValue::REF) // variable reference
 				mainStack.push("reference");
+
+			else if (val.type == CalcValue::BLK) // string_stack
+				mainStack.push("executable array");
 
 		// system call (problem: this conflicts with the current strategy for handling if statements.....)
 		} else if (strcmp(p, "sys") == 0 || strcmp(p, "system") == 0) {

@@ -5,6 +5,10 @@
 #include <inttypes.h>
 #include <string.h>
 #include <iostream>
+#include <stack>
+
+class CalcValue;
+class UserVar;
 
 class StrStack {
 
@@ -88,15 +92,13 @@ public:
 
 };
 
-/*
+// associated functions
 namespace strstk {
 
-
-	StrStack* getStrStack(FILE* file, char* current, )
-
-
+	// gets a string stack from a file
+	StrStack* getStrStack(char*& str);
 
 }
-*/
+
 
 #endif

@@ -1,7 +1,13 @@
 #include "string_stack.hpp"
 
-#include <iostream>
+#include <stdio.h>
 #include <string.h>
+#include <stack>
+#include <inttypes.h>
+
+
+#include "fuck_windows.h"
+
 
 // resets the object to it's original state
 void StrStack::clear(){
@@ -93,3 +99,75 @@ void StrStack::changeTop(const char* str){
 	}
 
 }
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+extern FILE* program;
+
+extern unsigned int line;
+
+
+
+namespace strstk {
+
+	static bool endOfStk(char*& str, uint16_t& depth){
+		// NULL string (safety first)
+		if (!str)
+			return false;
+
+		// base indentation
+		if (depth == 0)
+			return true;
+		if (depth == 1 && *str == '}')
+			return true;
+
+		// the line is commented out, or end of string
+		if (*str == '#' || !*str)
+			return false;
+
+		while (depth && *(++str) != '#' && *str) {
+			if (*str == '{')
+				depth++;
+			else if (*str == '}')
+				depth--;
+			else if (*str == '?')
+				depth = 0;
+
+
+		}
+
+		return depth ? false : true;
+
+	}
+
+
+	StrStack* getStrStack(char*& str){
+
+		StrStack* ret = new StrStack();
+		ret->push(str);
+
+
+		char* line = (char*) malloc(255);
+		size_t lineLen = 255;
+		uint16_t depth = 1; // shouldn't be >65000 levels of indentation...
+
+
+		while (!endOfStk(str, depth)) {
+			if (getline(&line, &lineLen, program) == -1) {
+				return NULL; // this signals an error from process_line.hpp
+			}
+			str = line;
+			line++;
+			ret->push(str);
+		}
+
+		return ret;
+
+	}
+
+
+}
+
+

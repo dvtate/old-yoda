@@ -44,8 +44,7 @@ inline char* ignoreConditional(char*& str) {
 
 
 	p = str;
-	while (*p && depth != 0)
-	{
+	while (*p && depth != 0) {
 		if (*p == '?' && *(p + 1) == ':') {
 			depth++;
 			p += 2;

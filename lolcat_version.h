@@ -8,6 +8,7 @@
 
 #define SBS_LANG_VERSION "0.0.3-alpha"
 
+
 // I got this value from `$ lolcat -f -S 27 -F 0.27 ver_info.txt > color.txt && xxd -i color.txt > version_info.h && rm color.txt`
 
 /*contents of "ver_info.txt"
@@ -826,6 +827,7 @@ unsigned char ver_inf_txt[9551] = {
 	0x6d, 0x2f, 0x1b, 0x5b, 0x30, 0x6d, 0x1b, 0x5b, 0x33, 0x38, 0x3b, 0x35,
 	0x3b, 0x33, 0x33, 0x6d, 0x3e, 0x1b, 0x5b, 0x30, 0x6d, 0x0a
 };
+
 
 
 inline void printVersionInfo(){

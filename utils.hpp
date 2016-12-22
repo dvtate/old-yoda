@@ -23,9 +23,9 @@ inline void displayHelp(){ // this could all be combined into one print statemen
 		setTermEffect(TERM_EFF_BLINK);
 		setTermEffect(TERM_EFF_UNDERLINE);
 	#endif
-	
+
 	std::cout <<"<https://github.com/dvtate/rpn/>\n";
-	
+
 	#ifndef __WIN32
 		setTermEffect();
 	#endif

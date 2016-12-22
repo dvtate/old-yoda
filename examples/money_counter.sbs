@@ -1,0 +1,44 @@
+# this program adds up US coins
+# it demonstrates the use of 
+# variables and builtin operators
+
+
+# just a prompt
+"Plz gimme monies OvO\n" println
+
+"kwarterz plz: " print  # prompt
+input num $quarters =   # get numerical input
+
+"daims plz: " print
+input num $dimes =
+
+"nikels plz: " print 
+input num $nickels =
+
+"penees plz: " print 
+input
+
+dup typeof "string" != ! ?:
+	"fuck you" println
+:? 
+
+num $pennies =
+
+
+"Total monies = $" print
+
+
+# add them up to get the dollar amount
+	$quarters	0.25 *
+	$dimes	 	0.1  *	+
+	$nickels 	0.05 *	+
+	$pennies	0.01 *	+
+
+# round the total to the nearest penny ($0.01)
+# not needed as I fixed the bug with fp numbers
+	# 100 * int 100 /
+
+
+
+# print the total
+println 

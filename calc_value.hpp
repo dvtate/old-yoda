@@ -66,8 +66,10 @@ public:
 	CalcValue(const StrStack& codeBlock): type(BLK) {
 		block = new StrStack(codeBlock);
 
-
 	}
+
+	CalcValue(StrStack* codeBlock):
+		type(BLK), block(codeBlock) {}
 
 
 	// this causes a core dump (QwQ)
@@ -91,6 +93,7 @@ public:
 		strcpy(string, str);
 
 		type = STR;
+
 	}
 
 	void setValue(double val){
