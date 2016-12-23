@@ -178,7 +178,7 @@ namespace strstk {
 			else {
 				*str = '\0';
 				ret->push(codeLine);
-				str++;
+				*str = 'x';
 				return ret;
 			}
 

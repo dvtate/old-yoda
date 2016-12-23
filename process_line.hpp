@@ -608,20 +608,22 @@ startCheck:
 				p = newLine;
 
 			}
+			StrStack* execArr = strstk::getStrStack(p);
 
 			//free's mem allocated for line
 			free(newLine);
-
-			StrStack* execArr = strstk::getStrStack(p);
 
 			if (execArr == NULL) {
 				PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
 				return p;
 
 			} else {
-				mainStack.push(execArr);
+				mainStack.push(*execArr);
 			}
+
+//			printf ("FUKKKK");
 			rpnln = p;
+
 		} else if (*p == '}') {
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
 
@@ -660,20 +662,30 @@ startCheck:
 			vars::wipeAll(first_node);
 
 		// useful for debugging
-		} else if (strcmp(p, "showvars") == 0 || strcmp(p, "vars") == 0 || strcmp(p, "listvars") == 0) {
+		} else if (strcmp(p, "vars") == 0 || strcmp(p, "ls_vars") == 0) {
 			UserVar* var = first_node->next;
 
 			while (var != NULL) {
 				if (var->val.type == CalcValue::NUM)
-					std::cout <<"[NUM] @ " <<var <<": $" <<var->name <<' ' <<var->val.getNum() <<" =\n";
+					std::cout <<"[NUM] @ " <<var <<": $" <<var->name <<' '
+							  <<var->val.getNum() <<" =\n";
+
 				else if (var->val.type == CalcValue::STR && var->val.isNull())
-					std::cout <<"[NIL] @ " <<var <<": $" <<var->name <<' ' <<"null =\n";
+					std::cout <<"[NIL] @ " <<var <<": $" <<var->name <<' '
+							  <<"null =\n";
+
 				else if (var->val.type == CalcValue::STR)
-					std::cout <<"[STR] @ " <<var <<": $" <<var->name <<" \"" <<var->val.getStr() <<"\" =\n";
+					std::cout <<"[STR] @ " <<var <<": $" <<var->name <<" \""
+							  <<var->val.getStr() <<"\" =\n";
+
 				else if (var->val.type == CalcValue::REF)
-					std::cout <<"[REF] @ " <<var <<": $" <<var->name <<" $" <<var->val.getRef() <<" =\n";
+					std::cout <<"[REF] @ " <<var <<": $" <<var->name <<" $"
+							  <<var->val.getRef() <<" =\n";
+
 				else if (var->val.type == CalcValue::BLK)
-					std::cout <<"[BLK] @ " <<var <<": $" <<var->name <<" has " <<var->val.block->stackDepth <<"lines\n";
+					std::cout <<"[BLK] @ " <<var <<": $" <<var->name <<" has "
+							  <<var->val.block->stackDepth + 1
+							  <<((var->val.block->stackDepth) ? " lines\n" : " line\n");
 
 				var = var->next;
 
@@ -818,7 +830,7 @@ startCheck:
 		}
 		*/
 
-		else if (strcmp(p, "@p_blk@") == 0)
+		else if (strcmp(p, "@p_blk@") == 0) ///////////////////////////////////////////////////////////////////////////////////////////////// remember to delete this....
 			strstk::printStrStack(*mainStack.top().block);
 
 		// clear the stack
@@ -865,6 +877,10 @@ startCheck:
 			while (copies-- > 1)
 				mainStack.push(mainStack.top());
 
+		// retarded users...
+		} else if (*p == '\'') {
+			PASS_ERROR("\aERROR: strings are enclosed in double-quotes (\")\n");
+
 		// user has given a string :D
 		} else if (*p == '\"')
 			mainStack.push((p + 1));
@@ -888,7 +904,7 @@ startCheck:
 
 	}
 
-	return (char*) NULL;
+	return NULL;
 
 }
 
