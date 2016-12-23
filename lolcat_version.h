@@ -833,8 +833,9 @@ unsigned char ver_inf_txt[9551] = {
 inline void printVersionInfo(){
 
 #ifdef _WIN32
-	// Windows 10 is the only windows OS to support ANSI color codes...
-	// if you want features and support, use a real OS
+
+	// Windows 10 is the only windows OS to support ANSI color codes (I think...)...
+	// if you want features, use a real OS (ie- Linux)
 	printf(
 		"YodaScript  - v0.0.3-alpha\n"
 		"Copyright (C) 2016 Dustin Van Tate Testa <toast27@gmail.com>\n"

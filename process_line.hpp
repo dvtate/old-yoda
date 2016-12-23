@@ -613,19 +613,36 @@ startCheck:
 			//free's mem allocated for line
 			free(newLine);
 
-			if (execArr == NULL) {
+			if (execArr)
+				mainStack.push(*execArr);
+			else {
 				PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
 				return p;
 
-			} else {
-				mainStack.push(*execArr);
 			}
 
-//			printf ("FUKKKK");
 			rpnln = p;
 
 		} else if (*p == '}') {
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
+
+		} else if (*p == '@' && *(p + 1) == '\0') {
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_REFS(mainStack, first_node, showErrors);
+
+			CalcValue top = mainStack.top();
+			mainStack.pop();
+
+			if (top.type == CalcValue::BLK)
+				runStringStack(*top.block, showErrors, mainStack, first_node);
+
+			else if (top.type == CalcValue::STR) {
+				char* err = processLine(mainStack,first_node, showErrors, top.string);
+				if (err)
+					return err;
+			} else {
+				PASS_ERROR("\aERROR: @ (execution operator) only accepts strings and executable arrays\n");
+			}
 
 		// starting conditional
 		} else if (strcmp(p, "?:") == 0) {

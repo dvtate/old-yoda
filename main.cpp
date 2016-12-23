@@ -25,7 +25,7 @@
 // some useful functions
 #include "utils.hpp"
 
-unsigned int line = 0;
+unsigned int line = 1;
 
 #include "process_line.hpp"
 #include "core.hpp"

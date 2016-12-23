@@ -137,8 +137,6 @@ void runShell(UserVar* first_node, bool& errorReporting,
 	      std::stack<CalcValue>& mainStack
 ){
 
-
-
 	std::cout <<line++ <<">>> ";
 
 	char* rpnln = (char*) malloc(256);
@@ -242,6 +240,8 @@ void runStringStack(StrStack& code, bool& errorReporting){
 	}
 }
 
+
+//TODO: make this work like processLine (with its method of making errors and such
 void runStringStack(
 	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
 	UserVar* first_node
@@ -257,7 +257,6 @@ void runStringStack(
 
 	  	// used for line numbers in errors
 		line++;
-
 
 
 		char* rpnln = *(stackHead++);

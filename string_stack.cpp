@@ -127,16 +127,11 @@ namespace strstk {
 		if (*str == '#' || !*str)
 			return false;
 
-		while (depth && *(++str) != '#' && *str) {
+		while (depth && *(++str) != '#' && *str)
 			if (*str == '{')
 				depth++;
 			else if (*str == '}')
 				depth--;
-			else if (*str == '?')
-				depth = 0;
-
-
-		}
 
 		return depth ? false : true;
 
@@ -178,7 +173,7 @@ namespace strstk {
 			else {
 				*str = '\0';
 				ret->push(codeLine);
-				*str = 'x';
+				*str = ' ';
 				return ret;
 			}
 
