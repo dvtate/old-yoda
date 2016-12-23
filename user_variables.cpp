@@ -7,8 +7,10 @@
 
 #include "user_variables.hpp"
 
+
+
 namespace vars {
-	
+
 
 	UserVar* lastVar(UserVar* first){
 		while (first->next != NULL)

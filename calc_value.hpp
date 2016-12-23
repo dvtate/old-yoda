@@ -26,8 +26,8 @@ public:
 	enum { NUM,	// number/boolean
 		   STR,	// string
 		   REF,	// reference to a variable
-		   ARR,	// linked-list
-		   BLK	// Block of code (StrStack) (subroutine)
+		   //ARR,	// linked-list
+		   BLK	// Block of code (StrStack) (subroutine) (executable array)
 		 } type;
 
 	// this contains the data
@@ -97,29 +97,42 @@ public:
 	}
 
 	void setValue(double val){
+
+		// delete old value
 		if (type == STR || type == REF)
 			free(string); // free(NULL) gives no errors :)
+		else if (type == BLK)
+			delete block;
+
 		number = val;
 		type = NUM;
 	}
 
 	void setValue(const CalcValue& in){
-		if (in.type == NUM) {
-		  	if (type == STR && string != NULL)
-				free(string);
-			type = CalcValue::NUM;
-		  	number = in.number;
-		} else {
-			if (type == STR && string != NULL)
-			  	free(string);
 
-			type = in.type;
+		// delete old value
+		if (type == STR || type == REF)
+		  	free(string);
+		else if (type == BLK)
+			delete block;
+
+		// they will be the same type of data
+		type = in.type;
+
+		// copy in the value
+		if (type == NUM)
+		  	number = in.number;
+		else if (type == STR || type == REF) {
+
 			if (in.string != NULL) {
 			  	string = (char*) malloc(strlen(in.string) + 1);
 				strcpy(string, in.string);
 			} else
 				string = NULL;
-		}
+
+		} else if (type == BLK)
+			block = new StrStack(*in.block);
+
 	}
 
 	CalcValue& operator=(const CalcValue& in){

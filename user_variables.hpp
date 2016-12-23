@@ -38,23 +38,9 @@ public:
 	UserVar(UserVar* firstn, const char* const identifier, CalcValue contents):
 		first(firstn), next((UserVar*) NULL)
   	{
-
 	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
-
-	  	if (contents.type == CalcValue::NUM) {
-			val.type = CalcValue::NUM;
-		  	val.number = contents.number;
-		} else if (contents.type == CalcValue::STR || contents.type == CalcValue::REF) {
-			val.type = contents.type;
-			if (contents.isNull())
-				val.string = (char*) NULL;
-			else {
-		  	  	val.string = (char*) malloc(strlen(contents.string) + 1);
-			  	strcpy(val.string, contents.string);
-		  	}
-		}
+		val.setValue(contents);
 	}
-
 
 	// geting the values
 	double getNumber()
@@ -102,21 +88,19 @@ public:
 
 
 	// changing the values
-	void setValue(double in){
-		val.setValue(in);
-	}
+	void setValue(const double in)
+		{ val.setValue(in); }
 
-	void setValue(const char* in){
-
+	void setValue(const char* in)
+	{
 	  	CalcValue* value = getValPtr();
 		value->setValue(in);
-
 	}
 
 	void setValue(UserVar* in)
 		{ val = CalcValue().setRef(in->name); }
 
-	void setValue(CalcValue in)
+	void setValue(const CalcValue in)
 		{ val.setValue(in); }
 
 
@@ -124,9 +108,9 @@ public:
 
 
 
-
 namespace vars {
-	
+
+	// first node in the linked list of variables
 	extern UserVar* first_node;
 
   	// the last element on the linked list

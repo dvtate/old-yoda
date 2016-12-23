@@ -684,8 +684,8 @@ startCheck:
 
 				else if (var->val.type == CalcValue::BLK)
 					std::cout <<"[BLK] @ " <<var <<": $" <<var->name <<" has "
-							  <<var->val.block->stackDepth + 1
-							  <<((var->val.block->stackDepth) ? " lines\n" : " line\n");
+							  <<var->val.block->stackDepth
+							  <<((var->val.block->stackDepth == 1) ? " line\n" : " lines\n");
 
 				var = var->next;
 
