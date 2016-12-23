@@ -98,6 +98,8 @@ namespace strstk {
 	// gets a string stack from a file
 	StrStack* getStrStack(char*& str);
 
+
+	void printStrStack(const StrStack& stack);
 }
 
 

@@ -16,7 +16,8 @@
 
 
 /*	WARNING:
-* This code is terribly broken. but I think I'm going to be able to fix it now :)))
+* This code is terribly broken and has been replaced...
+* not sure why its still here...
 */
 
 

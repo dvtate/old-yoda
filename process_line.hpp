@@ -37,8 +37,9 @@ extern CalcValue ans;
 			}
 
 #define PASS_ERROR(MSG)\
-	if (showErrors)	std::cerr <<MSG;\
-		return p;
+	if (showErrors)	\
+		std::cerr <<MSG;\
+	return p;
 
 
 
@@ -591,7 +592,8 @@ startCheck:
 			char* newLine;
 
 			if (lineLen - (p - pInit) > 1) { // { more code....
-				p += 2;
+				if (*++p == '\0')
+					p++;
 				newLine = NULL;
 
 			} else { // {\n
@@ -610,7 +612,6 @@ startCheck:
 			//free's mem allocated for line
 			free(newLine);
 
-
 			StrStack* execArr = strstk::getStrStack(p);
 
 			if (execArr == NULL) {
@@ -620,7 +621,9 @@ startCheck:
 			} else {
 				mainStack.push(execArr);
 			}
-
+			rpnln = p;
+		} else if (*p == '}') {
+			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
 
 		// starting conditional
 		} else if (strcmp(p, "?:") == 0) {
@@ -669,6 +672,8 @@ startCheck:
 					std::cout <<"[STR] @ " <<var <<": $" <<var->name <<" \"" <<var->val.getStr() <<"\" =\n";
 				else if (var->val.type == CalcValue::REF)
 					std::cout <<"[REF] @ " <<var <<": $" <<var->name <<" $" <<var->val.getRef() <<" =\n";
+				else if (var->val.type == CalcValue::BLK)
+					std::cout <<"[BLK] @ " <<var <<": $" <<var->name <<" has " <<var->val.block->stackDepth <<"lines\n";
 
 				var = var->next;
 
@@ -812,6 +817,9 @@ startCheck:
 		// anything else
 		}
 		*/
+
+		else if (strcmp(p, "@p_blk@") == 0)
+			strstk::printStrStack(*mainStack.top().block);
 
 		// clear the stack
 		else if  (strcmp(p, "...") == 0)

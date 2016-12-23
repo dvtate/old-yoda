@@ -145,22 +145,43 @@ namespace strstk {
 
 	StrStack* getStrStack(char*& str){
 
-		StrStack* ret = new StrStack();
-		ret->push(str);
-
-
-		char* line = (char*) malloc(255);
-		size_t lineLen = 255;
+		char* codeLine = str;
 		uint16_t depth = 1; // shouldn't be >65000 levels of indentation...
+		StrStack* ret = new StrStack();
+
+		bool isEnd = endOfStk(str, depth);
+		if (!isEnd)
+			ret->push(codeLine);
+		else {
+			*str = '\0';
+			str++;
+			ret->push(codeLine);
+			return ret;
+		}
+
+		codeLine = (char*) malloc(255);
+		size_t lineLen = 255;
 
 
-		while (!endOfStk(str, depth)) {
-			if (getline(&line, &lineLen, program) == -1) {
+		while (!isEnd) {
+
+			// read the next line from our program
+			if (getline(&codeLine, &lineLen, program) == -1)
 				return NULL; // this signals an error from process_line.hpp
+			str = codeLine;
+
+			line++; // we added a line to our file
+
+			isEnd = endOfStk(str, depth);
+			if (!isEnd)
+				ret->push(codeLine);
+			else {
+				*str = '\0';
+				ret->push(codeLine);
+				str++;
+				return ret;
 			}
-			str = line;
-			line++;
-			ret->push(str);
+
 		}
 
 		return ret;
@@ -168,6 +189,19 @@ namespace strstk {
 	}
 
 
+
+	void printStrStack(const StrStack& stack){
+
+		char** buff = stack.buffer;
+		//size_t sd = stack.stackDepth;
+
+
+		int num = 0;
+
+		while (buff-- > stack.stackHead)
+			std::cout <<num++ <<": " <<*(buff) <<std::endl;
+
+	}
 }
 
 

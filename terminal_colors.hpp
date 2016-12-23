@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <inttypes.h>
+#include <stdint.h>
 #include <stdarg.h> // va_args
 
 // I'm doubing this supports windoge
@@ -56,7 +56,13 @@
 // all of the other effects are rarely supported or non-standard
 
 
-
+/* This doesnt make sense here
+#if !(defined(__linux__) || defined(__FreeBSD__) || defined(unix) || defined(__unix__) || defined(__unix))
+	#warning "Your OS is probably not supported by this library. Please feel free to test it out and report back to https://github.com/dvtate/terminal-colors/"
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	#warning "Your platform hasn't been tested yet, please contact me <toast27@gmail.com> so I can see if a solution I added to support your system was successful."
+#endif
+*/
 
 // why do I have to define this in the .cpp?
 // it would do perfectly fine here
@@ -102,6 +108,19 @@ typedef struct RGB_t {
 			};
 
 		};
+
+		/*
+		// constructor for the weirdos (this is C++...) :/
+		RGB_t(const unsigned char rColor,const unsigned char gColor, const unsigned char bColor){
+			r = rColor;
+			g = gColor;
+			b = bColor;
+		}
+
+		RGB_t(){};
+		RGB_t(const uint32_t clrVal): val(clrVal) {}
+		*/
+
 } RGB_t;
 
 
