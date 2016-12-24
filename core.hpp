@@ -241,7 +241,7 @@ void runStringStack(StrStack& code, bool& errorReporting){
 }
 
 
-//TODO: make this work like processLine (with its method of making errors and such
+//TODO: make this work like processLine (with its method of making errors and
 void runStringStack(
 	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
 	UserVar* first_node

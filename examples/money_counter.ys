@@ -16,13 +16,7 @@ input num $dimes =
 input num $nickels =
 
 "penees plz: " print 
-input
-
-dup typeof "string" != ! ?:
-	"fuck you" println
-:? 
-
-num $pennies =
+input num $pennies =
 
 
 "Total monies = $" print
@@ -37,8 +31,6 @@ num $pennies =
 # round the total to the nearest penny ($0.01)
 # not needed as I fixed the bug with fp numbers
 	# 100 * int 100 /
-
-
 
 # print the total
 println 

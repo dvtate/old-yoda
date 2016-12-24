@@ -416,7 +416,6 @@ startCheck:
 			setBgColor(mainStack.top().string);
 			mainStack.pop();
 
-
 		// changes the terminal foreground color for text
 		} else if (strcmp(p, "setFgColor") == 0) {
 			ASSERT_NOT_EMPTY("setFgColor");
