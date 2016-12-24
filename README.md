@@ -17,13 +17,13 @@ YodaScript is a stack-based language based on reverse polish notation.
 - Some features which I plan on implementing:
   + functions and subroutines
   + lists
-  + loops and if statements that actually work (these aren't implemented correctly)
-  + scoping (maybe)
+  + loops and if statements that actually work
+  + scoping (maybe) (maybe something like what PHP does)
   + proper string manipulation funcitons and such
   + regular expressions
   
 - Some features I will not implement:
-  + OOP (unless implemented by someone else)
+  + OOP (unless implemented by someone else ;) )
   + goto's (essentially impossible given my current design)
   
 # How to use (note- out of date)
@@ -53,7 +53,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   ```
   
  - <b>Combining operators:</b>
-  One of RPN's main strengths is that it eliminates the need for parenthases. Simply combine operators in a way that would lead to them being performed sequentially.
+  One of postfix notation's main strengths is that it eliminates the need for parenthases. Simply combine operators in a way that would lead to them being performed sequentially.
   ```
   >>> 1 1 + 2 *    # (1 + 1) * 2  
   4
@@ -77,27 +77,21 @@ YodaScript is a stack-based language based on reverse polish notation.
  >>> "hello " "there" + $a = # notice that the `+` operator is overloaded
  "hello there"
  
- >>> $a print 
+ >>> $a print
  hello there
  ```
- 
- - <b>Conditionals:</b>
-  Sometimes code should only run under certain conditions. Conditionals are initiated after a boolean with a `?:` and are ended with a `:?`. An empty conditional can also be used as a multi-line comment. Currently conditionals aren't fully implemented. `NOTE: this is going to be changed do not familiarize yourself with this`
-```
->>> # prompt the user for the day of the week and assign it to $day
->>> "What day of the week is it?" print     $day input =  
-What day of the week is it? tuesday
-ans "tuesday" =
->>> $day "monday" == ?:                 # if today is monday 
-    "I hate mondays...\n" print         # so true
-:? $day "friday" == ?:                  # else if today is friday
-    "Gotta get down on friday!\n" print # I hate that song
-:? ?:                                   # else
-    "Thanks!\n" print 
-:?
-Thanks!
->>>
-```
+ - <b>Executable Arrays:</b>
+  Depending on the context these are also called anonymous subroutines. They are containers of code and function like most other data, working with operators. You can run the code in one with the `@` operator.
+  ```
+  >>> $mySub {
+    "hello there" print
+    $a 5 =
+  } =
+  >>> $mySub @
+  hello there
+  >>> $a print # note, variables declared within the subroutine remain after it's done
+  5
+  ```
  
  - <b>Keywords and Commands:</b>
     * `>>> help` <br/>
@@ -201,3 +195,7 @@ Thanks!
   
 * String functions:
   - `strlen`: returns the length of a given string
+  
+* Execuatable Array Operators:
+  - `@`, `eval`: runs the given subroutine or string as code (equivalent to eval)
+
