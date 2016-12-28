@@ -1,6 +1,5 @@
 #include <iostream>
 #include <stack>
-#include <queue>
 #include <cstring>
 
 #ifdef _WIN32

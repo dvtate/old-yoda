@@ -1,6 +1,6 @@
 #include "string_stack.hpp"
 
-#include <stdio.h>
+#include <iostream>
 #include <string.h>
 #include <stack>
 #include <inttypes.h>

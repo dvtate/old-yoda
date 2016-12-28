@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <stack>
-#include <queue>
 #include <string.h>
 #include <string>
 #include <stdio.h>
@@ -366,7 +365,7 @@ startCheck:
 
 		// previous answer
 		else if (strcmp(p, "ans") == 0) // p == "ans"
-			mainStack.push(CalcValue(ans));
+			mainStack.push(ans);
 
 		// print to terminal
 		else if (strcmp(p, "print") == 0) {
@@ -808,7 +807,7 @@ startCheck:
 		// variable
 		} else if (*p == '$' && *(p + 1) != '\0') // user must use '$' prefix to access the variables
 
-			mainStack.push(CalcValue().setRef(p + 1));
+			mainStack.push(CalcValue().setRef(p + 1)); // beautiful hack, eh?
 
 		else if (*p == '~' && *(p + 1) == '\0') {
 			if (mainStack.empty()){
@@ -900,8 +899,7 @@ startCheck:
 
 		// user has given a string :D
 		} else if (*p == '\"') {
-			CalcValue str = CalcValue(p+1);
-			mainStack.push(*(new CalcValue(str)));
+			mainStack.push(p + 1);
 
 		}
 		// let's try and figure out what this could be...

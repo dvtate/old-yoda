@@ -1,4 +1,3 @@
-#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -171,8 +170,7 @@ hex_color:
 		else if (strlen(color) == 6)
 			fsetFgColor(file, hexToClr(color));
 		else
-			std::cerr <<"\aERROR: invalid hex color \"" <<(color - 1) <<"\".\n";
-
+			fprintf(stderr, "ERROR: invalid hex color \"%s\"\n", color - 1);
 		goto _end;
 	}
 
@@ -199,8 +197,8 @@ tri_color:
 		for (uint8_t i = 0; i < 3; i++) {
 
 			if (token == NULL || *token == ')') {
-				std::cerr <<"\aERROR: \"rgb(r,g,b)\" expected 3 arguments, "
-						  <<i + 1 <<" provided.";
+				fprintf(stderr, "\aERROR: \"rgb(r,g,b)\" expected 3 arguments, "
+						"%d provided\n", i + 1);
 				break;
 			}
 			vals[i] = atoi(token);
@@ -217,9 +215,8 @@ tri_color:
 
 		// color was not in the list
 		if (clr.val == 0 && notBlack(color))
-			std::cerr <<"\aERROR: invalid HTML color. `" <<color
-					  <<"` doesn't name a color.";
-
+			fprintf(stderr, "\aERROR: invalid HTML color. \"%s\" doesn\'t"
+					"name a color\n", color);
 		fsetFgColor(file, clr);
 
 		goto _end;
@@ -229,8 +226,8 @@ tri_color:
 	else if (countSpaces(color) >= 2)
 		goto tri_color;
 	else
-		std::cerr <<"\aERROR: invalid HTML color. `" <<color <<'\n';
-
+		fprintf(stderr, "\aERROR: invalid HTML color. \"%s\" doesn\'t"
+				"name a color\n", color);
 _end:
 	free(color_cpy);
 
@@ -289,8 +286,7 @@ hex_color:
 		else if (strlen(color) == 6)
 			fsetBgColor(file, hexToClr(color));
 		else
-			std::cerr <<"\aERROR: invalid hex color \"" <<(color - 1) <<"\".\n";
-
+			fprintf(stderr,"\aERROR: invalid hex color \"%s\".\n", color - 1);
 		goto _end;
 	}
 
@@ -317,8 +313,8 @@ tri_color:
 		for (uint8_t i = 0; i < 3; i++) {
 
 			if (token == NULL || *token == ')') {
-				std::cerr <<"\aERROR: \"rgb(r,g,b)\" expected 3 arguments, "
-						  <<i + 1 <<" provided.";
+				fprintf(stderr, "\aERROR: \"rgb(r,g,b)\" expected 3 arguments, "
+						"%d provided\n", i + 1);
 				break;
 			}
 			vals[i] = atoi(token);
@@ -335,8 +331,8 @@ tri_color:
 
 		// color was not in the list
 		if (clr.val == 0 && notBlack(color)) {
-			std::cerr <<"\aERROR: invalid HTML color. `" <<color
-					  <<"` doesn't name a color.";
+			fprintf(stderr, "\aERROR: invalid HTML color. \"%s\" doesn\'t"
+					"name a color\n", color);
 			return;
 		}
 		fsetBgColor(file, clr);
@@ -349,7 +345,8 @@ tri_color:
 	else if (countSpaces(color) >= 2)
 		goto tri_color;
 	else
-		std::cerr <<"\aERROR: invalid HTML color. `" <<color <<'\n';
+		fprintf(stderr, "\aERROR: invalid HTML color. \"%s\" doesn\'t"
+				"name a color\n", color);
 
 
 _end:
@@ -469,8 +466,8 @@ hex_color:
 		else if (strlen(color) == 6)
 			color_fprintf(file, hexToClr(color), format, args);
 		else {
-			std::cerr <<"\aERROR: color_fprintf(): invalid hex color \""
-					  <<(color - 1) <<"\".\n";
+			fprintf(stderr, "\aERROR: color_fprintf(): invalid hex color "
+					"\"%s\"\n", color - 1);
 			vfprintf(file, format, args); // print the format
 		}
 
@@ -501,8 +498,8 @@ tri_color:
 		for (uint8_t i = 0; i < 3; i++) {
 
 			if (token == NULL || *token == ')') {
-				std::cerr <<"\aERROR: color_fprintf(): rgb() expected 3 arguments, "
-						  <<i + 1 <<" provided.";
+				fprintf(stderr, "\aERROR: color_fprintf(): rgb() expected 3 "
+						"arguments, %d provided\n", i + 1);
 				break;
 			}
 			vals[i] = atoi(token);
@@ -518,9 +515,8 @@ tri_color:
 	else if (!isdigit(*color)) {
 		RGB_t clr = nameToColor(color);
 		if (clr.val == 0 && notBlack(color)) {
-			std::cerr <<"\aERROR: color_fprintf(): invalid HTML color. `"
-					  <<color <<"` doesn't name a color.";
-
+			fprintf(stderr, "\aERROR: color_fprintf(): invalid HTML color. "
+					"\"%s\" does\'t name a color\n", color);
 			vfprintf(file, format, args);
 			return;
 		}
@@ -537,7 +533,8 @@ tri_color:
 	else if (countSpaces(color) >= 2)
 		goto tri_color;
 	else
-		std::cerr <<"\aERROR: invalid HTML color. `" <<color <<'\n';
+		fprintf(stderr, "\aERROR: color_fprintf(): invalid HTML color. "
+				"\"%s\" does\'t name a color\n", color);
 
 
 end_printf:
@@ -578,8 +575,8 @@ hex_color:
 		else if (strlen(color) == 6)
 			color_printf(hexToClr(color), format, args);
 		else {
-			std::cerr <<"\aERROR: color_printf(): invalid hex color \""
-					  <<(color - 1) <<"\".\n";
+			fprintf(stderr, "\aERROR: color_printf(): invalid hex color "
+				"\"%s\"\n", color - 1);
 			vprintf(format, args); // print the format
 		}
 		va_end(args);
@@ -609,8 +606,8 @@ tri_color:
 		for (uint8_t i = 0; i < 3; i++) {
 
 			if (token == NULL || *token == ')') {
-				std::cerr <<"\aERROR: color_printf(): rgb() expected 3 arguments, "
-						  <<i + 1 <<" provided.";
+				fprintf(stderr, "\aERROR: color_printf(): rgb() expected 3 "
+						"arguments, %d provided\n", i + 1);
 				break;
 			}
 			vals[i] = atoi(token);
@@ -627,8 +624,8 @@ tri_color:
 		RGB_t clr = nameToColor(color);
 		if (clr.val == 0 && notBlack(color)) {
 			if (color)
-				std::cerr <<"\aERROR: color_printf(): invalid HTML color. `"
-						  <<color <<"` doesn't name a color.";
+			fprintf(stderr, "\aERROR: color_printf(): invalid HTML color. "
+					"\"%s\" does\'t name a color\n", color);
 
 			vprintf(format, args);
 			return;
@@ -650,7 +647,8 @@ tri_color:
 		// 		- should I even include this feature???
 		goto hex_color;
 	else
-		std::cerr <<"\aERROR: invalid HTML color. `" <<color <<'\n';
+		fprintf(stderr, "\aERROR: color_printf(): invalid HTML color. "
+				"\"%s\" does\'t name a color\n", color);
 
 
 end_printf:

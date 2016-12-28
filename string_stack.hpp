@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
-#include <iostream>
-#include <stack>
 
 class CalcValue;
 class UserVar;
