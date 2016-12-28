@@ -3,7 +3,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-
+#include <stdio.h>
 
 #include "string_stack.hpp"
 
@@ -69,22 +69,32 @@ public:
 	}
 
 	CalcValue(StrStack* codeBlock):
-		type(BLK), block(codeBlock) {}
+		type(BLK)
+	{
+		block = new StrStack(*codeBlock);
+	}
 
+	CalcValue& operator=(const CalcValue& in){
+		setValue(in);
+		return *this;
+	}
+	CalcValue(const CalcValue& in){
+		setValue(in);
+	}
 
 	// this causes a core dump (QwQ)
-	/*~CalcValue(){
+	~CalcValue(){
 		if (type == STR)
-			free(string);
-		else if (type == STK)
+			free(string); // free() accepts NULL pointers
+		else if (type == BLK)
 			delete block;
-	}*/
+	}
 
 	void setValue(const char* const str) {
 
 		// memory leaks are pretty bad
 		if (type == STR || type == REF)
-			free(string); // free(NULL) gives no errors :)
+			free(string); // free() accepts NULL pointers
 
 
 		string = (char*) malloc(strlen(str) + 1);
@@ -124,7 +134,7 @@ public:
 		  	number = in.number;
 		else if (type == STR || type == REF) {
 
-			if (in.string != NULL) {
+			if (in.string) {
 			  	string = (char*) malloc(strlen(in.string) + 1);
 				strcpy(string, in.string);
 			} else
@@ -133,11 +143,6 @@ public:
 		} else if (type == BLK)
 			block = new StrStack(*in.block);
 
-	}
-
-	CalcValue& operator=(const CalcValue& in){
-		setValue(in);
-		return *this;
 	}
 
 	CalcValue& setRef(const char* const str){

@@ -215,8 +215,8 @@ startCheck:
 				} else if (b.type == CalcValue::NUM) { // b is a number
 
 					// convert the double to a string
-					char str[8];
-					snprintf(str, 7, "%g", b.getNum());
+					char str[26];
+					snprintf(str, 26, "%*.*g", 10, 16, b.getNum());
 
 					// allocate memory
 					char combined[strlen(a.getStr()) + strlen(str) + 1];
@@ -232,8 +232,9 @@ startCheck:
 				if (b.type == CalcValue::STR) {
 
 					// convert the double to a string
-					char str[8];
-					snprintf(str, 7, "%g", a.getNum());
+					char str[27];
+
+					snprintf(str, 26, "%*.*g", 10, 16, a.getNum());
 
 					// allocate memory
 					char combined[strlen(str) + strlen(b.getStr()) + 1];
@@ -249,7 +250,7 @@ startCheck:
 			}
 
 		} else if (strcmp(p, "==") == 0) {
-			mainStack.push(getNextValue(mainStack) == getNextValue(mainStack));
+			mainStack.push((getNextValue(mainStack) == getNextValue(mainStack)));
 
 		// not equal to
 		} else if (strcmp(p, "!=") == 0)
@@ -257,7 +258,7 @@ startCheck:
 
 		// logical not operator
 		else if (*p == '!' && *(p + 1) == '\0')
-			mainStack.push(getNextValue(mainStack).getNum() == 0);
+			mainStack.push((getNextValue(mainStack).getNum() == 0));
 
 
 		//trig functions
@@ -365,7 +366,7 @@ startCheck:
 
 		// previous answer
 		else if (strcmp(p, "ans") == 0) // p == "ans"
-			mainStack.push(ans);
+			mainStack.push(CalcValue(ans));
 
 		// print to terminal
 		else if (strcmp(p, "print") == 0) {
@@ -898,8 +899,11 @@ startCheck:
 			PASS_ERROR("\aERROR: strings are enclosed in double-quotes (\")\n");
 
 		// user has given a string :D
-		} else if (*p == '\"')
-			mainStack.push((p + 1));
+		} else if (*p == '\"') {
+			CalcValue str = CalcValue(p+1);
+			mainStack.push(*(new CalcValue(str)));
+
+		}
 		// let's try and figure out what this could be...
 		else {
 			// parse input

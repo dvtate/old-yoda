@@ -47,8 +47,23 @@ public:
                 for (; stackDepth > 0; stackDepth--)
                         free(*(--buffer));
 
-                free(buffer);
+                free(stackHead);
         }
+
+		StrStack& operator=(const StrStack& cpy){
+			sizeFactor = cpy.sizeFactor;
+			buffer = (char**) malloc((1 << cpy.sizeFactor) * 256 * sizeof(char*));
+			stackDepth = cpy.stackDepth;
+			stackHead = buffer;
+
+			char** sh = cpy.stackHead;
+            while (sh != cpy.buffer) {
+				*buffer = (char*) malloc ( strlen(*sh) + 1 );
+				strcpy(*buffer++, *sh++);
+            }
+
+            return *this;
+		}
 
         // resets the object
         void clear();
