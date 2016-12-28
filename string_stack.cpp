@@ -6,7 +6,10 @@
 #include <inttypes.h>
 
 
-#include "fuck_windows.h"
+// provided by fuck_windows.h
+#ifdef _WIN32
+	int getline(char**, size_t*, FILE*);
+#endif
 
 
 // resets the object to it's original state
@@ -137,7 +140,7 @@ namespace strstk {
 
 	}
 
-
+	// note, str is modified and this is used in processLine()
 	StrStack* getStrStack(char*& str){
 
 		char* codeLine = str;
@@ -198,4 +201,5 @@ namespace strstk {
 
 	}
 }
+
 

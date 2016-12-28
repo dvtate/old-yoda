@@ -41,6 +41,7 @@ int getline(char **lineptr, size_t *n, FILE *stream) {
 		bufptr = (char*) malloc(128);
 		if (bufptr == NULL)
 			return -1;
+
 		size = 128;
 	}
 

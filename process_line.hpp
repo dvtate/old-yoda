@@ -900,7 +900,7 @@ startCheck:
 		// user has given a string :D
 		} else if (*p == '\"') {
 			mainStack.push(p + 1);
-
+			//printf("string recieved <%s>", p + 1);
 		}
 		// let's try and figure out what this could be...
 		else {

@@ -3,6 +3,8 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+
 
 #include "string_stack.hpp"
 
@@ -78,16 +80,22 @@ public:
 		return *this;
 	}
 	CalcValue(const CalcValue& in){
+		//printf("copying CV...\n");
 		setValue(in);
+		//printf("copyied CV...\n");
 	}
 
+/*
 	// this causes a core dump (QwQ)
 	~CalcValue(){
-		if (type == STR)
+		printf("deleting CV...\n");
+		if (type == STR || type == REF)
 			free(string); // free() accepts NULL pointers
 		else if (type == BLK)
 			delete block;
+		printf("deleted CV...\n");
 	}
+*/
 
 	void setValue(const char* const str) {
 

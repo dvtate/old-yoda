@@ -31,21 +31,15 @@ inline void displayHelp(){ // this could all be combined into one print statemen
 	#endif
 }
 
-
-inline CalcValue getNextValue(std::stack<CalcValue>& valStack){
-	const CalcValue topVal = valStack.top();
-    valStack.pop();
-    return topVal;
+template<class T>
+inline T getNextValue(std::stack<T>& stk){
+	const T topVal = stk.top();
+	stk.pop();
+	return topVal;
 }
-
 
 template <class T>
 inline void emptyStack(std::stack<T>& stk){
-	while (!stk.empty())
-		stk.pop();
-}
-template <class T>
-inline void emptyStack(std::queue<T>& stk){
 	while (!stk.empty())
 		stk.pop();
 }
@@ -126,7 +120,7 @@ bool printCalcValue(CalcValue& val, UserVar* first_node){
 }
 
 bool printCalcValueRAW(CalcValue& val, UserVar* first_node){
-
+	//printf("value is<");
 	if (val.isNull())
 		std::cout <<"null";
   	else if (val.type == CalcValue::NUM)
@@ -154,6 +148,8 @@ bool printCalcValueRAW(CalcValue& val, UserVar* first_node){
 		std::cerr <<"\aERROR: broken reference to `$" <<(ret->string) <<"`.\n";
 		return 1;
 	}
+
+	//printf(">\n");
 
 	return 0;
 
@@ -250,7 +246,7 @@ inline char* trimStr(char* string){
 	while (!isspace(*string) && *string != '\0')
 		string++;
 
-	*(string + 1) = 0;
+	*(string + 1) = '\0';
 
 	return ret;
 }
