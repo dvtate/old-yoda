@@ -1,6 +1,6 @@
 #include "string_stack.hpp"
 
-#include <iostream>
+#include <stdio.h>
 #include <string.h>
 #include <stack>
 #include <inttypes.h>
@@ -194,9 +194,8 @@ namespace strstk {
 		int num = 0;
 
 		while (buff-- > stack.stackHead)
-			std::cout <<num++ <<": " <<*(buff) <<std::endl;
+			printf("%d: %s\n", num++, *buff);
 
 	}
 }
-
 
