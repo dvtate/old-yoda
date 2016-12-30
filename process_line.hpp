@@ -612,9 +612,10 @@ startCheck:
 			//free's mem allocated for line
 			free(newLine);
 
-			if (execArr)
+			if (execArr) {
 				mainStack.push(*execArr);
-			else {
+				delete execArr;
+			} else {
 				PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
 				return p;
 
@@ -899,7 +900,7 @@ startCheck:
 
 		// user has given a string :D
 		} else if (*p == '\"') {
-			mainStack.push(p + 1);
+			mainStack.push(CalcValue().setStr(p + 1));
 			//printf("string recieved <%s>", p + 1);
 		}
 		// let's try and figure out what this could be...

@@ -69,11 +69,8 @@ public:
 
 	}
 
-	CalcValue(StrStack* codeBlock):
-		type(BLK)
-	{
-		block = new StrStack(*codeBlock);
-	}
+	CalcValue(StrStack* codeBlock): type(BLK)
+		{ block = new StrStack(*codeBlock); }
 
 	CalcValue& operator=(const CalcValue& in){
 		setValue(in);
@@ -83,46 +80,6 @@ public:
 		//printf("copying CV...\n");
 		setValue(in);
 		//printf("copyied CV...\n");
-	}
-
-/*
-	// this causes a core dump (QwQ)
-	~CalcValue(){
-		printf("deleting CV...\n");
-		if (type == STR || type == REF)
-			free(string); // free() accepts NULL pointers
-		else if (type == BLK)
-			delete block;
-		printf("deleted CV...\n");
-	}
-*/
-
-	void setValue(const char* const str) {
-
-		// memory leaks are pretty bad
-		if (type == STR || type == REF)
-			free(string); // free() accepts NULL pointers
-
-
-		string = (char*) malloc(strlen(str) + 1);
-
-		// write the string to the buffer
-		strcpy(string, str);
-
-		type = STR;
-
-	}
-
-	void setValue(double val){
-
-		// delete old value
-		if (type == STR || type == REF)
-			free(string); // free(NULL) gives no errors :)
-		else if (type == BLK)
-			delete block;
-
-		number = val;
-		type = NUM;
 	}
 
 	void setValue(const CalcValue& in){
@@ -151,6 +108,45 @@ public:
 			block = new StrStack(*in.block);
 
 	}
+/*
+	// this causes a core dump (QwQ)
+	~CalcValue(){
+		printf("deleting CV...\n");
+		if (type == STR || type == REF)
+			free(string); // free() accepts NULL pointers
+		else if (type == BLK)
+			delete block;
+		printf("deleted CV...\n");
+	}
+*/
+	void setValue(const char* const str) {
+
+		// memory leaks are pretty bad
+		if (type == STR || type == REF)
+			free(string); // free() accepts NULL pointers
+
+
+		string = (char*) malloc(strlen(str) + 1);
+
+		// write the string to the buffer
+		strcpy(string, str);
+
+		type = STR;
+
+	}
+
+	void setValue(double val){
+
+		// delete old value
+		if (type == STR || type == REF)
+			free(string); // free(NULL) gives no errors :)
+		else if (type == BLK)
+			delete block;
+
+		number = val;
+		type = NUM;
+	}
+
 
 	CalcValue& setRef(const char* const str){
 
@@ -167,6 +163,22 @@ public:
 		type = REF;
 
 		return *this;
+	}
+	CalcValue& setStr(const char* const str){
+		// memory leaks are pretty bad
+		if (type == STR || type == REF)
+			free(string); // free(NULL) gives no errors :)
+
+
+		string = (char*) malloc(strlen(str) + 1);
+
+		// write the string to the buffer
+		strcpy(string, str);
+
+		type = STR;
+
+		return *this;
+
 	}
 
 	void setNull(){
@@ -191,14 +203,14 @@ public:
 	  	if (type == STR)
 			return string;
 	  	else
-		  	return (char*) NULL;
+		  	return NULL;
 	}
 
 	char* getRef(){
 	  	if (type == REF)
 			return string;
 	  	else
-		  	return (char*) NULL;
+		  	return NULL;
 	}
 
 	CalcValue* valAtRef(UserVar* first){
@@ -238,7 +250,8 @@ public:
 		{ return type == STR; }
 	bool isNum()
 		{ return type == NUM; }
-
+	bool isBlk()
+		{ return type == BLK; }
 
 };
 
