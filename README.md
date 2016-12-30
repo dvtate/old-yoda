@@ -21,6 +21,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   + scoping (maybe) (maybe something like what PHP does)
   + proper string manipulation funcitons and such
   + regular expressions
+  + concurrency (multi-threaded/async)
   
 - Some features I will not implement:
   + OOP (unless implemented by someone else ;) )
