@@ -64,10 +64,8 @@ public:
 			string = NULL;
 	}
 
-	CalcValue(const StrStack& codeBlock): type(BLK) {
-		block = new StrStack(codeBlock);
-
-	}
+	CalcValue(const StrStack& codeBlock): type(BLK)
+		{ block = new StrStack(codeBlock); }
 
 	CalcValue(StrStack* codeBlock): type(BLK)
 		{ block = new StrStack(*codeBlock); }
@@ -108,17 +106,26 @@ public:
 			block = new StrStack(*in.block);
 
 	}
-/*
+
+	///TODO: Fix memory leak. Perhaps implementing a custom stack class which copies instead of references
 	// this causes a core dump (QwQ)
+	/*
 	~CalcValue(){
 		printf("deleting CV...\n");
 		if (type == STR || type == REF)
 			free(string); // free() accepts NULL pointers
 		else if (type == BLK)
 			delete block;
-		printf("deleted CV...\n");
+		//printf("deleted CV...\n");
 	}
-*/
+	*/
+
+	template<class T>
+	CalcValue& operator=(const T& val) {
+		setValue(val);
+		return *this;
+	}
+
 	void setValue(const char* const str) {
 
 		// memory leaks are pretty bad

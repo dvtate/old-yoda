@@ -241,7 +241,11 @@ void runStringStack(StrStack& code, bool& errorReporting){
 }
 
 
-//TODO: make this work like processLine (with its method of making errors and
+///TODO: make this work like processLine (with its method of making errors and such)
+///TODO: make line numbers relative to the strStack, and not affect the global line count
+///TODO: print error location correctly as well
+/// should return bool to tell if there were errors that way processLine can point
+///		the user towards the place the strstack was called.
 void runStringStack(
 	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
 	UserVar* first_node
