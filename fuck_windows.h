@@ -12,7 +12,7 @@
 #include <stdio.h>
 
 
-int getline(char **lineptr, size_t *n, FILE *stream) {
+int getline(char** lineptr, size_t* n, FILE* stream) {
 
 	char *bufptr = NULL,
 		 *p = bufptr;
