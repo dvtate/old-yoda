@@ -20,19 +20,13 @@ int getline(char **lineptr, size_t *n, FILE *stream) {
 	ssize_t size;
 	int c;
 
-	if (lineptr == NULL)
-		return -1;
-
-	if (stream == NULL)
-		return -1;
-
-	if (n == NULL)
+	// all parameters are required
+	if (!lineptr || !stream || !n)
 		return -1;
 
 	bufptr	= *lineptr;
 	size 	= *n;
-
-	c = fgetc(stream);
+	c 		= fgetc(stream);
 
 	if (c == EOF)
 		return -1;
@@ -64,9 +58,9 @@ int getline(char **lineptr, size_t *n, FILE *stream) {
 
 	}
 
-	*p++ = '\0';
+	*p++	 = '\0';
 	*lineptr = bufptr;
-	*n = size;
+	*n		 = size;
 
 	return p - bufptr - 1;
 
