@@ -32,42 +32,53 @@ char* qtok(char* str, char** next){
         start = current;
         current++; // Skip the beginning quote.
 
-		bool lastWasSlash = false;
-
         for (;;) {
             // Go until we find a quote or the end of string.
             while (*current != '\0'  && *current != '"') {
-                lastWasSlash = false;
 
-                if (*current == '\\') {
+                if (*current == '\\') { // escape sequences
                     if (*(current + 1) == 'n') {
                         *current = '\n';
                         *(current + 1) = '\r'; // it's not that I want to support windows...
 					    					   // this is just more efficienct than deleteChar()
 											   // also, this doesn't do the same thing as '\n'..
 											   // so I probably should find a better solution...
+					// line feed
                     } else if (*(current + 1) == 'r') {
-                        *current = *(current + 1) = '\r'; // nice hack :)
+                        *current = *(current + 1) = '\r'; // nice hack ;)
                         current++;
+
+                    // horizontal tab
                     } else if (*(current + 1) == 't') {
                         *current = '\t';
                         deleteChar(current + 1);
+
+                    // bel
                     } else if (*(current + 1) == 'a') {
                         *current = '\a';
                         deleteChar(current + 1);
+
+                    // backspace
                     } else if (*(current + 1) == 'b') {
                         *current = '\b';
                         deleteChar(current + 1);
+
+                    // formfeed
                     } else if (*(current + 1) == 'f') {
                         *current = '\f';
                         deleteChar(current + 1);
+
+                    // vertical tab
                     } else if (*(current + 1) == 'v') {
                         *current = '\v';
                         deleteChar(current + 1);
-                    } else if (*(current + 1) == '\\') {
+
+                    // escaped backslash
+                    } else if (*(current + 1) == '\\')
                         deleteChar(current);
-                        lastWasSlash = true;
-                    } else if (isdigit(*(current + 1))) {
+
+                    // escape sequence "\nnn"
+                    else if (isdigit(*(current + 1))) {
 						// escape sequence can be a maximum of 3 chars long
                     	char str[3] = {
                     		*(current + 1),
@@ -79,6 +90,7 @@ char* qtok(char* str, char** next){
 						*current = (char) strtol(str, &ptr, 8);
 						deleteChars(current + 1, ptr - str);
 
+					// escape sequence "\xhh"
                     } else if (*(current + 1) == 'x' && isdigit(*(current + 2))) {
 						// escape sequence can be a maximum of 2 chars long
                     	char str[2] = { *(current + 2), *(current + 3) };
@@ -87,6 +99,8 @@ char* qtok(char* str, char** next){
 						*current = (char) strtol(str, &ptr, 16);
 						deleteChars(current + 1, ptr - str);
 
+					// indicates that the next character should be ignored by the tokenizer
+					// this works for \", \', etc.
                     } else
 						deleteChar(current);
 
@@ -98,15 +112,9 @@ char* qtok(char* str, char** next){
 
             //current++;
 
-
-            if (*current == '\0') // Reached the end of the string.
+			// Reached the end of the string.
+            if (*current == '\0')
                 goto finalize;
-
-            if (*(current - 1) == '\\' && !lastWasSlash) {
-                // Escaped quote (keep going)
-                current++;
-                continue;
-            }
 
             // Reached the ending quote.
             goto finalize;
