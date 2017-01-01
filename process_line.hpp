@@ -630,7 +630,6 @@ startCheck:
 		} else if (*p == '@' && *(p + 1) == '\0') {
 			ASSERT_NOT_EMPTY(p);
 
-run_string_stack:
 			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			CalcValue top = mainStack.top();
@@ -699,12 +698,31 @@ run_string_stack:
 
 
 			if (elseStatement) {
-				if (condition) {}
+				if (condition) {
+					CalcValue runTrue = mainStack.top();
+					mainStack.pop(); mainStack.pop();
+					if (runTrue.type == CalcValue::BLK) {
+						runStringStack(*runTrue.block, showErrors, mainStack, first_node);
+					} else {
+						mainStack.push(runTrue);
+					}
+				} else {
+					mainStack.pop();
+					if (mainStack.top().type == CalcValue::BLK) {
+						CalcValue top = mainStack.top();
+						mainStack.pop();
+						runStringStack(*top.block, showErrors, mainStack, first_node);
+					} // else, it's a value that should stay at the top of the stack
+				}
 
 			} else { // { code } condition if
 				if (condition) {
-					goto run_string_stack;
-				}
+					if (mainStack.top().type == CalcValue::BLK) {
+						CalcValue top = mainStack.top();
+						mainStack.pop();
+						runStringStack(*top.block, showErrors, mainStack, first_node);
+					} // else, it's a value that should stay at the top of the stack
+				} // else, don't do anything as there isn't an else clause
 			}
 
 		// exit the program
