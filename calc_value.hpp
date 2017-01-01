@@ -75,8 +75,8 @@ public:
 		return *this;
 	}
 	CalcValue(const CalcValue& in){
-		//printf("copying CV...\n");
 		setValue(in);
+		//printf("copying CV...\n");
 		//printf("copyied CV...\n");
 	}
 
