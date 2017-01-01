@@ -125,6 +125,8 @@ namespace strstk {
 			return true;
 		if (depth == 1 && *str == '}')
 			return true;
+		if (*str == '{')
+			depth++;
 
 		// the line is commented out, or end of string
 		if (*str == '#' || !*str)
@@ -136,7 +138,7 @@ namespace strstk {
 			else if (*str == '}')
 				depth--;
 
-		return depth ? false : true;
+		return !depth;
 
 	}
 
@@ -204,5 +206,4 @@ namespace strstk {
 
 
 }
-
 
