@@ -66,7 +66,8 @@ void runFile(char* programFile, bool& errorReporting){
 	UserVar* first_node = new UserVar(NULL, " ", 0.0);
   	first_node->first = first_node;
 
-	static CalcValue ans(0.0); // here `0` could be a pointer
+	CalcValue ans(0.0); // here `0` could be a pointer
+	bool elseStatement = false;
 
 	// for each line in the programFile...
 	for (;;) {
@@ -87,7 +88,7 @@ void runFile(char* programFile, bool& errorReporting){
 				*errorToken = NULL;
 		// process the line
 		if ((errorToken =
-			processLine(mainStack, first_node,errorReporting, rpnln))
+			processLine(mainStack, first_node,errorReporting, rpnln, elseStatement))
 			&& errorReporting
 		) {
 
@@ -134,7 +135,7 @@ CalcValue ans;
 
 
 void runShell(UserVar* first_node, bool& errorReporting,
-	      std::stack<CalcValue>& mainStack
+	      std::stack<CalcValue>& mainStack, bool& elseStatement
 ){
 
 	std::cout <<line++ <<">>> ";
@@ -152,7 +153,7 @@ void runShell(UserVar* first_node, bool& errorReporting,
 
 
 	// process the line
-	bool errors = processLine(mainStack, first_node, errorReporting, rpnln);
+	bool errors = processLine(mainStack, first_node, errorReporting, rpnln, elseStatement);
 
 	if (errors)
 		emptyStack(mainStack);
@@ -190,6 +191,7 @@ void runStringStack(StrStack& code, bool& errorReporting){
 
 	static CalcValue ans(0.0); // here `0` could be a pointer
 
+	bool elseStatement = false;
 
 	char** stackHead = code.stackHead;
 
@@ -210,7 +212,7 @@ void runStringStack(StrStack& code, bool& errorReporting){
 
 		// process the line
 		if ((errorToken =
-			processLine(mainStack, first_node, errorReporting, rpnln))
+			processLine(mainStack, first_node, errorReporting, rpnln, elseStatement))
 			&& errorReporting
 		) {
 
@@ -251,6 +253,7 @@ void runStringStack(
 	UserVar* first_node
 ){
 
+	bool elseStatement = false;
 	static CalcValue ans(0.0); // here `0` could be a pointer
 
 
@@ -272,7 +275,7 @@ void runStringStack(
 
 		// process the line
 		if ((errorToken =
-			processLine(mainStack, first_node, errorReporting, rpnln))
+			processLine(mainStack, first_node, errorReporting, rpnln, elseStatement))
 			&& errorReporting)
 		{
 

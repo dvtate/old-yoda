@@ -26,8 +26,8 @@
 
 unsigned int line = 1;
 
-#include "process_line.hpp"
 #include "core.hpp"
+#include "process_line.hpp"
 
 #include "lolcat_version.h"
 
@@ -48,12 +48,13 @@ int main(int argc, char** argv){
 		// the shell is designed for testing small ideas
 		// therefore we want the most verbose errors possible
 		bool showErrors = true;
+		bool elseStatement = false;
 
 		// the most important component to the language
 		std::stack<CalcValue> mainStack;
 
 		for (;;)
-			runShell(first_node, showErrors, mainStack);
+			runShell(first_node, showErrors, mainStack, elseStatement);
 
 		return 0;
 

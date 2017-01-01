@@ -16,9 +16,6 @@
 // user defined variables
 #include "user_variables.hpp"
 
-// conditional statements
-#include "conditionals.hpp"
-
 // some useful functions
 #include "utils.hpp"
 
@@ -59,9 +56,13 @@ extern CalcValue ans;
 	}
 
 
+extern void runStringStack(
+	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
+	UserVar* first_node
+);
 
 char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
-	bool& showErrors, char*& rpnln
+	bool& showErrors, char*& rpnln, bool& elseStatement
 ){
 
 	// probably won't even use these 2 vars but its good to have them...
@@ -628,6 +629,8 @@ startCheck:
 
 		} else if (*p == '@' && *(p + 1) == '\0') {
 			ASSERT_NOT_EMPTY(p);
+
+run_string_stack:
 			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			CalcValue top = mainStack.top();
@@ -637,23 +640,72 @@ startCheck:
 				runStringStack(*top.block, showErrors, mainStack, first_node);
 
 			else if (top.type == CalcValue::STR) {
-				char* err = processLine(mainStack,first_node, showErrors, top.string);
+				char* err = processLine(mainStack,first_node, showErrors, top.string, elseStatement);
 				if (err)
 					return err;
 			} else {
 				PASS_ERROR("\aERROR: @ (execution operator) only accepts strings and executable arrays\n");
 			}
+		// conditionals::else
+		} else if (strcmp(p, "else") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			elseStatement = true;
 
-		// starting conditional
-		} else if (strcmp(p, "?:") == 0) {
-			//p += 3;
-			char* err = conditional(p, mainStack, first_node, showErrors);
-			if (err)
-				return err;
+		// conditionals::elseif
+		} else if (strcmp(p, "elseif") == 0) {
+			if (mainStack.size() < 2 || (elseStatement && mainStack.size() < 3)) {
+				PASS_ERROR("\aERROR: elseif expected a condition and a block of code (takes 2 arguments)\n" <<std::endl);
+			}
 
-		// should never see this as it is handled by the conditional function
-		} else if (strcmp(p, ":?") == 0) {
-			/*PASS_ERROR("\aERROR: `:?` without previous `?:` (might be my fault...)\n" <<std::endl);*/
+			StrStack newElseClause;
+			newElseClause.push("{");
+
+			bool condition = mainStack.top().getNum() != 0;
+			mainStack.pop();
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
+
+			if (elseStatement) {
+				if (mainStack.top().type != CalcValue::BLK) {
+					PASS_ERROR("\aERROR: `else` needs anonymous subroutines to function");
+				}
+				StrStack elseifBlock = *mainStack.top().block;
+				mainStack.pop();
+
+				CONVERT_REFS(mainStack, first_node, showErrors);
+
+				if (mainStack.top().type != CalcValue::BLK) {
+					PASS_ERROR("\aERROR: `else` needs anonymous subroutines to function");
+				}
+				StrStack elseBlock = *mainStack.top().block;
+				mainStack.pop();
+
+				strstk::appendToStack(newElseClause, *elseBlock);
+				strstk::appendToStack(newElseClause, *elseifBlock);
+				if (condition) {
+
+				}
+			}
+
+
+		} else if (strcmp(p, "if") == 0) {
+			if (mainStack.size() < 2 || (elseStatement && mainStack.size() < 3)) {
+				PASS_ERROR("\aERROR: elseif expected a condition and a block of code (takes 2 arguments)\n" <<std::endl);
+			}
+
+			bool condition = mainStack.top().getNum() != 0;
+			mainStack.pop();
+
+
+			if (elseStatement) {
+
+			} else { // { code } condition if
+				if (condition) {
+					goto run_string_stack;
+				}
+			}
+
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
 			|| !strcmp(p, "exit") || !strcmp(p, "quit")

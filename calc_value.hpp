@@ -31,7 +31,7 @@ public:
 		   BLK	// Block of code (StrStack) (subroutine) (executable array)
 		 } type;
 
-	// this contains the data
+	// contains the data
 	union {
 		double		number;
 		char*		string;
@@ -202,6 +202,8 @@ public:
 	double getNum(){
 		if (type == NUM)
 			return number;
+		else if (type == STR)
+			return strlen(string);
 		else
 			return 0;
 	}

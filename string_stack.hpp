@@ -25,7 +25,7 @@ public:
                 buffer((char**) malloc(256 * sizeof(char*))),
                 stackDepth(0),
                 stackHead(buffer)
-        { }
+        { *buffer = NULL; }
 
         StrStack(const StrStack& cpy):
                 sizeFactor(cpy.sizeFactor),
@@ -33,6 +33,7 @@ public:
                 stackDepth(cpy.stackDepth),
                 stackHead(buffer)
         {
+        		*buffer = NULL;
                 char** sh = cpy.stackHead;
                 while (sh != cpy.buffer) {
                         *buffer = (char*) malloc ( strlen(*sh) + 1 );
@@ -113,6 +114,15 @@ namespace strstk {
 
 
 	void printStrStack(const StrStack& stack);
+
+	//void appendToStack(StrStack& out, StrStack& in);
+	inline void appendToStack(StrStack& out, const StrStack& in){
+		char** head = in.stackHead;
+		out.push(*(head));
+		while (head++ < in.buffer)
+			out.push(*head);
+
+	}
 }
 
 
