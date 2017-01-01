@@ -681,8 +681,8 @@ run_string_stack:
 				StrStack elseBlock = *mainStack.top().block;
 				mainStack.pop();
 
-				strstk::appendToStack(newElseClause, *elseBlock);
-				strstk::appendToStack(newElseClause, *elseifBlock);
+				strstk::appendToStack(newElseClause, elseBlock);
+				strstk::appendToStack(newElseClause, elseifBlock);
 				if (condition) {
 
 				}
@@ -699,6 +699,7 @@ run_string_stack:
 
 
 			if (elseStatement) {
+				if (condition) {}
 
 			} else { // { code } condition if
 				if (condition) {
