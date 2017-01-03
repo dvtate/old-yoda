@@ -625,8 +625,8 @@ startCheck:
 			rpnln = p;
 
 		} else if (*p == '}') {
+			std::cout <<"p =" <<p <<std::endl;
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
-
 		} else if (*p == '@' && *(p + 1) == '\0') {
 			ASSERT_NOT_EMPTY(p);
 
@@ -681,31 +681,40 @@ startCheck:
 				mainStack.pop();
 
 				strstk::appendToStack(newElseClause, elseBlock);
+				newElseClause.push(" else ");
 				strstk::appendToStack(newElseClause, elseifBlock);
 				if (condition) {
-
+					newElseClause.push(" true if } ");
+				} else {
+					newElseClause.push(" false if } ");
 				}
+
+				mainStack.push(newElseClause);
+			} else {
+
 			}
 
-
 		} else if (strcmp(p, "if") == 0) {
-			if (mainStack.size() < 2 || (elseStatement && mainStack.size() < 3)) {
-				PASS_ERROR("\aERROR: elseif expected a condition and a block of code (takes 2 arguments)\n" <<std::endl);
+			// verify we have enough data for the operator
+			if (elseStatement && mainStack.size() < 3) {
+				PASS_ERROR("\aERROR: if-else statement requires a condition and 2 blocks of code\n");
+			} else if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: if expected a condition and a block of code (takes 2 arguments)\n");
 			}
 
 			bool condition = mainStack.top().getNum() != 0;
 			mainStack.pop();
 
-
-			if (elseStatement) {
+			// branching for else statements and the condition
+			if (elseStatement)
 				if (condition) {
 					CalcValue runTrue = mainStack.top();
 					mainStack.pop(); mainStack.pop();
-					if (runTrue.type == CalcValue::BLK) {
+					if (runTrue.type == CalcValue::BLK)
 						runStringStack(*runTrue.block, showErrors, mainStack, first_node);
-					} else {
+					else
 						mainStack.push(runTrue);
-					}
+
 				} else {
 					mainStack.pop();
 					if (mainStack.top().type == CalcValue::BLK) {
@@ -715,7 +724,7 @@ startCheck:
 					} // else, it's a value that should stay at the top of the stack
 				}
 
-			} else { // { code } condition if
+			else // { code } condition if
 				if (condition) {
 					if (mainStack.top().type == CalcValue::BLK) {
 						CalcValue top = mainStack.top();
@@ -723,7 +732,6 @@ startCheck:
 						runStringStack(*top.block, showErrors, mainStack, first_node);
 					} // else, it's a value that should stay at the top of the stack
 				} // else, don't do anything as there isn't an else clause
-			}
 
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
@@ -997,10 +1005,5 @@ startCheck:
 	return NULL;
 
 }
-
-
-
-
-
 
 #endif
