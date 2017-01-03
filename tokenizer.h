@@ -16,6 +16,7 @@ static inline void deleteChars(char* toDelete, const size_t numChars)
 
 // Returns the start of the token/string-constant
 // manages escape-sequences within string-constants
+// moves modifies pointer given
 char* qtok(char* str, char** next){
 	if (str == NULL)
 		return NULL;
