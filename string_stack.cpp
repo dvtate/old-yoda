@@ -58,6 +58,8 @@ void StrStack::grow(){
 
 // pushes a line to the top of the stack
 void StrStack::push(const char* str){
+	if (!str)
+		return;
 
 	*buffer = (char*) malloc(strlen(str) + 1);
 
