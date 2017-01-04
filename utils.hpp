@@ -11,7 +11,7 @@
 #include <queue>
 
 #include "calc_value.hpp"
-#include "tokenizer.hpp"
+#include "tokenizer.h"
 #include "terminal_colors.hpp"
 
 inline void displayHelp(){ // this could all be combined into one print statement...
