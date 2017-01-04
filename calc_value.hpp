@@ -75,7 +75,25 @@ public:
 		return *this;
 	}
 	CalcValue(const CalcValue& in){
-		setValue(in);
+		// no need to delete anything as nothing is there yet
+
+		// they will be the same type of data
+		type = in.type;
+
+		// copy in the value
+		if (type == NUM)
+		  	number = in.number;
+		else if (type == STR || type == REF) {
+
+			if (in.string) {
+			  	string = (char*) malloc(strlen(in.string) + 1);
+				strcpy(string, in.string);
+			} else
+				string = NULL;
+
+		} else if (type == BLK)
+			block = new StrStack(*in.block);
+
 		//printf("copying CV...\n");
 		//printf("copyied CV...\n");
 	}
@@ -107,18 +125,15 @@ public:
 
 	}
 
-	///TODO: Fix memory leak. Perhaps implementing a custom stack class which copies instead of references
 	// this causes a core dump (QwQ)
-	/*
 	~CalcValue(){
-		printf("deleting CV...\n");
+		//printf("deleting CV...\n");
 		if (type == STR || type == REF)
 			free(string); // free() accepts NULL pointers
 		else if (type == BLK)
 			delete block;
 		//printf("deleted CV...\n");
 	}
-	*/
 
 	template<class T>
 	CalcValue& operator=(const T& val) {
