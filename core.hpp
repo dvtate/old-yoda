@@ -66,7 +66,6 @@ void runFile(char* programFile, bool& errorReporting){
 	UserVar* first_node = new UserVar(NULL, " ", 0.0);
   	first_node->first = first_node;
 
-	CalcValue ans(0.0); // here `0` could be a pointer
 	bool elseStatement = false;
 
 	// for each line in the programFile...
@@ -244,7 +243,6 @@ void runStringStack(StrStack& code, bool& errorReporting){
 
 
 ///TODO: make this work like processLine (with its method of making errors and such)
-///TODO: make line numbers relative to the strStack, and not affect the global line count
 ///TODO: print error location correctly as well
 /// should return bool to tell if there were errors that way processLine can point
 ///		the user towards the place the strstack was called.
@@ -254,8 +252,8 @@ void runStringStack(
 ){
 
 	bool elseStatement = false;
-	static CalcValue ans(0.0); // here `0` could be a pointer
-
+	//static CalcValue ans(0.0); // here `0` could be a pointer
+	size_t localLine = 0;
 
 	char** stackHead = code.stackHead;
 
@@ -263,10 +261,12 @@ void runStringStack(
 	for (size_t i = 0; i < code.stackDepth; i++) {
 
 	  	// used for line numbers in errors
-		line++;
+		localLine++;
 
 
-		char* rpnln = *(stackHead++);
+		//char* rpnln = *(stackHead++);
+		char* rpnln = new char[strlen(*stackHead)];
+		strcpy(rpnln, *(stackHead++));
 
 		// I need a copy of it to call free() on later.
 		char	*rpnln_head = rpnln,
@@ -278,15 +278,14 @@ void runStringStack(
 			processLine(mainStack, first_node, errorReporting, rpnln, elseStatement))
 			&& errorReporting)
 		{
-
-		  	// file name and
+			// why the fuck doesn't this get run ???????
 		  	setTermEffect(TERM_EFF_BOLD);
-			std::cerr <<progName <<":" <<line <<':' <<errorToken - rpnln_head <<":\n";
+			std::cerr <<progName <<": block : " <<localLine <<" : " <<rpnln - rpnln_head << ":\n";
 			setTermEffect();
 
 			// print the problem statement
-			color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(progName, line));
-
+			//color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(progName, line));
+			color_fprintf(stderr, 255, 0, 0, "\t%s\t", trimStr(*(stackHead - 1)));
 		  	// point to the problem area
 		  	while (rpnln_head++ != rpnln)
 				std::cerr <<' ';
