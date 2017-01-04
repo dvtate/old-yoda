@@ -198,8 +198,6 @@ startCheck:
 
 			}
 
-
-
 		  	// branching out all 4 permutations of string and num
 			if (a.type == CalcValue::STR) {
 				if (b.type == CalcValue::STR) {
@@ -217,38 +215,37 @@ startCheck:
 					// convert the double to a string
 					char str[26];
 					snprintf(str, 26, "%*.*g", 10, 16, b.getNum());
+					char* trimmedStr = trimStr(str);
 
 					// allocate memory
-					char combined[strlen(a.getStr()) + strlen(str) + 1];
+					char combined[strlen(a.getStr()) + strlen(trimmedStr) + 1];
+
 					// combine them
 					strcpy(combined, a.getStr());
-					strcpy(&combined[strlen(a.getStr())], str);
+					strcpy(&combined[strlen(a.getStr())], trimmedStr);
 
 					mainStack.push(combined);
-
 				}
-
 			} else if (a.type == CalcValue::NUM) {
 				if (b.type == CalcValue::STR) {
 
 					// convert the double to a string
-					char str[27];
+					char str[26];
 
 					snprintf(str, 26, "%*.*g", 10, 16, a.getNum());
+					char* trimmedStr = trimStr(str);
 
 					// allocate memory
-					char combined[strlen(str) + strlen(b.getStr()) + 1];
+					char combined[strlen(trimmedStr) + strlen(b.getStr()) + 1];
 					// combine them
-					strcpy(combined, str);
-					strcpy(&combined[strlen(str)], b.getStr());
+					strcpy(combined, trimmedStr);
+					strcpy(&combined[strlen(trimmedStr)], b.getStr());
 
 					mainStack.push(combined);
 
 				} else if (b.type == CalcValue::NUM)
 					mainStack.push(a.getNum() + b.getNum());
-
 			}
-
 		} else if (strcmp(p, "==") == 0) {
 			mainStack.push((getNextValue(mainStack) == getNextValue(mainStack)));
 
@@ -1005,5 +1002,10 @@ startCheck:
 	return NULL;
 
 }
+
+
+
+
+
 
 #endif
