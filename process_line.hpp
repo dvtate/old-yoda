@@ -56,7 +56,7 @@ extern CalcValue ans;
 	}
 
 
-extern void runStringStack(
+extern bool runStringStack(
 	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
 	UserVar* first_node
 );
@@ -624,24 +624,29 @@ startCheck:
 		} else if (*p == '}') {
 			std::cout <<"p =" <<p <<std::endl;
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
+
+
+		// eval operator
 		} else if (*p == '@' && *(p + 1) == '\0') {
 			ASSERT_NOT_EMPTY(p);
 
 			CONVERT_REFS(mainStack, first_node, showErrors);
 
-			CalcValue top = mainStack.top();
-			mainStack.pop();
+			CalcValue top = CalcValue(mainStack.top());
 
-			if (top.type == CalcValue::BLK)
-				runStringStack(*top.block, showErrors, mainStack, first_node);
-
-			else if (top.type == CalcValue::STR) {
-				char* err = processLine(mainStack,first_node, showErrors, top.string, elseStatement);
-				if (err)
-					return err;
+			if (top.type == CalcValue::BLK) {
+				if (runStringStack(*top.block, showErrors, mainStack, first_node)) {
+					PASS_ERROR("\aERROR in bock/subroutine called here\n");
+				}
+			} else if (top.type == CalcValue::STR) {
+				char* err = processLine(mainStack, first_node, showErrors, top.string, elseStatement);
+				if (err) {
+					PASS_ERROR("\aERROR in block near `" <<err <<"`. Called here:\n")
+				}
 			} else {
 				PASS_ERROR("\aERROR: @ (execution operator) only accepts strings and executable arrays\n");
 			}
+			mainStack.pop();
 		// conditionals::else
 		} else if (strcmp(p, "else") == 0) {
 			ASSERT_NOT_EMPTY(p);
@@ -729,6 +734,28 @@ startCheck:
 						runStringStack(*top.block, showErrors, mainStack, first_node);
 					} // else, it's a value that should stay at the top of the stack
 				} // else, don't do anything as there isn't an else clause
+
+		// TODO: figure out why this isn't working correctly...
+		} else if (strcmp(p, "repeat") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: repeat loop needs a number of times to execute and a block.\n");
+			}
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			size_t timesToRepeat = abs(mainStack.top().getNum());
+			mainStack.pop();
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			StrStack block;
+			if (mainStack.top().type == CalcValue::BLK)
+				block = (*mainStack.top().block);
+			else {
+				PASS_ERROR("\aERROR: repeat loop expected a block of code to execute.\n")
+			}
+			mainStack.pop();
+
+			for (; timesToRepeat > 0; timesToRepeat--)
+				runStringStack(block, showErrors, mainStack, first_node);
 
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
