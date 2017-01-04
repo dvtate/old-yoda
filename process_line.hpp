@@ -627,7 +627,7 @@ startCheck:
 
 
 		// eval operator
-		} else if (*p == '@' && *(p + 1) == '\0') {
+		} else if ((*p == '@' && *(p + 1) == '\0') || strcmp(p, "eval") == 0) {
 			ASSERT_NOT_EMPTY(p);
 
 			CONVERT_REFS(mainStack, first_node, showErrors);
@@ -653,7 +653,7 @@ startCheck:
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			elseStatement = true;
 
-		// conditionals::elseif
+		// conditionals::elseif (dysfunctional)
 		} else if (strcmp(p, "elseif") == 0) {
 			if (mainStack.size() < 2 || (elseStatement && mainStack.size() < 3)) {
 				PASS_ERROR("\aERROR: elseif expected a condition and a block of code (takes 2 arguments)\n" <<std::endl);
@@ -696,6 +696,7 @@ startCheck:
 
 			}
 
+		// comditionals::if
 		} else if (strcmp(p, "if") == 0) {
 			// verify we have enough data for the operator
 			if (elseStatement && mainStack.size() < 3) {
@@ -735,7 +736,7 @@ startCheck:
 					} // else, it's a value that should stay at the top of the stack
 				} // else, don't do anything as there isn't an else clause
 
-		// TODO: figure out why this isn't working correctly...
+		// runs the same block of code a given number of times
 		} else if (strcmp(p, "repeat") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: repeat loop needs a number of times to execute and a block.\n");
