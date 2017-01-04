@@ -70,10 +70,6 @@ public:
 	CalcValue(StrStack* codeBlock): type(BLK)
 		{ block = new StrStack(*codeBlock); }
 
-	CalcValue& operator=(const CalcValue& in){
-		setValue(in);
-		return *this;
-	}
 	CalcValue(const CalcValue& in){
 		// no need to delete anything as nothing is there yet
 
@@ -96,6 +92,13 @@ public:
 
 		//printf("copying CV...\n");
 		//printf("copyied CV...\n");
+	}
+
+	// lol
+	template<class T>
+	CalcValue& operator=(const T& val) {
+		setValue(val);
+		return *this;
 	}
 
 	void setValue(const CalcValue& in){
@@ -133,12 +136,6 @@ public:
 		else if (type == BLK)
 			delete block;
 		//printf("deleted CV...\n");
-	}
-
-	template<class T>
-	CalcValue& operator=(const T& val) {
-		setValue(val);
-		return *this;
 	}
 
 	void setValue(const char* const str) {

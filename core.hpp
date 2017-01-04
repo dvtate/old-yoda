@@ -240,10 +240,7 @@ void runStringStack(StrStack& code, bool& errorReporting){
 }
 
 
-///TODO: make this work like processLine (with its method of making errors and such)
-///TODO: print error location correctly as well
-/// should return bool to tell if there were errors that way processLine can point
-///		the user towards the place the strstack was called.
+/// this is still pretty ghetto...
 bool runStringStack(
 	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
 	UserVar* first_node
@@ -261,15 +258,12 @@ bool runStringStack(
 	  	// used for line numbers in errors
 		localLine++;
 
-
-		//char* rpnln = *(stackHead++);
 		char* rpnln = new char[strlen(*stackHead)];
 		strcpy(rpnln, *(stackHead++));
 
 		// I need a copy of it to call free() on later.
 		char	*rpnln_head = rpnln,
 				*errorToken = NULL;
-
 
 		// process the line
 		if ((errorToken =
@@ -294,15 +288,12 @@ bool runStringStack(
 				std::cin.ignore();
 			#endif
 
-		  	// you're dead :P
+		  	// stop execution on error
 			return true;
 
 		}
-
 	}
-
 	return false;
-
 }
 
 

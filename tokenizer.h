@@ -16,7 +16,6 @@ static inline void deleteChars(char* toDelete, const size_t numChars)
 
 // Returns the start of the token/string-constant
 // manages escape-sequences within string-constants
-// moves modifies pointer given
 char* qtok(char* str, char** next){
 	if (str == NULL)
 		return NULL;
@@ -40,47 +39,47 @@ char* qtok(char* str, char** next){
                 if (*current == '\\') { // escape sequences
                     if (*(current + 1) == 'n') {
                         *current = '\n';
-                        *(current + 1) = '\r'; // it's not that I want to support windows...
-					    					   // this is just more efficienct than deleteChar()
-											   // also, this doesn't do the same thing as '\n'..
-											   // so I probably should find a better solution...
+                        *(current + 1) = '\r';	// it's not that I want to support windows...
+												// this is just more efficienct than deleteChar()
+												// also, this doesn't do the same thing as '\n'..
+												// so I probably should find a better solution...
 					// line feed
-                    } else if (*(current + 1) == 'r') {
-                        *current = *(current + 1) = '\r'; // nice hack ;)
-                        current++;
+					} else if (*(current + 1) == 'r') {
+						*current = *(current + 1) = '\r'; // nice hack ;)
+						current++;
 
-                    // horizontal tab
-                    } else if (*(current + 1) == 't') {
-                        *current = '\t';
-                        deleteChar(current + 1);
+					// horizontal tab
+					} else if (*(current + 1) == 't') {
+						*current = '\t';
+						deleteChar(current + 1);
 
-                    // bel
-                    } else if (*(current + 1) == 'a') {
-                        *current = '\a';
-                        deleteChar(current + 1);
+					// bel
+					} else if (*(current + 1) == 'a') {
+						*current = '\a';
+						deleteChar(current + 1);
 
-                    // backspace
-                    } else if (*(current + 1) == 'b') {
-                        *current = '\b';
-                        deleteChar(current + 1);
+					// backspace
+					} else if (*(current + 1) == 'b') {
+						*current = '\b';
+						deleteChar(current + 1);
 
-                    // formfeed
-                    } else if (*(current + 1) == 'f') {
-                        *current = '\f';
-                        deleteChar(current + 1);
+					// formfeed
+					} else if (*(current + 1) == 'f') {
+						*current = '\f';
+						deleteChar(current + 1);
 
-                    // vertical tab
-                    } else if (*(current + 1) == 'v') {
-                        *current = '\v';
-                        deleteChar(current + 1);
+					// vertical tab
+					} else if (*(current + 1) == 'v') {
+						*current = '\v';
+						deleteChar(current + 1);
 
-                    // escaped backslash
-                    } else if (*(current + 1) == '\\')
-                        deleteChar(current);
+					// escaped backslash
+					} else if (*(current + 1) == '\\')
+						deleteChar(current);
 
-                    // escape sequence "\nnn"
-                    else if (isdigit(*(current + 1))) {
-						// escape sequence can be a maximum of 3 chars long
+					// escape sequence "\nnn"
+					else if (isdigit(*(current + 1))) {
+					// escape sequence can be a maximum of 3 chars long
                     	char str[3] = {
                     		*(current + 1),
                     		*(current + 2),
@@ -112,10 +111,6 @@ char* qtok(char* str, char** next){
             }
 
             //current++;
-
-			// Reached the end of the string.
-            if (*current == '\0')
-                goto finalize;
 
             // Reached the ending quote.
             goto finalize;

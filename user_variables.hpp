@@ -8,9 +8,6 @@
 
 // variable names longer than 20chars will be called by their first 19 chars
 
-
-
-
 // the node for my linked list of user defined variables
 class UserVar {
 public:
@@ -88,8 +85,6 @@ public:
 
 
 	// changing the values
-	void setValue(const double in)
-		{ val.setValue(in); }
 
 	void setValue(const char* in)
 	{
@@ -97,11 +92,14 @@ public:
 		value->setValue(in);
 	}
 
-	void setValue(UserVar* in)
-		{ val = CalcValue().setRef(in->name); }
+	void setValue(const double in)
+		{ val.setValue(in); }
 
 	void setValue(const CalcValue in)
 		{ val.setValue(in); }
+
+	void setValue(UserVar* in)
+		{ val = CalcValue().setRef(in->name); }
 
 
 };
@@ -124,11 +122,12 @@ namespace vars {
 	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], CalcValue value);
 
 	// to remove an individial variable
-	extern void removeVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
+	extern void removeVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGHT]);
 
 	// returns a pointer to the variable
 	extern UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
 
+	// has the variable been declared yet?
 	extern bool varExists(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
 
 	extern CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);

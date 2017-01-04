@@ -58,25 +58,25 @@ namespace vars {
 
 	}
 
-	void removeVar(UserVar* first, char* name){
+	// this is broken...
+	void removeVar(UserVar* first, const char* name){
 
 		// search the linked list for the object
-		while (first != NULL)
+		while (first != NULL) {
 			if (strcmp(first->next->name, name) == 0) {
 
 				// get object address so it doesn't become unaccessable
 				UserVar* toBeDeleted = first->next;
 
-
 				// replace link
-				first->next = (first->next->next) ? first->next->next : NULL;
+				first->next = first->next->next;
 
 				// remove the node
 				delete toBeDeleted;
 
 			} else // keep looking for it
 				first = first->next;
-
+		}
 	}
 
 	UserVar* findVar(UserVar* first, char* name){

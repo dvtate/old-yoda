@@ -650,7 +650,7 @@ startCheck:
 		// conditionals::else
 		} else if (strcmp(p, "else") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, first_node, showErrors);
+			//CONVERT_REFS(mainStack, first_node, showErrors);
 			elseStatement = true;
 
 		// conditionals::elseif (dysfunctional)
@@ -709,13 +709,15 @@ startCheck:
 			mainStack.pop();
 
 			// branching for else statements and the condition
-			if (elseStatement)
+			if (elseStatement) // { } else { } condition if
 				if (condition) {
 					CalcValue runTrue = mainStack.top();
 					mainStack.pop(); mainStack.pop();
-					if (runTrue.type == CalcValue::BLK)
-						runStringStack(*runTrue.block, showErrors, mainStack, first_node);
-					else
+					if (runTrue.type == CalcValue::BLK) {
+						if (runStringStack(*runTrue.block, showErrors, mainStack, first_node)) {
+							PASS_ERROR("\aERROR in bock/subroutine called here\n");
+						}
+					} else
 						mainStack.push(runTrue);
 
 				} else {
@@ -723,7 +725,13 @@ startCheck:
 					if (mainStack.top().type == CalcValue::BLK) {
 						CalcValue top = mainStack.top();
 						mainStack.pop();
-						runStringStack(*top.block, showErrors, mainStack, first_node);
+						if (top.type == CalcValue::BLK) {
+							if (runStringStack(*top.block, showErrors, mainStack, first_node)) {
+								PASS_ERROR("\aERROR in bock/subroutine called here\n");
+							}
+						} else
+							mainStack.push(top);
+
 					} // else, it's a value that should stay at the top of the stack
 				}
 
@@ -732,7 +740,13 @@ startCheck:
 					if (mainStack.top().type == CalcValue::BLK) {
 						CalcValue top = mainStack.top();
 						mainStack.pop();
-						runStringStack(*top.block, showErrors, mainStack, first_node);
+						if (top.type == CalcValue::BLK) {
+							if (runStringStack(*top.block, showErrors, mainStack, first_node)) {
+								PASS_ERROR("\aERROR in bock/subroutine called here\n");
+							}
+						} else
+							mainStack.push(top);
+
 					} // else, it's a value that should stay at the top of the stack
 				} // else, don't do anything as there isn't an else clause
 
@@ -930,29 +944,14 @@ startCheck:
 		else if (strcmp(p, "version") == 0)
 			printVersionInfo();
 
-		/*delete a variable
+		/* TODO: fix this
+		// delete a variable
 		else if (strcmp(p, "delete") == 0) {
-			std::cout <<"$a deleted\n" <<std::endl;
-			vars::removeVar(first_node, varNames.front());
-			varNames.pop();
-		}
-
-		* Functions haven't been implemented yet
-		// user is defining a function
-		} else if (strcmp(p, "@function")) {
-
-
-		// user is calling a function
-		} else  if (*p == '@' && *(p + 1) != '\0') {
-
-
-
-		// anything else
+			//std::cout <<"$a deleted\n" <<std::endl;
+			vars::removeVar(first_node, mainStack.top().string);
+			//varNames.pop();
 		}
 		*/
-
-		else if (strcmp(p, "@p_blk@") == 0) ///////////////////////////////////////////////////////////////////////////////////////////////// remember to delete this....
-			strstk::printStrStack(*mainStack.top().block);
 
 		// clear the stack
 		else if  (strcmp(p, "...") == 0)
