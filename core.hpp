@@ -200,8 +200,6 @@ void runStringStack(StrStack& code, bool& errorReporting){
 	  	// used for line numbers in errors
 		line++;
 
-
-
 		char* rpnln = *(stackHead++);
 
 		// I need a copy of it to call free() on later.
@@ -246,7 +244,7 @@ void runStringStack(StrStack& code, bool& errorReporting){
 ///TODO: print error location correctly as well
 /// should return bool to tell if there were errors that way processLine can point
 ///		the user towards the place the strstack was called.
-void runStringStack(
+bool runStringStack(
 	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
 	UserVar* first_node
 ){
@@ -297,11 +295,13 @@ void runStringStack(
 			#endif
 
 		  	// you're dead :P
-			exit(EXIT_FAILURE);
+			return true;
 
 		}
 
 	}
+
+	return false;
 
 }
 
