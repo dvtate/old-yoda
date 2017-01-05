@@ -5,11 +5,11 @@ A Yoda-Script (.ys) interpreter which is now turing complete! Using the shell, i
 If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>NOTICE:</b> it's old [2016.12.5]). <b>Warning</b>, I cross-compiled this on Linux and have only run it in a virtual machine, so it might not be perfect.<br/> <!--<h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o sbs.exe</pre></h6>-->
 https://1drv.ms/u/s!AqWtCxMOBjWMhqRo9xkCgNeJKjWgNA 
 - Compiling:
-`rpn $ g++ *.cpp -o yoda`
+`yoda $ g++ *.cpp -o yoda`
 - Running:
-`rpn $ ./yoda`
+`yoda $ ./yoda`
 - Installing:
-`rpn $ sudo mv yoda /usr/bin/yoda` <br/>
+`yoda $ sudo mv yoda /usr/bin/yoda` <br/>
 After installing, you can run yoda as you would any other program from the terminal.
 # About YodaScript
 YodaScript is a stack-based language based on reverse polish notation.
@@ -116,7 +116,34 @@ YodaScript is a stack-based language based on reverse polish notation.
    count is 3
    count is 4
    ```
-    
+ - <b>Conditionals:</b>
+  These can be used to run code if a condition is met
+  ```
+  >>> "Enter GPA: " print $gpa input int =
+  Enter GPA: 4
+  >>> #this first method is syntactic sugar and slower than the second
+  >>> {
+      "You can do better than that." println
+  } else {
+      "That's good enough for me." println
+  } $gpa 3 == elseif {
+      "Woooooooooooow!" println
+  } $gpa 4 >= if
+  Woooooooooooow!
+  
+  >>> # this method has better performance but gets ugly quick
+  >>> {
+      {
+          "You can do better than that." println
+      } else {
+          "That's good enough for me." println
+      } $gpa 3 == if
+  } else {
+      "Woooooooooooow!" println
+  } $gpa 4 >= if
+  Woooooooooooow!
+  ```
+  
  - <b>Keywords and Commands:</b>
     * `>>> help` <br/>
       The help command displays a short dialog to help get you started.
