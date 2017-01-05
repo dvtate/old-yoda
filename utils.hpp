@@ -230,11 +230,27 @@ namespace commands {
 		while (!mainStack.empty()) {
 			std::cout <<index++ <<" : ";
 			printCalcValue(mainStack.top(), first_node);
-			std::cout <<std::endl;
+			std::cout <<'\n';
 
 			mainStack.pop();
 		}
 
+	}
+
+	// thx @chux http://stackoverflow.com/a/27305359/4475863
+	char* stristr(const char* haystack, const char* needle) {
+	  do {
+		const char* h = haystack;
+		const char* n = needle;
+		while (tolower(*h) == tolower(*n) && *n) {
+		  h++;
+		  n++;
+		}
+		if (*n == 0) {
+		  return (char *) haystack;
+		}
+	  } while (*haystack++);
+	  return NULL;
 	}
 }
 
@@ -246,10 +262,10 @@ inline char* trimStr(char* string){
 	while (!isspace(*string) && *string != '\0')
 		string++;
 
-	*(string + 1) = '\0';
+	*(string) = '\0';
 
 	return ret;
-}
 
+}
 
 #endif

@@ -143,7 +143,8 @@ public:
 		// memory leaks are pretty bad
 		if (type == STR || type == REF)
 			free(string); // free() accepts NULL pointers
-
+		else if (type == BLK)
+			delete block;
 
 		string = (char*) malloc(strlen(str) + 1);
 
@@ -154,6 +155,20 @@ public:
 
 	}
 
+	void setValue(const char ch){
+
+		// memory leaks are pretty bad
+		if (type == STR || type == REF)
+			free(string); // free() accepts NULL pointers
+		else if (type == BLK)
+			delete block;
+
+		type = STR;
+		string = (char*) malloc(2);
+		*string = ch;
+		*(string + 1) = '\0';
+
+	}
 	void setValue(double val){
 
 		// delete old value
@@ -162,8 +177,8 @@ public:
 		else if (type == BLK)
 			delete block;
 
-		number = val;
 		type = NUM;
+		number = val;
 	}
 
 
@@ -264,19 +279,17 @@ public:
 	bool isNull()
 		{ return isEmpty(); }
 
-
+	// type checking (doesn't get used) :/
 	bool isRef()
-		{ return !isEmpty() && type == REF; }
+		{ return type == REF; }
 	bool isStr()
-		{ return type == STR; }
+		{ return !isEmpty() && type == STR; }
 	bool isNum()
 		{ return type == NUM; }
 	bool isBlk()
 		{ return type == BLK; }
 
 };
-
-
 
 
 #define NULL_CALCVAL_OBJECT CalcValue((char*) NULL)

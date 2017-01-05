@@ -76,7 +76,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 	if (p == NULL)
 		return p;
 
-
+	// decipher token
 	while (p != NULL && *p != '\0') {
 
 		/*
@@ -342,6 +342,63 @@ startCheck:
 			else {
 				PASS_ERROR("\aERROR: strlen expected a string.\n");
 			}
+
+		// find first occurance of substring in a string (strstr())
+		} else if (strcmp(p, "strstr") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: stristr takes 2 strings, a haystack and a needle (strings)\n");
+			}
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR) {
+				PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
+			}
+
+			char needle[strlen(mainStack.top().string)];
+			strcpy(needle, mainStack.top().string);
+			mainStack.pop();
+
+			char haystack[strlen(mainStack.top().string)];
+			strcpy(haystack, mainStack.top().string);
+			mainStack.pop();
+
+			mainStack.push(strstr(haystack, needle));
+
+		// case-insensitive strstr
+		} else if (strcmp(p, "stristr") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: stristr takes 2 strings, a haystack and a needle (strings)\n");
+			}
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR) {
+				PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
+			}
+
+			char needle[strlen(mainStack.top().string)];
+			strcpy(needle, mainStack.top().string);
+			mainStack.pop();
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR) {
+				PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
+			}
+
+			char haystack[strlen(mainStack.top().string)];
+			strcpy(haystack, mainStack.top().string);
+			mainStack.pop();
+
+			mainStack.push(strstr(haystack, needle));
+
+		} else if (strcmp(p, "trim") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR) {
+				PASS_ERROR("\aERROR: trim expected a string to trim whitespace off of\n");
+			}
+
+			char str[strlen(mainStack.top().string)];
+			strcpy(str, mainStack.top().string);
+			mainStack.pop();
+			mainStack.push(trimStr(str));
 
 		// line-comments
 		} else if (*p == '#')
@@ -806,8 +863,6 @@ startCheck:
 					mainStack.push(top);
 
 			}
-
-
 
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
