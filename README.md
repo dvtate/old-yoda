@@ -1,8 +1,8 @@
 # RPN Shell / Yoda-Script
-A Yoda-Script (.ys) interpreter which isn't turing complete yet due to issues, but will be very soon. Using the shell, it can be used as a calculator by those familiar with the notation. It is already useful, but it still has a ways to go.
+A Yoda-Script (.ys) interpreter which is now turing complete! Using the shell, it can be used as a calculator by those familiar with reverse polish notation (RPN). It is already useful, but it still has a ways to go.
 
 # Build and Run [![Build Status](https://travis-ci.org/dvtate/yoda.svg?branch=master)](https://travis-ci.org/dvtate/yoda/)
-If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>warning:</b> it's old [2016.12.5]). <b>Warning</b>, I cross-compiled this on Linux and have only run it in a virtual machine, so it might not be perfect.<br/> <!--<h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o sbs.exe</pre></h6>-->
+If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>NOTICE:</b> it's old [2016.12.5]). <b>Warning</b>, I cross-compiled this on Linux and have only run it in a virtual machine, so it might not be perfect.<br/> <!--<h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o sbs.exe</pre></h6>-->
 https://1drv.ms/u/s!AqWtCxMOBjWMhqRo9xkCgNeJKjWgNA 
 - Compiling:
 `rpn $ g++ *.cpp -o yoda`
@@ -93,7 +93,30 @@ YodaScript is a stack-based language based on reverse polish notation.
   >>> $a print # note, variables declared within the subroutine remain after it's done
   5
   ```
- 
+  
+ - <b>Loops:</b>
+  Loops can be used to repeat the same code a number of times. This language has several types of loops built in.
+  - <b>Repeat Loops:</b>
+   runs code <i>n</i> times
+   ```
+   >>> { "ha" print } 5 repeat
+   hahahahaha
+   ```
+  - <b>While Loops:</b>
+   runs core while a condition is met (checks before each cycle)
+   ```
+   >>> $count 0 =    # set $count to 0
+   >>> {
+       "count is " $count + println
+       $count $count 1 + =   # increment $count by 1
+   } { $count 5 < } while
+   count is 0
+   count is 1
+   count is 2
+   count is 3
+   count is 4
+   ```
+    
  - <b>Keywords and Commands:</b>
     * `>>> help` <br/>
       The help command displays a short dialog to help get you started.
