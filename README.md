@@ -183,7 +183,7 @@ YodaScript is a stack-based language based on reverse polish notation.
       enable/disable errors (by default they are on)
     * `>>> color_print`<br/>
       prints a value (string, number, etc.) to the terminal in a given HTML color in a string. The color should be on top
-    * `>>> setFgColor` & `>>> setFgColor`<br/>
+    * `>>> setFgColor` & `>>> setBgColor`<br/>
       changes the terminal color to a given html color contained in a string
     * `>>> reset_color` & `>>> resetFgColor` & `>>> resetBgColor` <br/>
       resets the background and/or foreground colors
