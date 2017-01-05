@@ -772,6 +772,43 @@ startCheck:
 			for (; timesToRepeat > 0; timesToRepeat--)
 				runStringStack(block, showErrors, mainStack, first_node);
 
+		// while loop
+		} else if (strcmp(p, "while") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: while loop needs two blocks - a condition and a process.\n");
+			}
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::BLK) {
+				PASS_ERROR("\aERROR: while: condition must be a block/subroutine\n");
+			}
+
+			StrStack condBlock = *mainStack.top().block;
+			mainStack.pop();
+
+			std::stack<CalcValue> condStack;
+			CalcValue top = mainStack.top();
+
+			// loop
+			for (;;) {
+
+				// check condition
+				runStringStack(condBlock, showErrors, condStack, first_node);
+				if (!condStack.top().getNum())
+					break;
+
+				// run process
+				if (top.type == CalcValue::BLK) {
+					if (runStringStack(*top.block, showErrors, mainStack, first_node)) {
+						PASS_ERROR("\aERROR in bock/subroutine called here\n");
+					}
+				} else
+					mainStack.push(top);
+
+			}
+
+
+
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
 			|| !strcmp(p, "exit") || !strcmp(p, "quit")
@@ -944,7 +981,7 @@ startCheck:
 		else if (strcmp(p, "version") == 0)
 			printVersionInfo();
 
-		/* TODO: fix this
+		/* TODO: fix this (currently segfaults...)
 		// delete a variable
 		else if (strcmp(p, "delete") == 0) {
 			//std::cout <<"$a deleted\n" <<std::endl;
