@@ -740,18 +740,19 @@ startCheck:
 				mainStack.pop();
 
 				strstk::appendToStack(newElseClause, elseBlock);
-				newElseClause.push(" else ");
+				newElseClause.push("} else {");
 				strstk::appendToStack(newElseClause, elseifBlock);
 				if (condition) {
-					newElseClause.push(" true if } ");
+					newElseClause.push("} true if");
 				} else {
-					newElseClause.push(" false if } ");
+					newElseClause.push("} false if ");
 				}
 
 				mainStack.push(newElseClause);
 			} else {
-
+				elseStatement = true;
 			}
+
 
 		// comditionals::if
 		} else if (strcmp(p, "if") == 0) {
@@ -846,7 +847,7 @@ startCheck:
 			std::stack<CalcValue> condStack;
 			CalcValue top = mainStack.top();
 
-			// loop
+			// main-loop
 			for (;;) {
 
 				// check condition

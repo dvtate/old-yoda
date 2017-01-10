@@ -132,7 +132,6 @@ void runFile(char* programFile, bool& errorReporting){
 // a NULL CalcValue
 CalcValue ans;
 
-
 void runShell(UserVar* first_node, bool& errorReporting,
 	      std::stack<CalcValue>& mainStack, bool& elseStatement
 ){
@@ -240,6 +239,14 @@ void runStringStack(StrStack& code, bool& errorReporting){
 }
 
 
+
+// this is part of a ghetto solution to make getStrStack() work in nested-blocks
+struct current_block_data_t {
+	char** stackHead;
+	ssize_t linesLeft;
+} curStrStack = { NULL, 0 };
+
+
 /// this is still pretty ghetto...
 bool runStringStack(
 	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
@@ -247,23 +254,31 @@ bool runStringStack(
 ){
 
 	bool elseStatement = false;
-	//static CalcValue ans(0.0); // here `0` could be a pointer
-	size_t localLine = 0;
+	char	*rpnln_head;
 
-	char** stackHead = code.stackHead;
+	//static CalcValue ans(0.0); // here `0` could be a pointer
+
+
+  	// used for line numbers in errors (plus previosly mentioned kludge)
+	curStrStack.linesLeft = code.stackDepth;
+
+	curStrStack.stackHead = code.stackHead;
+
+	// 500 chars/line is a reasonable max
+	char* rpnln = rpnln_head= (char*) malloc(512);
 
 	// for each line in the string stack...
-	for (size_t i = 0; i < code.stackDepth; i++) {
+	for (; curStrStack.linesLeft > 0; curStrStack.linesLeft--) {
 
-	  	// used for line numbers in errors
-		localLine++;
+		// copy line to prevent corruption
+		rpnln = (char*) realloc(rpnln_head, strlen(*curStrStack.stackHead) + 1);
+		strcpy(rpnln, *(curStrStack.stackHead++));
 
-		char* rpnln = new char[strlen(*stackHead)];
-		strcpy(rpnln, *(stackHead++));
 
-		// I need a copy of it to call free() on later.
-		char	*rpnln_head = rpnln,
-				*errorToken = NULL;
+		rpnln_head = rpnln;
+
+		// I need to delete it later.
+		char *errorToken = NULL;
 
 		// process the line
 		if ((errorToken =
@@ -272,14 +287,16 @@ bool runStringStack(
 		{
 			// why the fuck doesn't this get run ???????
 		  	setTermEffect(TERM_EFF_BOLD);
-			std::cerr <<progName <<": block : " <<localLine <<" : " <<rpnln - rpnln_head << ":\n";
+			std::cerr <<progName <<": block : " <<code.stackDepth - curStrStack.linesLeft
+					  <<" : " <<rpnln - rpnln_head << ":\n";
+
 			setTermEffect();
 
 			// print the problem statement
 			//color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(progName, line));
-			color_fprintf(stderr, 255, 0, 0, "\t%s\t", trimStr(*(stackHead - 1)));
+			color_fprintf(stderr, 255, 0, 0, "\t%s\t", trimStr(*(curStrStack.stackHead - 1)));
 		  	// point to the problem area
-		  	while (rpnln_head++ != rpnln)
+		  	for (size_t i = rpnln - rpnln_head; i ; i-- )
 				std::cerr <<' ';
 			color_fputs(stderr, "^\n", 255, 0, 0);
 
@@ -288,11 +305,19 @@ bool runStringStack(
 				std::cin.ignore();
 			#endif
 
-		  	// stop execution on error
+			curStrStack = { NULL, 0 };
+			free(rpnln_head);
+
+			// stop execution on error
 			return true;
 
 		}
+
+		//if ()
 	}
+
+	curStrStack = { NULL, 0 };
+	free(rpnln_head);
 	return false;
 }
 

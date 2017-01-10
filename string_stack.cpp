@@ -113,6 +113,12 @@ extern FILE* program;
 
 extern unsigned int line;
 
+// this hack allows nested blocks (see core.hpp)
+struct current_block_data_t {
+	char** stackHead;
+	size_t linesLeft;
+};
+extern struct current_block_data_t curStrStack;
 
 
 namespace strstk {
@@ -167,9 +173,19 @@ namespace strstk {
 
 		while (!isEnd) {
 
+			if (curStrStack.stackHead) {
+				if (!curStrStack.linesLeft--)
+					return NULL;
+
+				codeLine = (char*) realloc(codeLine, strlen(*curStrStack.stackHead) + 1);
+				strcpy(codeLine, *(curStrStack.stackHead++));
+				curStrStack.linesLeft--;
+
+
 			// read the next line from our program
-			if (getline(&codeLine, &lineLen, program) == -1)
+			} else if (getline(&codeLine, &lineLen, program) == -1)
 				return NULL; // this signals an error from process_line.hpp
+
 			str = codeLine;
 
 			line++; // we added a line to our file
