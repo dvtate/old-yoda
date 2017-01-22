@@ -157,7 +157,7 @@ YodaScript is a stack-based language based on reverse polish notation.
     * `>>> false`<br/>
       puts 0 on the top of the stack
     * `>>> null`<br/>
-      puts a NULL object on the top of the stack (depricated)
+      puts a NULL object on the top of the stack (deprecated)
     * `>>> print`<br/>
       prints the element at the top of the stack
     * `>>> println`<br/>
