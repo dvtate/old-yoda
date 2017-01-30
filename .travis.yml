@@ -6,3 +6,6 @@ compiler:
   - clang
   
 script: sudo g++ *.cpp -Wall -Wextra -o /usr/bin/yoda
+
+notifications:
+  email: false
