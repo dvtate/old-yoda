@@ -79,13 +79,6 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 	// decipher token
 	while (p != NULL && *p != '\0') {
 
-		/*
-		nextString = NULL;
-startCheck:
-		if (nextString != NULL)
-			p = nextString;
-		*/
-
 		// char is a binary operator
 		if (((*p == '-' || *p == '*' || *p == '/' || *p == '%'
 			|| *p == '|' || *p == '&' || *p == '^' || *p == '>' || *p == '<')
@@ -332,7 +325,6 @@ startCheck:
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(std::abs(getNextValue(mainStack).getNum()));
-
 
 		// find length of a string
 		} else if (strcmp(p, "strlen") == 0) {
@@ -916,7 +908,6 @@ startCheck:
 							  <<((var->val.block->stackDepth == 1) ? " line\n" : " lines\n");
 
 				var = var->next;
-
 			}
 
 		// print the contents of the stack
@@ -1111,7 +1102,6 @@ startCheck:
 			// the user has given us a number :D
 			} else
 				mainStack.push(number);
-
 		}
 
 		// get next token
@@ -1122,7 +1112,6 @@ startCheck:
 	return NULL;
 
 }
-
 
 
 
