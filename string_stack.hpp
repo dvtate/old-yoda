@@ -49,44 +49,44 @@ public:
                 free(stackHead);
         }
 
-		StrStack& operator=(const StrStack& cpy){
-			sizeFactor = cpy.sizeFactor;
-			buffer = (char**) malloc((1 << cpy.sizeFactor) * 256 * sizeof(char*));
-			stackDepth = cpy.stackDepth;
-			stackHead = buffer;
+	StrStack& operator=(const StrStack& cpy){
+		sizeFactor = cpy.sizeFactor;
+		buffer = (char**) malloc((1 << cpy.sizeFactor) * 256 * sizeof(char*));
+		stackDepth = cpy.stackDepth;
+		stackHead = buffer;
 
-			char** sh = cpy.stackHead;
-            while (sh != cpy.buffer) {
-				*buffer = (char*) malloc ( strlen(*sh) + 1 );
-				strcpy(*buffer++, *sh++);
-            }
-
-            return *this;
+		char** sh = cpy.stackHead;
+		while (sh != cpy.buffer) {
+			*buffer = (char*) malloc ( strlen(*sh) + 1 );
+			strcpy(*buffer++, *sh++);
 		}
 
-        // resets the object
-        void clear();
+		return *this;
+	}
 
-        // doubles the size of the buffer
-        void grow();
+	// resets the object
+	void clear();
 
-        // pushes a line to the top of the stack
-        void push(const char* str);
+	// doubles the size of the buffer
+	void grow();
 
-        // deletes the string at the top of the stack.
-        void pop();
+	// pushes a line to the top of the stack
+	void push(const char* str);
 
-        // the string at the top of the stack
-        /// be sure to copy it before calling pop()
-        char* top()
-                { return stackDepth ? *(buffer - 1) : NULL; }
+	// deletes the string at the top of the stack.
+	void pop();
 
-        size_t& size()
-                { return stackDepth; }
+	// the string at the top of the stack
+	/// be sure to copy it before calling pop()
+	char* top()
+		{ return stackDepth ? *(buffer - 1) : NULL; }
 
-        void changeTop(const char* str);
-        void top(const char* str)
-                { return changeTop(str);}
+	size_t& size()
+		{ return stackDepth; }
+
+	void changeTop(const char* str);
+	void top(const char* str)
+		{ return changeTop(str);}
 
 
 
