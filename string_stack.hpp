@@ -11,43 +11,45 @@ class UserVar;
 class StrStack {
 
 public:
-        // how many times to double the number of lines
-        uint8_t sizeFactor;
+	// how many times to double the number of lines
+	uint8_t sizeFactor;
 
-        char** buffer;
-        size_t stackDepth;
+	char** buffer;
+	size_t stackDepth;
 
-        char** stackHead;
+	char** stackHead;
 
 
-        StrStack():
-                sizeFactor(0),
-                buffer((char**) malloc(256 * sizeof(char*))),
-                stackDepth(0),
-                stackHead(buffer)
-        { *buffer = NULL; }
+	StrStack():
+		sizeFactor(0),
+		buffer((char**) malloc(256 * sizeof(char*))),
+		stackDepth(0),
+		stackHead(buffer)
+	{
+		*buffer = NULL;
+	}
 
-        StrStack(const StrStack& cpy):
-                sizeFactor(cpy.sizeFactor),
-                buffer((char**) malloc((1 << cpy.sizeFactor) * 256 * sizeof(char*))),
-                stackDepth(cpy.stackDepth),
-                stackHead(buffer)
-        {
-        		*buffer = NULL;
-                char** sh = cpy.stackHead;
-                while (sh != cpy.buffer) {
-                        *buffer = (char*) malloc ( strlen(*sh) + 1 );
-                        strcpy(*buffer++, *sh++);
-                }
+	StrStack(const StrStack& cpy):
+		sizeFactor(cpy.sizeFactor),
+		buffer((char**) malloc((1 << cpy.sizeFactor) * 256 * sizeof(char*))),
+		stackDepth(cpy.stackDepth),
+		stackHead(buffer)
+	{
+		*buffer = NULL;
+		char** sh = cpy.stackHead;
+		while (sh != cpy.buffer) {
+			*buffer = (char*) malloc ( strlen(*sh) + 1 );
+			strcpy(*buffer++, *sh++);
+		}
 
-        }
+	}
 
-        ~StrStack(){
-                for (; stackDepth > 0; stackDepth--)
-                        free(*(--buffer));
+	~StrStack(){
+		for (; stackDepth > 0; stackDepth--)
+			free(*(--buffer));
 
-                free(stackHead);
-        }
+		free(stackHead);
+	}
 
 	StrStack& operator=(const StrStack& cpy){
 		sizeFactor = cpy.sizeFactor;
@@ -81,15 +83,28 @@ public:
 	char* top()
 		{ return stackDepth ? *(buffer - 1) : NULL; }
 
-	size_t& size()
+	size_t size()
 		{ return stackDepth; }
 
 	void changeTop(const char* str);
 	void top(const char* str)
 		{ return changeTop(str);}
 
+	size_t totalLength(){
+		char** buff = buffer;
 
+		// start with one to count the '\0'
+		size_t ret = 1;
 
+		while (buff-- > stackHead)
+			ret += strlen(*buff);
+
+		return ret;
+
+	}
+
+	// converts the block to a string
+	void toString(char** dest, size_t* size);
 
 };
 
@@ -97,7 +112,6 @@ public:
 namespace strstk {
 
 	// gets a string stack from a file
-	StrStack* getStrStack(char*& str);
 	StrStack* getStrStack(char*& str);
 
 	void printStrStack(const StrStack& stack);
