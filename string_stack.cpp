@@ -105,6 +105,28 @@ void StrStack::changeTop(const char* str){
 
 }
 
+void StrStack::toString(char** dest, size_t* space){
+
+	// reallocate memory to fit data
+	*space = totalLength();
+	*dest = (char*) realloc((void*) *dest, *space);
+	//memset(*dest, '-', *space);
+	// begin copying in data
+	char** buff = stackHead; // start from bottom of stack
+
+	char* cpyto = *dest;
+
+	// copy each string into *dest
+	do {
+		char* line = *buff;
+		size_t len = strlen(line); // len of str + \n
+		strcpy(cpyto, line);
+		*(cpyto + len + 1) = '\n';
+		cpyto += len;
+	} while (++buff < buffer);
+
+}
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -224,5 +246,4 @@ namespace strstk {
 
 
 }
-
 
