@@ -402,7 +402,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		// e
 		else if (*p == 'e' && *(p + 1) == '\0')
 			mainStack.push(M_E); // defined in math.h
-		//
+		// literals
 		else if (strcmp(p, "null") == 0) // this segfaults................
 			mainStack.push(NULL_CALCVAL_OBJECT); // (char*) NULL
 		else if (strcmp(p, "true") == 0)
@@ -417,6 +417,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		// print to terminal
 		else if (strcmp(p, "print") == 0) {
 			ASSERT_NOT_EMPTY("print");
+
 			if (printCalcValueRAW(mainStack.top(), first_node))
 				return p;
 
@@ -425,12 +426,20 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		// print and end with a newline
 		} else if (strcmp(p, "println") == 0) {
 			ASSERT_NOT_EMPTY("println");
+
 			if (printCalcValueRAW(mainStack.top(), first_node))
 				return p;
-
 			mainStack.pop();
 
 			std::cout <<std::endl;
+
+
+		} else if (strcmp(p, "printblk") == 0) {
+			size_t len = 50;
+			char* str = (char*) malloc(len);
+			mainStack.top().block->toString(&str, &len);
+			printf("len= %lu \"%s\"", len, str);
+			free(str);
 
 		// prints in color
 		} else if (strcmp(p, "color_print") == 0) {

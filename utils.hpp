@@ -55,16 +55,16 @@ char* getLineFromFile(const char* filename, size_t lineNumber){
 	FILE *file = fopen(filename, "r");
 
   	size_t count = 1;
-	if ( file != NULL ) {
+	if (file != NULL) {
 
 	  	char* line = (char*) malloc(200);
 		size_t lineLen = 200;
 
 
 		while (getline(&line, &lineLen, file) != -1)
-		    if (count == lineNumber)
+			if (count == lineNumber)
 				break;
-		    else
+			else
 				count++;
 
 		if (count) {
@@ -73,12 +73,12 @@ char* getLineFromFile(const char* filename, size_t lineNumber){
 		} else {
 			std::cerr <<"\autils.h@getLineFromFile(): line index not found";
 			fclose(file);
-		 	return (char*) NULL;
+			return (char*) NULL;
 		}
 
 	} else {
 		std::cerr <<"\aDAFUQ: fopen(\"" <<filename <<"\", \"r\") == NULL\n"
-	  			  <<__FILE__ <<':' <<__LINE__ <<std::endl;
+			  <<__FILE__ <<':' <<__LINE__ <<std::endl;
 		return (char*) NULL;
 	}
 
@@ -123,7 +123,13 @@ bool printCalcValueRAW(CalcValue& val, UserVar* first_node){
 	//printf("value is<");
 	if (val.isNull())
 		std::cout <<"null";
-  	else if (val.type == CalcValue::NUM)
+	else if (val.type == CalcValue::BLK) {
+		size_t len = 50;
+		char* str = (char*) malloc(len);
+		val.block->toString(&str, &len);
+		printf(str);
+		free(str);
+  	} else if (val.type == CalcValue::NUM)
 		std::cout <<val.getNum();
 	else if (val.type == CalcValue::STR)
 		std::cout <<val.getStr();
@@ -239,18 +245,20 @@ namespace commands {
 
 	// thx @chux http://stackoverflow.com/a/27305359/4475863
 	char* stristr(const char* haystack, const char* needle) {
-	  do {
-		const char* h = haystack;
-		const char* n = needle;
-		while (tolower(*h) == tolower(*n) && *n) {
-		  h++;
-		  n++;
-		}
-		if (*n == 0) {
-		  return (char *) haystack;
-		}
-	  } while (*haystack++);
-	  return NULL;
+		do {
+			const char* h = haystack;
+			const char* n = needle;
+			while (tolower(*h) == tolower(*n) && *n) {
+				h++;
+				n++;
+			}
+
+			if (!*n)
+				return (char *) haystack;
+
+		} while (*haystack++);
+
+		return NULL;
 	}
 }
 
