@@ -49,7 +49,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   ```
   >>> 100 log   # log10(100)
   2
-  >>> 0.5 sin   # sine of 90 radians
+  >>> 0.5 sin   # sine of 0.5 radians 
   0.479426
   ```
   
