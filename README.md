@@ -61,17 +61,17 @@ YodaScript is a stack-based language based on reverse polish notation.
   ```
  - <b>Variables:</b>
   Variables are created as soon as you start using them. All variable names must start with a `$` to prevent them from clashing with other keywords and literals. Here's an example:
- ```
+```
  >>> $a 4 =
  >>> $a print
  4
- ```
-  Variables are references to data, variables can reference eachother. Changing the value of a reference changes the value of it's referenced variable.  If you want to make a deep copy, use the copy operator (`~`). 
- ```
- >>> $a 8 =    # now $a is a reference to the number 8 
- >>> $b $a =   # now $b is a reference to $a and $a is a reference to the number 8
- >>> $b $a ~ = # now they are both references to the number 8
- ```
+```
+  Variables are references to data, variables can reference eachother. Changing the value of a reference changes the value  of it's referenced variable.  If you want to make a deep copy, use the copy operator (`~`). 
+```
+>>> $a 8 =    # now $a is a reference to the number 8 
+>>> $b $a =   # now $b is a reference to $a and $a is a reference to the number 8
+>>> $b $a ~ = # now they are both references to the number 8
+```
  - <b>Strings:</b>
   This is a loosely-typed language. Strings are enclosed in double quotes `"` and only need a closing `"` if it would change the meaning without it. (ie - end-of-line automatically adds a '\n' and ends the quote)
  ```
