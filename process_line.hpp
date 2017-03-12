@@ -1,4 +1,4 @@
-#ifndef PROCESS_LINE_H
+	#ifndef PROCESS_LINE_H
 #define PROCESS_LINE_H
 
 #include <iostream>
@@ -60,6 +60,10 @@ extern bool runStringStack(
 	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
 	UserVar* first_node
 );
+extern bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
+	      std::stack<CalcValue>& mainStack, bool& elseStatement
+);
+
 
 char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 	bool& showErrors, char*& rpnln, bool& elseStatement
@@ -693,13 +697,29 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			CalcValue top = CalcValue(mainStack.top());
 
 			if (top.type == CalcValue::BLK) {
+				/* I did this at 5am but there might be value here...
+				// put the statement in a string
+				size_t buff_size = 500;
+				char* buff = (char*) malloc(buff_size);
+				mainStack.top().block->toString(&buff, &buff_size);
+
+				// put the string in a temp file
+				FILE* statement = tmpfile();
+				fputs(buff, statement);
+
+				rewind(statement);
+				// run the file
+				if (runFile(statement, first_node, showErrors, mainStack, elseStatement)) {
+					PASS_ERROR("\aERROR: @ (exec operator) failed");
+				}
+				*/
 				if (runStringStack(*top.block, showErrors, mainStack, first_node)) {
 					PASS_ERROR("\aERROR in bock/subroutine called here\n");
 				}
 			} else if (top.type == CalcValue::STR) {
 				char* err = processLine(mainStack, first_node, showErrors, top.string, elseStatement);
 				if (err) {
-					PASS_ERROR("\aERROR in block near `" <<err <<"`. Called here:\n")
+					PASS_ERROR("\aERROR in block near `" <<err <<"`. Called here:\n");
 				}
 			} else {
 				PASS_ERROR("\aERROR: @ (execution operator) only accepts strings and executable arrays\n");

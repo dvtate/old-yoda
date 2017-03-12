@@ -83,7 +83,35 @@ char* getLineFromFile(const char* filename, size_t lineNumber){
 	}
 
 }
+char* getLineFromFile(FILE* file, size_t lineNumber){
 
+  	size_t count = 1;
+	if (file != NULL) {
+
+	  	char* line = (char*) malloc(200);
+		size_t lineLen = 200;
+
+
+		while (getline(&line, &lineLen, file) != -1)
+			if (count == lineNumber)
+				break;
+			else
+				count++;
+
+		if (count) {
+			fclose(file);
+			return line;
+		} else {
+			std::cerr <<"\autils.h@getLineFromFile(): line index not found";
+			fclose(file);
+			return (char*) NULL;
+		}
+
+	} else {
+		return (char*) NULL;
+	}
+
+}
 
 bool printCalcValue(CalcValue& val, UserVar* first_node){
 

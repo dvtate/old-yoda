@@ -5,8 +5,8 @@
 #include <stack>
 #include <queue>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 #include <cmath>
 #include <inttypes.h>
 
@@ -58,10 +58,6 @@ void runFile(char* programFile, bool& errorReporting){
 
 	// the most important component of the program :)
 	std::stack<CalcValue> mainStack;
-
-	// used for storing the name for user variables on a line by line basis
-	std::queue<char*> varNames;
-
 
 	UserVar* first_node = new UserVar(NULL, " ", 0.0);
   	first_node->first = first_node;
@@ -127,6 +123,72 @@ void runFile(char* programFile, bool& errorReporting){
 
 }
 
+bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
+	      std::stack<CalcValue>& mainStack, bool& elseStatement
+) {
+
+	if (!prog_file)
+		return true;
+
+	size_t local_line = 0;
+
+	// for each line in the programFile...
+	for (;;) {
+
+	  	// used for line numbers in errors
+		local_line++;
+
+
+		char* rpnln = (char*) malloc(256);
+		size_t lineLen = 256;
+
+
+		if (getline(&rpnln, &lineLen, prog_file) == -1)
+			return false; // EOF
+
+		// I need a copy of it to call free() on later.
+		char	*rpnln_head = rpnln,
+				*errorToken = NULL;
+		// process the line
+		if ((errorToken =
+			processLine(mainStack, first_node,errorReporting, rpnln, elseStatement))
+			&& errorReporting
+		) {
+
+		  	// file name and
+		  	setTermEffect(TERM_EFF_BOLD);
+			std::cerr <<progName <<":" <<line + local_line<<':' <<errorToken - rpnln_head <<":\n";
+			setTermEffect();
+
+			// print the problem statement
+			rewind(prog_file);
+			color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(prog_file, local_line));
+
+
+		  	// point to the problem area
+			for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
+				std::cerr <<' ';
+
+			color_fputs(stderr, "^\n", 255, 0, 0);
+
+			// windows sucks :P
+			#ifdef _WIN32
+				std::cin.ignore();
+			#endif
+
+		  	// you're dead :P
+			exit(EXIT_FAILURE);
+
+			return true;
+		}
+
+		// prevent memory leaks...
+		free(rpnln_head);
+	}
+
+	return false;
+
+}
 
 
 // a NULL CalcValue
@@ -180,9 +242,6 @@ void runStringStack(StrStack& code, bool& errorReporting){
 
 	// the most important component of the program :)
 	std::stack<CalcValue> mainStack;
-
-	// used for storing the name for user variables on a line by line basis
-	std::queue<char*> varNames;
 
 	UserVar* first_node = new UserVar(NULL, " ", 0.0);
   	first_node->first = first_node;
