@@ -1,4 +1,4 @@
-	#ifndef PROCESS_LINE_H
+#ifndef PROCESS_LINE_H
 #define PROCESS_LINE_H
 
 #include <iostream>
@@ -706,12 +706,14 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				// put the string in a temp file
 				FILE* statement = tmpfile();
 				fputs(buff, statement);
-
 				rewind(statement);
+
 				// run the file
 				if (runFile(statement, first_node, showErrors, mainStack, elseStatement)) {
 					PASS_ERROR("\aERROR: @ (exec operator) failed");
 				}
+
+				fclose(statement);
 				*/
 				if (runStringStack(*top.block, showErrors, mainStack, first_node)) {
 					PASS_ERROR("\aERROR in bock/subroutine called here\n");
