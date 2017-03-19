@@ -123,14 +123,14 @@ YodaScript is a stack-based language based on reverse polish notation.
   Enter GPA: 4
   >>> #this first method is syntactic sugar and slower than the second
   >>> { "You can do better than that." println } else 
-  { "That's good enough for me." println } $gpa 3 == elseif 
+  { "That's good enough for me." println } $gpa 3 >= elseif 
   { "Woooooooooooow!" println } $gpa 4 >= if
   Woooooooooooow!
   
   >>> # this method has better performance but gets ugly quick
   >>> {
       { "You can do better than that." println } else 
-      { "That's good enough for me." println } $gpa 3 == if
+      { "That's good enough for me." println } $gpa 3 >= if
   } else {
       "Woooooooooooow!" println
   } $gpa 4 >= if
@@ -209,7 +209,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `!=`: logical-XOR
  
  * Compairison operators:
-  - `==`: equals-to
+  - `==`, `?=`: equals-to
   - `!=`: not equals-to
   - `>`: greater than
   - `<`: less than
