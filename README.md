@@ -2,7 +2,7 @@
 A Yoda-Script (.ys) interpreter which is now turing complete! Using the shell, it can be used as a calculator by those familiar with reverse polish notation (RPN). It is already useful, but it still has a ways to go.
 
 # Build and Run [![Build Status](https://travis-ci.org/dvtate/yoda.svg?branch=master)](https://travis-ci.org/dvtate/yoda/)
-If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>NOTICE:</b> it's old [2016.12.5]). <b>Warning</b>, I cross-compiled this on Linux and have only run it in a virtual machine, so it might not be perfect.<br/> <!--<h6><pre>i686-w64-mingw32-g++ *.cpp --static -Wall -o sbs.exe</pre></h6>-->
+If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable (<b>NOTICE:</b> it's old [2016.12.5]). <b>Warning</b>, I cross-compiled this on Linux and have only run it in a virtual machine, so it might not be perfect.<br/>
 https://1drv.ms/u/s!AqWtCxMOBjWMhqRo9xkCgNeJKjWgNA 
 - Compiling:
 `yoda $ g++ *.cpp -o yoda`
