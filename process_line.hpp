@@ -64,7 +64,7 @@ extern bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 	      std::stack<CalcValue>& mainStack, bool& elseStatement
 );
 
-
+///TODO: add FILE* feed param to fxn so we can have recursive file reading and
 char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 	bool& showErrors, char*& rpnln, bool& elseStatement
 ){
@@ -685,6 +685,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 		} else if (*p == '}') {
 			std::cout <<"p =" <<p <<std::endl;
+			printCalcValueRAW(mainStack.top(), first_node);
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
 
 
@@ -697,7 +698,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			CalcValue top = CalcValue(mainStack.top());
 
 			if (top.type == CalcValue::BLK) {
-				/* I did this at 5am but there might be value here...
+				// I did this at 5am but there might be value here...
 				// put the statement in a string
 				size_t buff_size = 500;
 				char* buff = (char*) malloc(buff_size);
@@ -714,10 +715,10 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				}
 
 				fclose(statement);
-				*/
+				/* this is what I used to do... but it's not working :(
 				if (runStringStack(*top.block, showErrors, mainStack, first_node)) {
 					PASS_ERROR("\aERROR in bock/subroutine called here\n");
-				}
+				}*/
 			} else if (top.type == CalcValue::STR) {
 				char* err = processLine(mainStack, first_node, showErrors, top.string, elseStatement);
 				if (err) {
