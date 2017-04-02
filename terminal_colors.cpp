@@ -41,16 +41,17 @@ static inline bool notBlack(char* clr){
 	return true;
 }
 
-/*
+/* could be used to check input, but performance would be lost
 static bool isHexColor(const char* color){
 	if (!color)
 		return color;
 
-	do
-		if (!isdigit(*color) || *color == 'a' || *color == 'b' || *color == 'c'
-			|| *color == 'd' || *color == 'e' || *color == 'f')
+	do {
+		register char clrChr = tolower(*color);
+		if (!(isdigit(clrChr) || clrChr == 'a' || clrChr == 'b' || clrChr == 'c'
+			|| clrChr == 'd' || clrChr == 'e' || clrChr == 'f'))
 			return false;
-	while (*(color++));
+	} while (*(color++));
 
 	return true;
 
@@ -216,7 +217,7 @@ tri_color:
 		// color was not in the list
 		if (clr.val == 0 && notBlack(color))
 			fprintf(stderr, "\aERROR: invalid HTML color. \"%s\" doesn\'t"
-					"name a color\n", color);
+							"name a color\n", color);
 		fsetFgColor(file, clr);
 
 		goto _end;
@@ -227,7 +228,7 @@ tri_color:
 		goto tri_color;
 	else
 		fprintf(stderr, "\aERROR: invalid HTML color. \"%s\" doesn\'t"
-				"name a color\n", color);
+						"name a color\n", color);
 _end:
 	free(color_cpy);
 
