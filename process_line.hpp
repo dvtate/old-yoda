@@ -446,7 +446,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 		// print to terminal
 		else if (strcmp(p, "print") == 0) {
-			ASSERT_NOT_EMPTY("print");
+			ASSERT_NOT_EMPTY(p);
 
 			if (printCalcValueRAW(mainStack.top(), first_node))
 				return p;
@@ -455,7 +455,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 		// print and end with a newline
 		} else if (strcmp(p, "println") == 0) {
-			ASSERT_NOT_EMPTY("println");
+			ASSERT_NOT_EMPTY(p);
 
 			if (printCalcValueRAW(mainStack.top(), first_node))
 				return p;
@@ -493,7 +493,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 		// changes the terminal background color for text
 		} else if (strcmp(p, "setBgColor") == 0) {
-			ASSERT_NOT_EMPTY("setBgColor");
+			ASSERT_NOT_EMPTY(p);
 			if (!mainStack.top().isStr()) {
 				mainStack.pop();
 				PASS_ERROR("\aERROR: setBgColor expected a string containing a valid HTML color.\n\n");
@@ -504,7 +504,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 		// changes the terminal foreground color for text
 		} else if (strcmp(p, "setFgColor") == 0) {
-			ASSERT_NOT_EMPTY("setFgColor");
+			ASSERT_NOT_EMPTY(p);
 			if (!mainStack.top().isStr()) {
 				mainStack.pop();
 				PASS_ERROR("\aERROR: setFgColor expected a string containing a valid HTML color.\n\n");
@@ -545,7 +545,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		// load the contents of a file into a string
 		} else if (strcmp(p, "file_get_contents") == 0) {
 
-			ASSERT_NOT_EMPTY("file_get_contents");
+			ASSERT_NOT_EMPTY(p);
 
 
 			CONVERT_REFS(mainStack, first_node, showErrors);
@@ -618,7 +618,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 		// convert to string
 		} else if (strcmp(p, "str") == 0) {
-			ASSERT_NOT_EMPTY("str");
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
@@ -635,7 +635,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 		// convert to number
 		} else if (strcmp(p, "num") == 0) {
-			ASSERT_NOT_EMPTY("num");
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
@@ -648,7 +648,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 		// convert to an integer
 		} else if (strcmp(p, "int") == 0) {
-			ASSERT_NOT_EMPTY("int");
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
@@ -660,7 +660,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				mainStack.push( round( atof( val.getStr() ) ) );
 
 		} else if (strcmp(p, "floor") == 0) {
-			ASSERT_NOT_EMPTY("floor");
+			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
@@ -836,7 +836,13 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 					} // else, it's a value that should stay at the top of the stack
 				} // else, don't do anything as there isn't an else clause
 
-
+		} else if (strcmp(p, "assert") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (!mainStack.top().getNum()) {
+				PASS_ERROR("\aERROR: assertion test failed\n");
+			}
+			mainStack.pop();
 
 		// runs the same block of code a given number of times
 		} else if (strcmp(p, "repeat") == 0) {
@@ -954,7 +960,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 		// typeof function
 		else if (strcmp(p, "typeof") == 0) {
-			ASSERT_NOT_EMPTY("typeof");
+			ASSERT_NOT_EMPTY(p);
 
 		 	if (mainStack.top().type == CalcValue::REF) {
 				UserVar* var = vars::findVar(first_node, mainStack.top().string);
@@ -1100,7 +1106,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 		// duplicate the top of the stack
 		} else if (strcmp(p, "dup") == 0) {
-			ASSERT_NOT_EMPTY("dup");
+			ASSERT_NOT_EMPTY(p);
 			mainStack.push(mainStack.top());
 
 		// duplicate the top elements a set number of times
