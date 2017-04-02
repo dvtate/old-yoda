@@ -86,9 +86,13 @@ extern bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 	      std::stack<CalcValue>& mainStack, bool& elseStatement
 );
 
+
+
+
+
 ///TODO: add FILE* feed param to fxn so we can have recursive file reading and
 char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
-	bool& showErrors, char*& rpnln, bool& elseStatement
+	bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed
 ){
 
 	// probably won't even use these 2 vars but its good to have them...
@@ -681,7 +685,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				newLine = (char*) malloc(256);
 				size_t lineLen = 256;
 
-				if (getline(&newLine, &lineLen, stdin) == -1) {
+				if (getline(&newLine, &lineLen, codeFeed) == -1) {
 					PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
 				} else
 					line++;
@@ -689,7 +693,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				p = newLine;
 
 			}
-			StrStack* execArr = strstk::getStrStack(p);
+			StrStack* execArr = strstk::getStrStack(p, codeFeed);
 
 			//free's mem allocated for line
 			free(newLine);
@@ -706,7 +710,6 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			rpnln = p;
 
 		} else if (*p == '}') {
-			std::cout <<"p =" <<p <<std::endl;
 			printCalcValueRAW(mainStack.top(), first_node);
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
 
@@ -727,7 +730,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 					PASS_ERROR("\aERROR in bock/subroutine called here\n");
 				}*/
 			} else if (top.type == CalcValue::STR) {
-				char* err = processLine(mainStack, first_node, showErrors, top.string, elseStatement);
+				char* err = processLine(mainStack, first_node, showErrors, top.string, elseStatement, codeFeed);
 				if (err) {
 					PASS_ERROR("\aERROR in block near `" <<err <<"`. Called here:\n");
 				}

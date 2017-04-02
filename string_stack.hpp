@@ -1,6 +1,7 @@
 #ifndef STRING_STACK_H
 #define STRING_STACK_H
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
@@ -112,7 +113,7 @@ public:
 namespace strstk {
 
 	// gets a string stack from a file
-	StrStack* getStrStack(char*& str);
+	StrStack* getStrStack(char*& str, FILE* codeFeed);
 
 	void printStrStack(const StrStack& stack);
 

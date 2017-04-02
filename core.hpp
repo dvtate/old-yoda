@@ -83,7 +83,7 @@ void runFile(char* programFile, bool& errorReporting){
 				*errorToken = NULL;
 		// process the line
 		if ((errorToken =
-			processLine(mainStack, first_node,errorReporting, rpnln, elseStatement))
+			processLine(mainStack, first_node,errorReporting, rpnln, elseStatement, program))
 			&& errorReporting
 		) {
 
@@ -151,7 +151,7 @@ bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 				*errorToken = NULL;
 		// process the line
 		if ((errorToken =
-			processLine(mainStack, first_node,errorReporting, rpnln, elseStatement))
+			processLine(mainStack, first_node,errorReporting, rpnln, elseStatement, prog_file))
 			&& errorReporting
 		) {
 
@@ -213,7 +213,7 @@ void runShell(UserVar* first_node, bool& errorReporting,
 
 
 	// process the line
-	bool errors = processLine(mainStack, first_node, errorReporting, rpnln, elseStatement);
+	bool errors = processLine(mainStack, first_node, errorReporting, rpnln, elseStatement, stdin);
 
 	if (errors)
 		emptyStack(mainStack);
@@ -237,6 +237,7 @@ void runShell(UserVar* first_node, bool& errorReporting,
 
 }
 
+// this is a shitty function
 void runStringStack(StrStack& code, bool& errorReporting){
 
 
@@ -267,7 +268,7 @@ void runStringStack(StrStack& code, bool& errorReporting){
 
 		// process the line
 		if ((errorToken =
-			processLine(mainStack, first_node, errorReporting, rpnln, elseStatement))
+			processLine(mainStack, first_node, errorReporting, rpnln, elseStatement, stdin)) // note: stdin is a bad file for this purpose..
 			&& errorReporting
 		) {
 
@@ -341,7 +342,7 @@ bool runStringStack(
 
 		// process the line
 		if ((errorToken =
-			processLine(mainStack, first_node, errorReporting, rpnln, elseStatement))
+			processLine(mainStack, first_node, errorReporting, rpnln, elseStatement, stdin))
 			&& errorReporting)
 		{
 			// why the fuck doesn't this get run ???????

@@ -44,99 +44,99 @@ char* qtok(char* str, char** next){
 												// also, this doesn't do the same thing as '\n'..
 												// so I probably should find a better solution...
 					// line feed
-					} else if (*(current + 1) == 'r') { // "\\r" => "\r\r" 
+					} else if (*(current + 1) == 'r') {
 						*current = *(current + 1) = '\r'; // nice hack ;)
 						current++;
 
 					// horizontal tab
-					} else if (*(current + 1) == 't') { // "\\t" => "\t"
+					} else if (*(current + 1) == 't') {
 						*current = '\t';
 						deleteChar(current + 1);
 
 					// bel
-					} else if (*(current + 1) == 'a') { // "\\a" => "\a"
+					} else if (*(current + 1) == 'a') {
 						*current = '\a';
 						deleteChar(current + 1);
 
 					// backspace
-					} else if (*(current + 1) == 'b') { // "\\b" => "\b"
+					} else if (*(current + 1) == 'b') {
 						*current = '\b';
 						deleteChar(current + 1);
 
 					// formfeed
-					} else if (*(current + 1) == 'f') { // "\\f" => "\f"
+					} else if (*(current + 1) == 'f') {
 						*current = '\f';
 						deleteChar(current + 1);
 
 					// vertical tab
-					} else if (*(current + 1) == 'v') { // "\\v" => "\v"
+					} else if (*(current + 1) == 'v') {
 						*current = '\v';
 						deleteChar(current + 1);
 
 					// escaped backslash
-					} else if (*(current + 1) == '\\') // "\\\\" => "\\"
+					} else if (*(current + 1) == '\\')
 						deleteChar(current);
 
 					// escape sequence "\nnn"
-					else if (isdigit(*(current + 1))) { // "\\nnn" => "char(nnn)"
+					else if (isdigit(*(current + 1))) {
 					// escape sequence can be a maximum of 3 chars long
-						char str[3] = {
-							*(current + 1),
-							*(current + 2),
-							*(current + 3)
-						};
-						char* ptr;
-						// convert the octal literal to single char (8bit int)
+                    	char str[3] = {
+                    		*(current + 1),
+                    		*(current + 2),
+                    		*(current + 3)
+                    	};
+                    	char* ptr;
+						// convert the octal literal to binary
 						*current = (char) strtol(str, &ptr, 8);
 						deleteChars(current + 1, ptr - str);
 
 					// escape sequence "\xhh"
-					} else if (*(current + 1) == 'x' && isdigit(*(current + 2))) { // "\\hh" => "char(hh)"
+                    } else if (*(current + 1) == 'x' && isdigit(*(current + 2))) {
 						// escape sequence can be a maximum of 2 chars long
-						char str[2] = { *(current + 2), *(current + 3) };
-						char* ptr;
-						// convert the hex literal to single char (8bit int)
+                    	char str[2] = { *(current + 2), *(current + 3) };
+                    	char* ptr;
+						// convert the octal literal to binary
 						*current = (char) strtol(str, &ptr, 16);
 						deleteChars(current + 1, ptr - str);
 
 					// indicates that the next character should be ignored by the tokenizer
 					// this works for \", \', etc.
-					} else
+                    } else
 						deleteChar(current);
 
 					//current++;
-				}
-				current++;
+                }
+                current++;
 
-			}
+            }
 
-			//current++;
+            //current++;
 
-			// Reached the ending quote.
-			goto finalize;
-		}
-	}
+            // Reached the ending quote.
+            goto finalize;
+        }
+    }
 
 
-	// Not quoted so run till we see a space.
-	while (*current && !isspace(*current))
-		current++;
+    // Not quoted so run till we see a space.
+    while (*current && !isspace(*current))
+        current++;
 
-	finalize:
+finalize:
 
-	if (*current) {
-		// Close token if not closed already.
-		*current = '\0';
-		current++;
-		// Eat trailing whitespace.
-		while (*current && isspace(*current))
-			current++;
-	}
+    if (*current) {
+        // Close token if not closed already.
+        *current = '\0';
+        current++;
+        // Eat trailing whitespace.
+        while (*current && isspace(*current))
+            current++;
+    }
 
-	*next = current;
+    *next = current;
 
-	//return unescapeToken(start);
-	return start;
+    //return unescapeToken(start);
+    return start;
 
 }
 

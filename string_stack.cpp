@@ -173,7 +173,7 @@ namespace strstk {
 	}
 
 	// note, str is modified and this is used in processLine()
-	StrStack* getStrStack(char*& str){
+	StrStack* getStrStack(char*& str, FILE* codeFeed){
 
 		char* codeLine = str;
 		uint16_t depth = 1; // shouldn't be >65000 levels of indentation...
@@ -195,7 +195,7 @@ namespace strstk {
 
 		while (!isEnd) {
 
-			if (curStrStack.stackHead) {
+			/*if (curStrStack.stackHead) {
 				if (!curStrStack.linesLeft--)
 					return NULL;
 
@@ -205,7 +205,7 @@ namespace strstk {
 
 
 			// read the next line from our program
-			} else if (getline(&codeLine, &lineLen, program) == -1)
+			} else */if (getline(&codeLine, &lineLen, codeFeed) == -1)
 				return NULL; // this signals an error from process_line.hpp
 
 			str = codeLine;
