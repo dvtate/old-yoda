@@ -18,8 +18,8 @@ YodaScript is a stack-based language based on reverse polish notation.
   + functions and subroutines
   + lists
   + associative arrays (dictionaries)
-  + loops and if statements that actually work
-  + scoping (maybe) (maybe something like what PHP does)
+  + more types of loops (do-while range-based for)
+  + scoping (maybe something like what PHP does)
   + proper string manipulation funcitons and such
   + regular expressions
   + concurrency (multi-threaded/async) (maybe with std::thread)
@@ -77,8 +77,6 @@ YodaScript is a stack-based language based on reverse polish notation.
   This is a loosely-typed language. Strings are enclosed in double quotes `"` and only need a closing `"` if it would change the meaning without it. (ie - end-of-line automatically adds a '\n' and ends the quote)
  ```
  >>> "hello " "there" + $a = # notice that the `+` operator is overloaded
- "hello there"
- 
  >>> $a print
  hello there
  ```
@@ -185,7 +183,8 @@ YodaScript is a stack-based language based on reverse polish notation.
       loads the contents of a file into a string
     * `>>> file_put_contents`<br/>
       loads the contents of a string into a file
-      
+    * `>>> assert`<br/>
+      errors if condition is false, otherwise execution continues
 # A incomplete list of built-in operators and functions:
  * Mathematical operators:
   - `+`: add (also concatenates when one or more of the arguments is a string)
@@ -241,7 +240,8 @@ YodaScript is a stack-based language based on reverse polish notation.
   
 * String functions:
   - `strlen`: returns the length of a given string
-  
+* File operators:
+  -  `file_get_contents`, `file_put_contents`: convert between files and strings
 * Execuatable Array Operators:
   - `@`, `eval`: runs the given subroutine or string as code (equivalent to eval)
 
