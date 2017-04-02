@@ -39,12 +39,12 @@ char* qtok(char* str, char** next){
                 if (*current == '\\') { // escape sequences
                     if (*(current + 1) == 'n') {
                         *current = '\n';
-                        *(current + 1) = '\r';	// it's not that I want to support windows...
-												// this is just more efficienct than deleteChar()
+                        *(current + 1) = '\r';	// this is much more efficienct than deleteChar()
 												// also, this doesn't do the same thing as '\n'..
 												// so I probably should find a better solution...
+												// TODO: find a better solution for "\n"
 					// line feed
-					} else if (*(current + 1) == 'r') { // "\\r" => "\r\r" 
+					} else if (*(current + 1) == 'r') { // "\\r" => "\r\r"
 						*current = *(current + 1) = '\r'; // nice hack ;)
 						current++;
 
