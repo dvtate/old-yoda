@@ -25,6 +25,7 @@
 extern CalcValue ans;
 
 
+// error's if the stack is empty
 #define ASSERT_NOT_EMPTY(OPERATOR)\
 			if (mainStack.empty()) {\
 				if (showErrors)\
@@ -32,13 +33,14 @@ extern CalcValue ans;
 				return p;\
 			}
 
-#define PASS_ERROR(MSG)\
+// closes with an error
+#define PASS_ERROR(MSG) \
 	if (showErrors)	\
 		std::cerr <<MSG;\
 	return p;
 
 
-
+// makes the top() value an actual Value as opposed to a reference
 #define CONVERT_REFS(MAINSTACK, FIRST_NODE, SHOW_ERRORS)\
 	if (MAINSTACK.top().type == CalcValue::REF) {\
 		CalcValue* val = MAINSTACK.top().valAtRef(FIRST_NODE);\
@@ -54,6 +56,26 @@ extern CalcValue ans;
 			return p;\
 		}\
 	}
+
+// evals a block
+#define RUN_STR_STK(STRSTK) {\
+				/* put the statement in a string */\
+				size_t buff_size = 500;\
+				char* buff = (char*) malloc(buff_size);\
+				(STRSTK).toString(&buff, &buff_size);\
+\
+				/* put the string in a temp file*/\
+				FILE* statement = tmpfile();\
+				fputs(buff, statement);\
+				rewind(statement);\
+\
+				/* run the temp file */\
+				if (runFile(statement, first_node, showErrors, mainStack, elseStatement)) {\
+					PASS_ERROR("\aERROR: @ (exec operator) failed");\
+				}\
+				fclose(statement);\
+}
+
 
 
 extern bool runStringStack(
@@ -698,23 +720,8 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			CalcValue top = CalcValue(mainStack.top());
 
 			if (top.type == CalcValue::BLK) {
-				// I did this at 5am but there might be value here...
-				// put the statement in a string
-				size_t buff_size = 500;
-				char* buff = (char*) malloc(buff_size);
-				mainStack.top().block->toString(&buff, &buff_size);
+				RUN_STR_STK(*mainStack.top().block);
 
-				// put the string in a temp file
-				FILE* statement = tmpfile();
-				fputs(buff, statement);
-				rewind(statement);
-
-				// run the file
-				if (runFile(statement, first_node, showErrors, mainStack, elseStatement)) {
-					PASS_ERROR("\aERROR: @ (exec operator) failed");
-				}
-
-				fclose(statement);
 				/* this is what I used to do... but it's not working :(
 				if (runStringStack(*top.block, showErrors, mainStack, first_node)) {
 					PASS_ERROR("\aERROR in bock/subroutine called here\n");
@@ -796,9 +803,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 					CalcValue runTrue = mainStack.top();
 					mainStack.pop(); mainStack.pop();
 					if (runTrue.type == CalcValue::BLK) {
-						if (runStringStack(*runTrue.block, showErrors, mainStack, first_node)) {
-							PASS_ERROR("\aERROR in bock/subroutine called here\n");
-						}
+						RUN_STR_STK(*runTrue.block);
 					} else
 						mainStack.push(runTrue);
 
@@ -808,9 +813,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 						CalcValue top = mainStack.top();
 						mainStack.pop();
 						if (top.type == CalcValue::BLK) {
-							if (runStringStack(*top.block, showErrors, mainStack, first_node)) {
-								PASS_ERROR("\aERROR in bock/subroutine called here\n");
-							}
+							RUN_STR_STK(*top.block);
 						} else
 							mainStack.push(top);
 
@@ -823,14 +826,14 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 						CalcValue top = mainStack.top();
 						mainStack.pop();
 						if (top.type == CalcValue::BLK) {
-							if (runStringStack(*top.block, showErrors, mainStack, first_node)) {
-								PASS_ERROR("\aERROR in bock/subroutine called here\n");
-							}
+							RUN_STR_STK(*top.block);
 						} else
 							mainStack.push(top);
 
 					} // else, it's a value that should stay at the top of the stack
 				} // else, don't do anything as there isn't an else clause
+
+
 
 		// runs the same block of code a given number of times
 		} else if (strcmp(p, "repeat") == 0) {
@@ -851,9 +854,9 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			}
 			mainStack.pop();
 
-			for (; timesToRepeat > 0; timesToRepeat--)
-				runStringStack(block, showErrors, mainStack, first_node);
-
+			for (; timesToRepeat > 0; timesToRepeat--) {
+				RUN_STR_STK(block);
+			}
 		// while loop
 		} else if (strcmp(p, "while") == 0) {
 			if (mainStack.size() < 2) {
@@ -875,15 +878,15 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			for (;;) {
 
 				// check condition
-				runStringStack(condBlock, showErrors, condStack, first_node);
+				if (runStringStack(condBlock, showErrors, condStack, first_node)) {
+					PASS_ERROR("\aERROR: while: error in processing condtion");
+				}
 				if (!condStack.top().getNum())
 					break;
 
 				// run process
 				if (top.type == CalcValue::BLK) {
-					if (runStringStack(*top.block, showErrors, mainStack, first_node)) {
-						PASS_ERROR("\aERROR in bock/subroutine called here\n");
-					}
+					RUN_STR_STK(*top.block);
 				} else
 					mainStack.push(top);
 
