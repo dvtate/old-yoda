@@ -17,13 +17,14 @@ YodaScript is a stack-based language based on reverse polish notation.
 - Some features which I plan on implementing:
   + functions and subroutines
   + lists
+  + associative arrays (dictionaries)
   + loops and if statements that actually work
   + scoping (maybe) (maybe something like what PHP does)
   + proper string manipulation funcitons and such
   + regular expressions
-  + concurrency (multi-threaded/async)
+  + concurrency (multi-threaded/async) (maybe with std::thread)
   
-- Some features I will not implement:
+- Some features I do not plan on implementing:
   + OOP (unless implemented by someone else ;) )
   + goto's (essentially impossible given my current design)
   
@@ -229,6 +230,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `dup`: duplicates the value on the top of the stack (1 arg)
   - `dupn`: performs `dup` n number or times (2 args)
   - `swap`: swaps the top 2 elements in the stack
+  - `assert`: makes an error if top of stack is false
   
 * Type conversions:
   - `str`: converts to string
