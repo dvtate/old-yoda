@@ -195,17 +195,7 @@ namespace strstk {
 
 		while (!isEnd) {
 
-			/*if (curStrStack.stackHead) {
-				if (!curStrStack.linesLeft--)
-					return NULL;
-
-				codeLine = (char*) realloc(codeLine, strlen(*curStrStack.stackHead) + 1);
-				strcpy(codeLine, *(curStrStack.stackHead++));
-				curStrStack.linesLeft--;
-
-
-			// read the next line from our program
-			} else */if (getline(&codeLine, &lineLen, codeFeed) == -1)
+			if (getline(&codeLine, &lineLen, codeFeed) == -1)
 				return NULL; // this signals an error from process_line.hpp
 
 			str = codeLine;
@@ -223,7 +213,7 @@ namespace strstk {
 			}
 
 		}
-
+		free(codeLine);
 		return ret;
 
 	}

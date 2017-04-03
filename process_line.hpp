@@ -68,6 +68,7 @@ extern CalcValue ans;
 				FILE* statement = tmpfile();\
 				fputs(buff, statement);\
 				rewind(statement);\
+				free(buff);\
 \
 				/* run the temp file */\
 				if (runFile(statement, first_node, showErrors, mainStack, elseStatement)) {\
@@ -451,6 +452,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			if (printCalcValueRAW(mainStack.top(), first_node))
 				return p;
 
+
 			mainStack.pop();
 
 		// print and end with a newline
@@ -459,6 +461,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 			if (printCalcValueRAW(mainStack.top(), first_node))
 				return p;
+
 			mainStack.pop();
 
 			std::cout <<std::endl;
@@ -703,12 +706,13 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				delete execArr;
 			} else {
 				PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
-				return p;
-
+				strcpy(pInit, p);
+				free(p);
+				return pInit;
 			}
 
-			rpnln = p;
-
+			rpnln = p; // this is a memory leak..
+			//free(p);
 		} else if (*p == '}') {
 			printCalcValueRAW(mainStack.top(), first_node);
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");

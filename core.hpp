@@ -63,6 +63,9 @@ void runFile(char* programFile, bool& errorReporting){
   	first_node->first = first_node;
 
 	bool elseStatement = false;
+	char *rpnln = (char*) malloc(256), *rpnln_head = rpnln;
+	size_t lineLen = 256;
+
 
 	// for each line in the programFile...
 	for (;;) {
@@ -70,17 +73,17 @@ void runFile(char* programFile, bool& errorReporting){
 	  	// used for line numbers in errors
 		line++;
 
+		if (getline(&rpnln, &lineLen, program) == -1) {
+			// prevent memory leaks...
+			delete first_node;
+			fclose(program);
 
-		char* rpnln = (char*) malloc(256);
-		size_t lineLen = 256;
-
-
-		if (getline(&rpnln, &lineLen, program) == -1)
 			return; // EOF
+		}
+		rpnln_head = rpnln;
 
 		// I need a copy of it to call free() on later.
-		char	*rpnln_head = rpnln,
-				*errorToken = NULL;
+		char *errorToken = NULL;
 		// process the line
 		if ((errorToken =
 			processLine(mainStack, first_node,errorReporting, rpnln, elseStatement, program))
@@ -102,6 +105,8 @@ void runFile(char* programFile, bool& errorReporting){
 
 			color_fputs(stderr, "^\n", 255, 0, 0);
 
+			free(rpnln_head);
+			delete first_node;
 			// windows sucks :P
 			#ifdef _WIN32
 				std::cin.ignore();
@@ -112,14 +117,7 @@ void runFile(char* programFile, bool& errorReporting){
 
 		}
 
-		// prevent memory leaks...
-		free(rpnln_head);
 	}
-
-	// windows sucks :P
-	#ifdef _WIN32
-		std::cin.ignore();
-	#endif
 
 }
 
@@ -132,6 +130,9 @@ bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 
 	size_t local_line = 0;
 
+	char* rpnln = (char*) malloc(256), *rpnln_head = rpnln;
+	size_t lineLen = 256;
+
 	// for each line in the programFile...
 	for (;;) {
 
@@ -139,16 +140,13 @@ bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 		local_line++;
 
 
-		char* rpnln = (char*) malloc(256);
-		size_t lineLen = 256;
 
 
 		if (getline(&rpnln, &lineLen, prog_file) == -1)
 			return false; // EOF
 
 		// I need a copy of it to call free() on later.
-		char	*rpnln_head = rpnln,
-				*errorToken = NULL;
+		char* errorToken = NULL;
 		// process the line
 		if ((errorToken =
 			processLine(mainStack, first_node,errorReporting, rpnln, elseStatement, prog_file))
@@ -179,13 +177,15 @@ bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 		  	// you're dead :P
 			exit(EXIT_FAILURE);
 
+			// prevent memory leaks...
+			free(rpnln_head);
 			return true;
 		}
 
-		// prevent memory leaks...
-		free(rpnln_head);
 	}
 
+	// prevent memory leaks...
+	free(rpnln_head);
 	return false;
 
 }

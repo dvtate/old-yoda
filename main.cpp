@@ -56,6 +56,7 @@ int main(int argc, char** argv){
 		for (;;)
 			runShell(first_node, showErrors, mainStack, elseStatement);
 
+		delete first_node;
 		return 0;
 
 
