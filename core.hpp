@@ -130,7 +130,7 @@ bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 
 	size_t local_line = 0;
 
-	char* rpnln = (char*) malloc(256), *rpnln_head = rpnln;
+	char* rpnln = NULL, *rpnln_head = rpnln;
 	size_t lineLen = 256;
 
 	// for each line in the programFile...
@@ -139,12 +139,11 @@ bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 	  	// used for line numbers in errors
 		local_line++;
 
-
-
-
-		if (getline(&rpnln, &lineLen, prog_file) == -1)
+		if (getline(&rpnln, &lineLen, prog_file) == -1) {
+			//free(rpnln);
 			return false; // EOF
-
+		}
+		rpnln_head = rpnln;
 		// I need a copy of it to call free() on later.
 		char* errorToken = NULL;
 		// process the line
@@ -155,12 +154,14 @@ bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 
 		  	// file name and
 		  	setTermEffect(TERM_EFF_BOLD);
-			std::cerr <<progName <<":" <<line + local_line<<':' <<errorToken - rpnln_head <<":\n";
+			std::cerr <<progName <<":" <<line - linesToEnd(prog_file)
+					  <<':' <<errorToken - rpnln_head <<":\n";
 			setTermEffect();
 
 			// print the problem statement
 			rewind(prog_file);
-			color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(prog_file, local_line));
+			color_fprintf(stderr, 255, 0, 0, "\t%s\t",
+						  getLineFromFile(prog_file, local_line));
 
 
 		  	// point to the problem area
@@ -169,19 +170,12 @@ bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 
 			color_fputs(stderr, "^\n", 255, 0, 0);
 
-			// windows sucks :P
-			#ifdef _WIN32
-				std::cin.ignore();
-			#endif
-
-		  	// you're dead :P
-			exit(EXIT_FAILURE);
-
 			// prevent memory leaks...
 			free(rpnln_head);
 			return true;
 		}
-
+		free(rpnln_head);
+		rpnln = rpnln_head = NULL;
 	}
 
 	// prevent memory leaks...
@@ -272,6 +266,8 @@ void runStringStack(StrStack& code, bool& errorReporting){
 			&& errorReporting
 		) {
 
+
+
 		  	// file name and
 		  	setTermEffect(TERM_EFF_BOLD);
 			std::cerr <<progName <<":" <<line <<':' <<errorToken - rpnln_head <<":\n";
@@ -299,7 +295,7 @@ void runStringStack(StrStack& code, bool& errorReporting){
 }
 
 
-
+/* this will no longer get used
 // this is part of a ghetto solution to make getStrStack() work in nested-blocks
 struct current_block_data_t {
 	char** stackHead;
@@ -380,6 +376,7 @@ bool runStringStack(
 	free(rpnln_head);
 	return false;
 }
+*/
 
 
 #endif

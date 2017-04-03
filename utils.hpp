@@ -304,4 +304,15 @@ inline char* trimStr(char* string){
 
 }
 
+inline size_t linesToEnd(FILE* fil){
+    size_t numLines = 0;
+
+    int ch;
+    while (EOF != (ch=getc(fil)))
+        if ('\n' == ch)
+            ++numLines;
+
+    return numLines;
+}
+
 #endif

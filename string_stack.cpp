@@ -12,6 +12,7 @@
 #endif
 
 
+
 // resets the object to it's original state
 void StrStack::clear(){
 
@@ -28,7 +29,7 @@ void StrStack::clear(){
 // doubles the size of the buffer
 void StrStack::grow(){
 
-  	// don't copy the contents of an empty buffer
+  	// don't copy the contents of an empty buffer (shouldn't get called in this case...)
 	if (stackDepth == 0)
 		stackHead = buffer = (char**) realloc(buffer, ((1 << ++sizeFactor) * 256) * sizeof(char*));
 
@@ -70,7 +71,7 @@ void StrStack::push(const char* str){
 	buffer++;
 
 	// if the size needs to be doubled after adding a new element
-  	if (stackDepth++ == (1U <<sizeFactor) * 256)
+  	if (stackDepth++ == (1u <<sizeFactor) * 256)
 		grow();
 }
 
@@ -127,20 +128,15 @@ void StrStack::toString(char** dest, size_t* space){
 
 }
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 extern FILE* program;
 
 extern unsigned int line;
-
-// this hack allows nested blocks (see core.hpp)
-struct current_block_data_t {
-	char** stackHead;
-	size_t linesLeft;
-};
-extern struct current_block_data_t curStrStack;
 
 
 namespace strstk {
@@ -217,22 +213,6 @@ namespace strstk {
 		return ret;
 
 	}
-
-
-
-	void printStrStack(const StrStack& stack){
-
-		char** buff = stack.buffer;
-		//size_t sd = stack.stackDepth;
-
-
-		int num = 0;
-
-		while (buff-- > stack.stackHead)
-			printf("%d: %s\n", num++, *buff);
-
-	}
-
 
 
 }

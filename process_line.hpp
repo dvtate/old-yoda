@@ -58,7 +58,7 @@ extern CalcValue ans;
 	}
 
 // evals a block
-#define RUN_STR_STK(STRSTK) {\
+#define RUN_STR_STK(STRSTK, STACK) {\
 				/* put the statement in a string */\
 				size_t buff_size = 500;\
 				char* buff = (char*) malloc(buff_size);\
@@ -71,18 +71,18 @@ extern CalcValue ans;
 				free(buff);\
 \
 				/* run the temp file */\
-				if (runFile(statement, first_node, showErrors, mainStack, elseStatement)) {\
+				if (runFile(statement, first_node, showErrors, STACK, elseStatement)) {\
 					PASS_ERROR("\aERROR: @ (exec operator) failed");\
 				}\
 				fclose(statement);\
 }
 
 
-
+/*
 extern bool runStringStack(
 	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
 	UserVar* first_node
-);
+);*/
 extern bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 	      std::stack<CalcValue>& mainStack, bool& elseStatement
 );
@@ -92,6 +92,9 @@ extern bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 
 
 ///TODO: add FILE* feed param to fxn so we can have recursive file reading and
+/// returns: location/source of error or NULL
+/// params: environment/operation variables
+/// this function runs the user's code, most essential part of the interpreter
 char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 	bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed
 ){
@@ -727,7 +730,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			CalcValue top = CalcValue(mainStack.top());
 
 			if (top.type == CalcValue::BLK) {
-				RUN_STR_STK(*mainStack.top().block);
+				RUN_STR_STK(*mainStack.top().block, mainStack);
 
 				/* this is what I used to do... but it's not working :(
 				if (runStringStack(*top.block, showErrors, mainStack, first_node)) {
@@ -777,9 +780,9 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				StrStack elseBlock = *mainStack.top().block;
 				mainStack.pop();
 
-				strstk::appendToStack(newElseClause, elseBlock);
+				StrStack::appendToStack(newElseClause, elseBlock);
 				newElseClause.push("} else {");
-				strstk::appendToStack(newElseClause, elseifBlock);
+				StrStack::appendToStack(newElseClause, elseifBlock);
 				if (condition) {
 					newElseClause.push("} true if");
 				} else {
@@ -810,7 +813,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 					CalcValue runTrue = mainStack.top();
 					mainStack.pop(); mainStack.pop();
 					if (runTrue.type == CalcValue::BLK) {
-						RUN_STR_STK(*runTrue.block);
+						RUN_STR_STK(*runTrue.block, mainStack);
 					} else
 						mainStack.push(runTrue);
 
@@ -820,7 +823,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 						CalcValue top = mainStack.top();
 						mainStack.pop();
 						if (top.type == CalcValue::BLK) {
-							RUN_STR_STK(*top.block);
+							RUN_STR_STK(*top.block, mainStack);
 						} else
 							mainStack.push(top);
 
@@ -833,7 +836,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 						CalcValue top = mainStack.top();
 						mainStack.pop();
 						if (top.type == CalcValue::BLK) {
-							RUN_STR_STK(*top.block);
+							RUN_STR_STK(*top.block, mainStack);
 						} else
 							mainStack.push(top);
 
@@ -868,7 +871,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			mainStack.pop();
 
 			for (; timesToRepeat > 0; timesToRepeat--) {
-				RUN_STR_STK(block);
+				RUN_STR_STK(block, mainStack);
 			}
 		// while loop
 		} else if (strcmp(p, "while") == 0) {
@@ -889,17 +892,18 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 			// main-loop
 			for (;;) {
-
+				/*
 				// check condition
 				if (runStringStack(condBlock, showErrors, condStack, first_node)) {
 					PASS_ERROR("\aERROR: while: error in processing condtion");
-				}
+				}*/
+				RUN_STR_STK(condBlock, condStack);
 				if (!condStack.top().getNum())
 					break;
 
 				// run process
 				if (top.type == CalcValue::BLK) {
-					RUN_STR_STK(*top.block);
+					RUN_STR_STK(*top.block, mainStack);
 				} else
 					mainStack.push(top);
 
