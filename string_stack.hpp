@@ -50,12 +50,12 @@ public:
 
 	}
 
-	/*~StrStack(){
+	~StrStack(){
 		for (; stackDepth > 0; stackDepth--)
 			free(*(--buffer));
 
 		free(stackHead);
-	}*/
+	}
 
 	// copy
 	StrStack& operator=(const StrStack& cpy){
