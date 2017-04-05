@@ -254,3 +254,9 @@ YodaScript is a stack-based language based on reverse polish notation.
 * Structure-Equivalent Operators:
   - `else`, `elseif`, `if`: conditional operators
   - `repeat`, `while`, `for-each`: looping operators
+  
+# Related Repos
+  When I develop the interpreter I like to develop different portions separately and then add them to my code-base once I've rigorously tested them. If you want to contribute to a particular sub-system, I'd reccomend editing these repos instead of this one.
+  - https://github.com/dvtate/stack-demo
+  - https://github.com/dvtate/terminal-colors
+  - various other programs in https://gist.github.com/dvtate
