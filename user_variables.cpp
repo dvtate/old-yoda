@@ -60,10 +60,10 @@ namespace vars {
 
 	// this is broken...
 	void removeVar(UserVar* first, const char* name){
-
 		// search the linked list for the object
-		while (first != NULL) {
-			if (strcmp(first->next->name, name) == 0) {
+
+		while (name && first->next && first) {
+			if (first->next && strcmp(first->next->name, name) == 0) {
 
 				// get object address so it doesn't become unaccessable
 				UserVar* toBeDeleted = first->next;
@@ -73,6 +73,9 @@ namespace vars {
 
 				// remove the node
 				delete toBeDeleted;
+
+				// we done
+				return;
 
 			} else // keep looking for it
 				first = first->next;

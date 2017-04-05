@@ -122,7 +122,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			if (mainStack.top().type != CalcValue::NUM) {
-				//PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
+				PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
 			}
 
 			double b = getNextValue(mainStack).getNum();
@@ -130,7 +130,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			if (mainStack.top().type != CalcValue::NUM) {
-				//PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
+				PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
 			}
 
 			double a = getNextValue(mainStack).getNum();
@@ -363,17 +363,21 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		// find first occurance of substring in a string (strstr())
 		} else if (strcmp(p, "strstr") == 0) {
 			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: stristr takes 2 strings, a haystack and a needle (strings)\n");
+				PASS_ERROR("\aERROR: strstr expected 2 strings, a haystack and a needle to find\n");
 			}
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
+				PASS_ERROR("\aERROR: strstr expected 2 strings, a haystack and a needle to find\n");
 			}
 
 			char needle[strlen(mainStack.top().string)];
 			strcpy(needle, mainStack.top().string);
 			mainStack.pop();
 
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR) {
+				PASS_ERROR("\aERROR: strstr expected 2 strings, a haystack and a needle to find\n");
+			}
 			char haystack[strlen(mainStack.top().string)];
 			strcpy(haystack, mainStack.top().string);
 			mainStack.pop();
@@ -383,7 +387,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		// case-insensitive strstr
 		} else if (strcmp(p, "stristr") == 0) {
 			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: stristr takes 2 strings, a haystack and a needle (strings)\n");
+				PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
 			}
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::STR) {
@@ -409,7 +413,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: trim expected a string to trim whitespace off of\n");
+				PASS_ERROR("\aERROR: trim expected a string\n");
 			}
 
 			char str[strlen(mainStack.top().string)];
@@ -428,8 +432,8 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		else if (*p == 'e' && *(p + 1) == '\0')
 			mainStack.push(M_E); // defined in math.h
 		// literals
-		else if (strcmp(p, "null") == 0) // this segfaults................
-			mainStack.push(NULL_CALCVAL_OBJECT); // (char*) NULL
+		else if (strcmp(p, "null") == 0)
+			mainStack.push(CalcValue());
 		else if (strcmp(p, "true") == 0)
 			mainStack.push(1.0);
 		else if (strcmp(p, "false") == 0)
@@ -588,7 +592,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		} else if (strcmp(p, "file_put_contents") == 0) {
 			// takes a string and a filename
 			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: not enough data for function `file_put_contents`. (takes 2 strings)\n\n");
+				PASS_ERROR("\aERROR: file_put_contents expected 2 strings contents and file name\n\n");
 			}
 
 			CONVERT_REFS(mainStack, first_node, showErrors);
@@ -1099,14 +1103,15 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		else if (strcmp(p, "version") == 0)
 			printVersionInfo();
 
-		/* TODO: fix this (currently segfaults...)
 		// delete a variable
 		else if (strcmp(p, "delete") == 0) {
-			//std::cout <<"$a deleted\n" <<std::endl;
+			ASSERT_NOT_EMPTY(p);
+			if (mainStack.top().type != CalcValue::REF) {
+				PASS_ERROR("\aERROR: delete expected a variable/reference to delete\n");
+			}
 			vars::removeVar(first_node, mainStack.top().string);
-			//varNames.pop();
+			mainStack.pop();
 		}
-		*/
 
 		// clear the stack
 		else if  (strcmp(p, "...") == 0)
@@ -1120,7 +1125,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		// swap the top 2 elements in the stack
 		} else if (strcmp(p, "swap") == 0) {
 			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: Not enough data to satisfy `" <<p <<"` operator." <<std::endl);
+				PASS_ERROR("\aERROR: Not enough data to satisfy `" <<p <<"` operator.\n");
 			}
 			// take the top 2 elements from the top
 			CalcValue val1 = getNextValue(mainStack);
