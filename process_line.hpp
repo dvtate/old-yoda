@@ -71,27 +71,18 @@ extern CalcValue ans;
 				free(buff);\
 \
 				/* run the temp file */\
-				if (runFile(statement, first_node, showErrors, STACK, elseStatement)) {\
-					PASS_ERROR("\aERROR: @ (exec operator) failed");\
+				if (runFile(statement, first_node, showErrors, (STACK), elseStatement)) {\
+					PASS_ERROR("\aERROR: @ (exec operator) failed\n");\
 				}\
 				fclose(statement);\
 }
 
 
-/*
-extern bool runStringStack(
-	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
-	UserVar* first_node
-);*/
 extern bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 	      std::stack<CalcValue>& mainStack, bool& elseStatement
 );
 
 
-
-
-
-///TODO: add FILE* feed param to fxn so we can have recursive file reading and
 /// returns: location/source of error or NULL
 /// params: environment/operation variables
 /// this function runs the user's code, most essential part of the interpreter
@@ -131,7 +122,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			if (mainStack.top().type != CalcValue::NUM) {
-				PASS_ERROR("\aERROR: incompatible data-types for operatotr `" <<p <<"`. (expected two numbers)\n");
+				//PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
 			}
 
 			double b = getNextValue(mainStack).getNum();
@@ -139,7 +130,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			if (mainStack.top().type != CalcValue::NUM) {
-				PASS_ERROR("\aERROR: incompatible data-types for operatotr `" <<p <<"`. (expected two numbers)\n");
+				//PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
 			}
 
 			double a = getNextValue(mainStack).getNum();
@@ -892,11 +883,6 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 			// main-loop
 			for (;;) {
-				/*
-				// check condition
-				if (runStringStack(condBlock, showErrors, condStack, first_node)) {
-					PASS_ERROR("\aERROR: while: error in processing condtion");
-				}*/
 				RUN_STR_STK(condBlock, condStack);
 				if (!condStack.top().getNum())
 					break;
@@ -906,9 +892,45 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 					RUN_STR_STK(*top.block, mainStack);
 				} else
 					mainStack.push(top);
-
 			}
 
+		} else if (strcmp(p, "for-each") == 0) {
+			// we have at least 3 things... the first is a reference
+			if (mainStack.size() < 3 || mainStack.top().type != CalcValue::REF) {
+				PASS_ERROR("\aERROR: malformed for-each statement \n correct format: `{ process } { list } $var for-each`\n" <<std::endl);
+			}
+
+			// if it hasn't been assigned yet..
+			UserVar* var = vars::findVar(first_node, mainStack.top().string); // container variable
+			if (var == NULL) {
+				var = new UserVar(first_node, mainStack.top().string, CalcValue());
+				vars::lastVar(first_node)->next = var;
+			}
+
+			// get list
+			mainStack.pop();
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::BLK) {
+				PASS_ERROR("\aERROR: malformed for-each statement \n correct format: `{ process } { list } $var for-each`\n" <<std::endl);
+			}
+			std::stack<CalcValue> tmpStack;
+			RUN_STR_STK(*mainStack.top().block, tmpStack);
+
+
+			// get process
+			mainStack.pop();
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::BLK) {
+				PASS_ERROR("\aERROR: malformed for-each statement \n correct format: `{ process } { list } $var for-each`\n" <<std::endl);
+			}
+
+			StrStack process(*mainStack.top().block);
+
+			while (!tmpStack.empty()) {
+				var->val = tmpStack.top();
+				RUN_STR_STK(process, mainStack);
+				tmpStack.pop();
+			}
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
 			|| !strcmp(p, "exit") || !strcmp(p, "quit")
@@ -1015,49 +1037,46 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: not enough data for assignment. (takes 2 arguments)\n" <<std::endl);
-			} else {
-
-				CalcValue rhs = getNextValue(mainStack),
-						  lhs = getNextValue(mainStack);
-
-				if (lhs.type == CalcValue::REF) {
-					UserVar* var = vars::findVar(first_node, lhs.string);
-
-					while (var && var->val.type == CalcValue::REF)
-						var = vars::findVar(first_node, var->val.string);
-
-					if (var == NULL) {
-						var = new UserVar(first_node, lhs.string, rhs);
-						var->val.type = rhs.type;
-						vars::lastVar(first_node)->next = var;
-
-					// changing the variable's value
-					} else
-						var->setValue(rhs);
-
-
-				} else if (rhs.type == CalcValue::REF) {
-					UserVar* var = vars::findVar(first_node, rhs.string);
-
-					while (var && var->val.type == CalcValue::REF)
-						var = vars::findVar(first_node, var->val.string);
-
-					if (var == NULL) {
-						var = new UserVar(first_node, rhs.string, lhs);
-						var->val.type = lhs.type;
-						vars::lastVar(first_node)->next = var;
-
-					// changing the variable's value
-					} else
-						var->setValue(lhs);
-
-				// nothing that can hold data
-				} else {
-					PASS_ERROR("\aERROR: inappropriate use of assignment operator. (no variable given)\n" <<std::endl);
-				}
-
 			}
 
+			CalcValue rhs = getNextValue(mainStack),
+					  lhs = getNextValue(mainStack);
+
+			if (lhs.type == CalcValue::REF) {
+				UserVar* var = vars::findVar(first_node, lhs.string);
+
+				while (var && var->val.type == CalcValue::REF)
+					var = vars::findVar(first_node, var->val.string);
+
+				if (var == NULL) {
+					var = new UserVar(first_node, lhs.string, rhs);
+					var->val.type = rhs.type;
+					vars::lastVar(first_node)->next = var;
+
+				// changing the variable's value
+				} else
+					var->setValue(rhs);
+
+
+			} else if (rhs.type == CalcValue::REF) {
+				UserVar* var = vars::findVar(first_node, rhs.string);
+
+				while (var && var->val.type == CalcValue::REF)
+					var = vars::findVar(first_node, var->val.string);
+
+				if (var == NULL) {
+					var = new UserVar(first_node, rhs.string, lhs);
+					var->val.type = lhs.type;
+					vars::lastVar(first_node)->next = var;
+
+				// changing the variable's value
+				} else
+					var->setValue(lhs);
+
+			// nothing that can hold data
+			} else {
+				PASS_ERROR("\aERROR: inappropriate use of assignment operator. (no variable given)\n" <<std::endl);
+			}
 
 		// variable
 		} else if (*p == '$' && *(p + 1) != '\0') // user must use '$' prefix to access the variables

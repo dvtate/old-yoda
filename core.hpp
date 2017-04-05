@@ -105,7 +105,6 @@ void runFile(char* programFile, bool& errorReporting){
 
 			color_fputs(stderr, "^\n", 255, 0, 0);
 
-			free(rpnln_head);
 			delete first_node;
 			// windows sucks :P
 			#ifdef _WIN32
