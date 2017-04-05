@@ -192,11 +192,11 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `*`: multiply
   - `/`: divide
   - `%`: modulus/remainder
-  - `**` = `pow`: raise arg1 to arg2 power
-  - `sqrt` = `sqr`: square route
+  - `**`, `pow`: raise arg1 to arg2 power
+  - `sqrt`, `sqr`: square route
   - `log`, `log10`: base 10 logarithm
   - `ln`: natural logarithm
-  - `logbase` = `logBase` = `logBASE`: Logarithm of the given base
+  - `logbase`, `logBase`, `logBASE`: Logarithm of the given base
   - `sin`, `cos`, `tan`: trigonometric funcitons (radians)
   - `asin`, `acos`, `atan`: inverse trigonometric funcitons (radians)
   - `sinh`, `cosh`, `tanh`: hyperbolic trigonometric functions (radians)
@@ -231,20 +231,26 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `swap`: swaps the top 2 elements in the stack
   - `assert`: makes an error if top of stack is false
   
-* Type conversions:
+* Variables/references and types:
   - `str`: converts to string
   - `num`: converts to a number
   - `int`: converts to a integer (rounding)
-  - `floor`: static casts to an int. 
+  - `floor`: static casts to an int
   - `~`: copy operator, replaces a reference with the basic value it points to
+  - `=`: assignment operator
+  - `delete`: deletes a variable/reference
   
 * String functions:
   - `strlen`: returns the length of a given string
+  - `strstr`: finds a sub-string in a string
+  - `stristr`: case-insensitive strstr
+  
 * File operators:
   -  `file_get_contents`, `file_put_contents`: convert between files and strings
+  
 * Execuatable Array Operators:
   - `@`, `eval`: runs the given subroutine or string as code (equivalent to eval)
 
 * Structure-Equivalent Operators:
   - `else`, `elseif`, `if`: conditional operators
-  - `repeat`, `while`: looping operators
+  - `repeat`, `while`, `for-each`: looping operators
