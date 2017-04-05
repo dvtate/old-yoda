@@ -727,10 +727,6 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			if (top.type == CalcValue::BLK) {
 				RUN_STR_STK(*mainStack.top().block, mainStack);
 
-				/* this is what I used to do... but it's not working :(
-				if (runStringStack(*top.block, showErrors, mainStack, first_node)) {
-					PASS_ERROR("\aERROR in bock/subroutine called here\n");
-				}*/
 			} else if (top.type == CalcValue::STR) {
 				char* err = processLine(mainStack, first_node, showErrors, top.string, elseStatement, codeFeed);
 				if (err) {

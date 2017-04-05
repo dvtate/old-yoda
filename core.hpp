@@ -110,7 +110,6 @@ void runFile(char* programFile, bool& errorReporting){
 			#ifdef _WIN32
 				std::cin.ignore();
 			#endif
-
 		  	// you're dead :P
 			exit(EXIT_FAILURE);
 
