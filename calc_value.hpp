@@ -8,12 +8,12 @@
 
 #include "string_stack.hpp"
 
-#define USERVAR_NAME_MAXLENGHT 20
+#define USERVAR_NAME_MAXLENGTH 20
 // to be defined later
 class CalcValue;
 class UserVar;
 namespace vars {
-	extern CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
+	extern CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
 	extern UserVar* findVar(UserVar* first, char* name);
 }
 

@@ -6,13 +6,14 @@
 
 #include "calc_value.hpp"
 
+//USERVAR_NAME_MAXLENGTH = 20
 // variable names longer than 20chars will be called by their first 19 chars
 
 // the node for my linked list of user defined variables
 class UserVar {
 public:
 
-	char name[USERVAR_NAME_MAXLENGHT]; // USERVAR_NAME_MAXLENGHT defined in calc_value.h
+	char name[USERVAR_NAME_MAXLENGTH]; // USERVAR_NAME_MAXLENGTH defined in calc_value.h
 
 	CalcValue val;
 
@@ -21,21 +22,21 @@ public:
 	UserVar(UserVar* firstn, const char* const identifier, double contents):
 		val(contents), first(firstn), next((UserVar*) NULL)
 	{
-	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT - 1);
+	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGTH - 1);
 	  	val.type = CalcValue::NUM;
 	}
 
 	UserVar(UserVar* firstn, const char* const identifier, const char* const contents):
 		val(contents), first(firstn), next((UserVar*) NULL)
 	{
-	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT - 1);
+	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGTH - 1);
 	  	val.type = CalcValue::NUM;
 	}
 
 	UserVar(UserVar* firstn, const char* const identifier, CalcValue contents):
 		first(firstn), next((UserVar*) NULL)
   	{
-	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGHT);
+	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGTH);
 		val.setValue(contents);
 	}
 
@@ -105,7 +106,6 @@ public:
 };
 
 
-
 namespace vars {
 
 	// first node in the linked list of variables
@@ -118,19 +118,19 @@ namespace vars {
 	extern void wipeAll(UserVar*& first);
 
 	// to make a  new variable, or change it's value
-	//extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], double value);
-	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT], CalcValue value);
+	//extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH], double value);
+	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH], CalcValue value);
 
 	// to remove an individial variable
-	extern void removeVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGHT]);
+	extern void removeVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
 
 	// returns a pointer to the variable
-	extern UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
+	extern UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
 
 	// has the variable been declared yet?
-	extern bool varExists(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
+	extern bool varExists(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
 
-	extern CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]);
+	extern CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
 }
 
 

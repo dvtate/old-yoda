@@ -60,10 +60,12 @@ namespace vars {
 
 	// this is broken...
 	void removeVar(UserVar* first, const char* name){
-		// search the linked list for the object
+		if (!name || !first)
+			return;
 
-		while (name && first->next && first) {
-			if (first->next && strcmp(first->next->name, name) == 0) {
+		// search the linked list for the object
+		while (first->next && first) {
+			if (strcmp(first->next->name, name) == 0) {
 
 				// get object address so it doesn't become unaccessable
 				UserVar* toBeDeleted = first->next;
@@ -116,7 +118,8 @@ namespace vars {
 		return false;
 	}
 
-	CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGHT]){
+	// de-references the variable's
+	CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]){
 		UserVar* var = findVar(first, name);
 
 		if (var) {
@@ -131,6 +134,5 @@ namespace vars {
 
 	}
 
-	//char* valueAtVar_debug()
 }
 
