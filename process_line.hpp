@@ -723,9 +723,10 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			CalcValue top = CalcValue(mainStack.top());
+			mainStack.pop();
 
 			if (top.type == CalcValue::BLK) {
-				RUN_STR_STK(*mainStack.top().block, mainStack);
+				RUN_STR_STK(*top.block, mainStack);
 
 			} else if (top.type == CalcValue::STR) {
 				char* err = processLine(mainStack, first_node, showErrors, top.string, elseStatement, codeFeed);
@@ -735,7 +736,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			} else {
 				PASS_ERROR("\aERROR: @ (execution operator) only accepts strings and executable arrays\n");
 			}
-			mainStack.pop();
+
 		// conditionals::else
 		} else if (strcmp(p, "else") == 0) {
 			ASSERT_NOT_EMPTY(p);
@@ -1083,7 +1084,15 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 			mainStack.push(CalcValue().setRef(p + 1)); // beautiful hack, eh?
 
-		else if (*p == '~' && *(p + 1) == '\0') {
+		else if (strcmp(p, "is_defined") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			if (mainStack.top().type != CalcValue::STR) {
+				PASS_ERROR("\aERROR: is_defined expected a reference\n");
+			}
+
+			mainStack.push(vars::varExists(first_node, getNextValue(mainStack).string));
+
+		} else if (*p == '~' && *(p + 1) == '\0') {
 			if (mainStack.empty()){
 				PASS_ERROR("\aERROR: not enough data for copy operator (`~`)\n");
 			}
@@ -1118,8 +1127,12 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			if (!mainStack.empty())
 				mainStack.pop();
 
+		// pushes the stack size to the stack
+		} else if (strcmp(p, "stklen") == 0)
+			mainStack.push(mainStack.size());
+
 		// swap the top 2 elements in the stack
-		} else if (strcmp(p, "swap") == 0) {
+		else if (strcmp(p, "swap") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: Not enough data to satisfy `" <<p <<"` operator.\n");
 			}
