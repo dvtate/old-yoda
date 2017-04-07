@@ -1,0 +1,28 @@
+# macros are somewhat
+# similar to subroutines
+{
+	# kinda like parameters
+	num $param = 
+
+	# decrement param
+	$param $param 2 / =
+
+	# print param
+	$param println
+
+	# push value stored in param onto stacksss
+	$param ~ dup dup
+
+	# delete param
+	$param delete
+
+	# if param > 1 then call self
+	{ $recTest @ } swap 1 > if
+
+# this variable stores the macros
+} $recTest =
+
+
+# run the executable array
+2 20 ** $recTest @
+
