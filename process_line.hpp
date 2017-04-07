@@ -1086,7 +1086,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 		else if (strcmp(p, "is_defined") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			if (mainStack.top().type != CalcValue::STR) {
+			if (mainStack.top().type != CalcValue::REF) {
 				PASS_ERROR("\aERROR: is_defined expected a reference\n");
 			}
 
