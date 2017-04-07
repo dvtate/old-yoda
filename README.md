@@ -230,6 +230,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `dupn`: performs `dup` n number or times (2 args)
   - `swap`: swaps the top 2 elements in the stack
   - `assert`: makes an error if top of stack is false
+  - `stklen`: returns the size of the stack
   
 * Variables/references and types:
   - `str`: converts to string
@@ -239,6 +240,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `~`: copy operator, replaces a reference with the basic value it points to
   - `=`: assignment operator
   - `delete`: deletes a variable/reference
+  - `is_defined`: returns whether or not the given variable is defined or not
   
 * String functions:
   - `strlen`: returns the length of a given string
