@@ -416,10 +416,39 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				PASS_ERROR("\aERROR: trim expected a string\n");
 			}
 
-			char str[strlen(mainStack.top().string)];
+			char str[strlen(mainStack.top().string) + 1];
 			strcpy(str, mainStack.top().string);
 			mainStack.pop();
 			mainStack.push(trimStr(str));
+
+		} else if (strcmp(p, "split") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
+			}
+
+			// get delims
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR) {
+				PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
+			}
+			char delims[strlen(mainStack.top().string) + 1];
+			strcpy(delims, mainStack.top().string);
+			mainStack.pop();
+
+			// get str
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR) {
+				PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
+			}
+			char str[strlen(mainStack.top().string) + 1];
+			strcpy(str, mainStack.top().string);
+			mainStack.pop();
+
+			char* pch = strtok(str, delims);
+			while (pch) {
+				mainStack.push(pch);
+				pch = strtok(NULL, delims);
+			}
 
 		// line-comments
 		} else if (*p == '#')
@@ -1166,22 +1195,30 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			while (copies-- > 1)
 				mainStack.push(mainStack.top());
 
+		} else if (strcmp(p, "reverse_stack") == 0) {
+			std::stack<CalcValue> tmpStack;
+
+			while (!mainStack.empty()) {
+				tmpStack.push(mainStack.top());
+				mainStack.pop();
+			}
+
+			mainStack = tmpStack;
+
 		// retarded users...
 		} else if (*p == '\'') {
 			PASS_ERROR("\aERROR: strings are enclosed in double-quotes (\")\n");
 
 		// user has given a string :D
-		} else if (*p == '\"') {
+		} else if (*p == '\"')
 			mainStack.push(p + 1);
-			//printf("string recieved <%s>", p + 1);
-		}
 		// let's try and figure out what this could be...
 		else {
 			// parse input
 			double number = atof(p);
 
 			// the user is an asshole :T
-			if (number == 0 && *p != '0') {
+			if (number == 0 && *p != '0' && (*p != '-' && *(p + 1) != '0')) {
 				PASS_ERROR("\aSYNTAX ERROR: near `" <<p <<"`" <<std::endl);
 
 			// the user has given us a number :D
