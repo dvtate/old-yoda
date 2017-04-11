@@ -115,6 +115,14 @@ YodaScript is a stack-based language based on reverse polish notation.
    count is 3
    count is 4
    ```
+  - <b>for-each Loops:</b> 
+   assigns a variable to each element in an execuatable array
+   ```
+   1>>> {
+	     $num print  
+   } { 4 3 2 1 0 } $num for-each
+   01234
+   ```
  - <b>Conditionals:</b>
   These can be used to run code if a condition is met
   ```
@@ -223,7 +231,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `<<`: bitshift left
   - `>>`: bitshift right
  
-* Stack/flow operators: these are useful in organizing your syntax
+* Stack/flow operators: these are useful in carrying values to their destination in the correct order
   - `...`: empty stack
   - `;`: pop top of stack
   - `dup`: duplicates the value on the top of the stack (1 arg)
@@ -231,6 +239,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `swap`: swaps the top 2 elements in the stack
   - `assert`: makes an error if top of stack is false
   - `stklen`: returns the size of the stack
+  - `reverse_stack`: reverses the order of stack
   
 * Variables/references and types:
   - `str`: converts to string
@@ -246,6 +255,8 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `strlen`: returns the length of a given string
   - `strstr`: finds a sub-string in a string
   - `stristr`: case-insensitive strstr
+  - `trim`: trims whitespace from start and end of the string
+  - `split`: splits a string using given delimiters
   
 * File operators:
   -  `file_get_contents`, `file_put_contents`: convert between files and strings
