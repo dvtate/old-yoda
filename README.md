@@ -194,7 +194,7 @@ YodaScript is a stack-based language based on reverse polish notation.
     * `>>> assert`<br/>
       errors if condition is false, otherwise execution continues
 # A incomplete list of built-in operators and functions:
- * Mathematical operators:
+* Mathematical operators:
   - `+`: add (also concatenates when one or more of the arguments is a string)
   - `-`: subtract
   - `*`: multiply
@@ -210,13 +210,13 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `sinh`, `cosh`, `tanh`: hyperbolic trigonometric functions (radians)
   - `asinh`, `acosh`, `atanh`: inverse hyperbolic trigonometric functions (radians)
   
- * Logical operators: (0 is false everything else is true)
+* Logical operators: (0 is false everything else is true)
   - `&&`: logical-and
   - `||`: logical-or
   - `!`: logical-not
   - `!=`: logical-XOR
  
- * Compairison operators:
+* Compairison operators:
   - `==`, `?=`: equals-to
   - `!=`: not equals-to
   - `>`: greater than
@@ -224,7 +224,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `>=`: greater than or equal to
   - `<=`: less than or equal to
   
- * Bitwise operators:
+* Bitwise operators:
   - `|`: bitwise-or
   - `&`: bitwise-and
   - `^`: bitwise-XOR
