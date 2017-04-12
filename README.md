@@ -240,18 +240,21 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `assert`: makes an error if top of stack is false
   - `stklen`: returns the size of the stack
   - `reverse_stack`: reverses the order of stack
+  - `range`: puts a range of numbers onto the stack
   
-* Variables/references and types:
+* Types:
   - `str`: converts to string
   - `num`: converts to a number
   - `int`: converts to a integer (rounding)
   - `floor`: static casts to an int
   - `~`: copy operator, replaces a reference with the basic value it points to
+  
+* Variables/References
   - `=`: assignment operator
   - `delete`: deletes a variable/reference
   - `is_defined`: returns whether or not the given variable is defined or not
   
-* String functions:
+* String operators:
   - `strlen`: returns the length of a given string
   - `strstr`: finds a sub-string in a string
   - `stristr`: case-insensitive strstr
@@ -262,8 +265,9 @@ YodaScript is a stack-based language based on reverse polish notation.
   -  `file_get_contents`, `file_put_contents`: convert between files and strings
   
 * Execuatable Array Operators:
-  - `@`, `eval`: runs the given subroutine or string as code (equivalent to eval)
-
+  - `@`, `eval`: runs the given subroutine or string as code (also accepts strings)
+  - `stk`: puts the contents [of the stack] into an executable array
+  
 * Structure-Equivalent Operators:
   - `else`, `elseif`, `if`: conditional operators
   - `repeat`, `while`, `for-each`: looping operators
