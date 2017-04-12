@@ -74,11 +74,14 @@ public:
 	}
 
 	// 0 = bottom of stack
-	char* operator[](const ssize_t index) {
+	char* at(const ssize_t index) {
 		if ((size_t)abs(index) >= stackDepth)
 			throw "StrStack[] index out of bounds";
 
 		return index >= 0 ? *(stackHead + index) : *(buffer + index - 1);
+	}
+	char* operator[](const ssize_t index) {
+		return at(index);
 	}
 
 	// deletes all strings
