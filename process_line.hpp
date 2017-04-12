@@ -472,8 +472,35 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		else if (strcmp(p, "ans") == 0) // p == "ans"
 			mainStack.push(ans);
 
+		else if (strcmp(p, "range") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: range expected 2 numbers, a start and end\n");
+			}
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::NUM) {
+				PASS_ERROR("\aERROR: range expected 2 numbers, a start and end\n");
+			}
+			int end = (int) mainStack.top().getNum();
+			mainStack.pop();
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::NUM) {
+				PASS_ERROR("\aERROR: range expected 2 numbers, a start and end\n");
+			}
+			int start = (int) mainStack.top().getNum();
+			mainStack.pop();
+
+			if (start > end)
+				for (; start > end; start--)
+					mainStack.push(start);
+			else if (start < end)
+				for (; start < end; start++)
+					mainStack.push(start);
+			else mainStack.push(start);
+
+
 		// print to terminal
-		else if (strcmp(p, "print") == 0) {
+		} else if (strcmp(p, "print") == 0) {
 			ASSERT_NOT_EMPTY(p);
 
 			if (printCalcValueRAW(mainStack.top(), first_node))
@@ -655,14 +682,58 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		  	if (val.type == CalcValue::STR)
 				mainStack.push(val.getStr());
 			else if (val.type == CalcValue::NUM) {
-				char str[26];
+				char str[27];
 				snprintf(str, 26, "%*.*g", 10, 16, val.getNum());
 				mainStack.push(trimStr(str));
 
 				// c++ solutions don't always work as desired :P
 				//mainStack.push(std::to_string(val.getNum()).c_str());
 			}
+		} else if (strcmp(p, "stk") == 0) {
 
+			std::stack<CalcValue> tmpStack;
+
+			while (!mainStack.empty()) {
+				tmpStack.push(mainStack.top());
+				mainStack.pop();
+			}
+
+			StrStack block;
+			while (!tmpStack.empty()) {
+				switch (tmpStack.top().type) {
+				case CalcValue::STR:
+					if (tmpStack.top().string) {
+						int len = strlen(tmpStack.top().string);
+						char str[len + 5];
+						str[0] = '"';
+						strcpy(str + 1, tmpStack.top().string);
+						str[len + 1] = '"';
+						str[len + 2] = '\n';
+						str[len + 3] = 0;
+						block.push(str);
+					}
+					break;
+
+				case CalcValue::BLK:
+					for (ssize_t i = tmpStack.top().block->stackDepth - 1; i >= 0; i--) {
+						block.push(tmpStack.top().block->at(i));
+					}
+					break;
+
+				case CalcValue::NUM:
+					char str[40];
+					snprintf(str, 39, "%*.*g\n", 18, 18, tmpStack.top().getNum());
+					block.push(str);
+					break;
+
+				case CalcValue::REF: break;
+
+				}
+
+				tmpStack.pop();
+			}
+
+			mainStack.push(block);
 		// convert to number
 		} else if (strcmp(p, "num") == 0) {
 			ASSERT_NOT_EMPTY(p);
@@ -1108,12 +1179,8 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				PASS_ERROR("\aERROR: inappropriate use of assignment operator. (no variable given)\n" <<std::endl);
 			}
 
-		// variable
-		} else if (*p == '$' && *(p + 1) != '\0') // user must use '$' prefix to access the variables
 
-			mainStack.push(CalcValue().setRef(p + 1)); // beautiful hack, eh?
-
-		else if (strcmp(p, "is_defined") == 0) {
+		} else if (strcmp(p, "is_defined") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			if (mainStack.top().type != CalcValue::REF) {
 				PASS_ERROR("\aERROR: is_defined expected a reference\n");
@@ -1212,6 +1279,11 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		// user has given a string :D
 		} else if (*p == '\"')
 			mainStack.push(p + 1);
+
+		// reference
+		else if (*p == '$' && *(p + 1) != '\0') // user must use '$' prefix to access the variables
+
+			mainStack.push(CalcValue().setRef(p + 1)); // beautiful hack, eh?
 		// let's try and figure out what this could be...
 		else {
 			// parse input
