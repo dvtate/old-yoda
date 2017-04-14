@@ -703,10 +703,16 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				switch (tmpStack.top().type) {
 				case CalcValue::STR:
 					if (tmpStack.top().string) {
-						int len = strlen(tmpStack.top().string);
-						char str[len + 5];
+						// escape double-quotes
+						char* tmp = str_replace(tmpStack.top().string, "\"", "\\\"");
+
+						// allocate enough space for the string
+						int len = strlen(tmp);
+						char str[len + 4 + 1];
+
+						// put string in quotes and end line
 						str[0] = '"';
-						strcpy(str + 1, tmpStack.top().string);
+						strcpy(str + 1, tmp);
 						str[len + 1] = '"';
 						str[len + 2] = '\n';
 						str[len + 3] = 0;
