@@ -38,16 +38,16 @@ int main(int argc, char** argv){
 
 	metaName = *argv;
 
-	// give 'em da shell
+	// having errors should be the default
+	bool showErrors = true;
+
+	// shell
 	if (argc == 1) {
 
 		// set up a namespace for variables
 		UserVar* first_node = new UserVar(NULL, " ", 0.0);
 		first_node->first = first_node;
 
-		// the shell is designed for testing small ideas
-		// therefore we want the most verbose errors possible
-		bool showErrors = true;
 		bool elseStatement = false;
 
 		// the most important component to the language
@@ -61,11 +61,11 @@ int main(int argc, char** argv){
 
 
 
-	// hit 'em up wit dat version info
+	// version info
 	} else if (strcmp(argv[1], "-V") == 0 || strcmp(argv[1], "--version")  == 0) {
 		printVersionInfo();
 
-	// help a brotha out
+	// help
 	} else if (strcmp(*argv, "--help") == 0 || strcmp(*argv, "-h") == 0) {
 		std::cout <<"Usage: yoda [ option | file ] ...\nOptions:"
 					"   -h,\t--help\t: display's this help message (also --help)\n"
@@ -73,11 +73,9 @@ int main(int argc, char** argv){
 
 		displayHelp();
 
-	// run a file
+	// file
 	} else {
-		metaName = *argv;
 
-		bool showErrors = true;
 		runFile(argv[1], showErrors);
 
 		// windows sucks :P
