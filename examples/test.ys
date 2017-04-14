@@ -1,0 +1,9 @@
+# create executable array containing all lines of file
+"lorem_ipsum.txt" file_get_contents "\n" split stk $lines =
+
+# for each line print it and its len
+{
+	"«" $line "» has " + + print 		# print line
+	$line strlen 1 + " chars" + println 	# print length of line
+
+} $lines $line for-each
