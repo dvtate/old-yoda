@@ -330,7 +330,7 @@ unsigned int countOccurances(const char* str, char* sub) {
 
 // You must free the result if result is non-NULL.
 // thanks: http://stackoverflow.com/questions/779875/what-is-the-function-to-replace-string-in-c
-char *str_replace(char *orig, char *rep, char *with) {
+char *str_replace(char *orig, const char *rep, const char *with) {
     char *result; // the return string
     char *ins;    // the next insert point
     char *tmp;    // varies
@@ -349,13 +349,15 @@ char *str_replace(char *orig, char *rep, char *with) {
     if (len_rep == 0)
         return NULL;
 
-    if (!with)
-        with = "";
+    if (!with) {
+		char emptystring[1];
+        with = emptystring;
+    }
     len_with = strlen(with);
 
     // count the number of replacements needed
     ins = orig;
-    for (count = 0; tmp = strstr(ins, rep); ++count) {
+    for (count = 0; (tmp = strstr(ins, rep)); ++count) {
         ins = tmp + len_rep;
     }
 
