@@ -450,6 +450,34 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				pch = strtok(NULL, delims);
 			}
 
+		// replace substring
+		} else if (strcmp(p, "str_replace") == 0) {
+			if (mainStack.size() < 3) {
+				PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
+			}
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR){
+				PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
+			}
+			char with[strlen(mainStack.top().string) + 1];
+			strcpy(with, mainStack.top().string);
+			mainStack.pop();
+
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR){
+				PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
+			}
+			char repl[strlen(mainStack.top().string) + 1];
+			strcpy(repl, mainStack.top().string);
+			mainStack.pop();
+
+			char* tmp = str_replace(mainStack.top().string, repl, with);
+			mainStack.push(tmp);
+			free(tmp);
+
+
+
 		// line-comments
 		} else if (*p == '#')
 			break;
@@ -717,6 +745,9 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 						str[len + 2] = '\n';
 						str[len + 3] = 0;
 						block.push(str);
+
+						// str_replace has blind allocation
+						free(str);
 					}
 					break;
 
