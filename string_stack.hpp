@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 #include <string.h>
+#include <inttypes.h>
 
 class CalcValue;
 class UserVar;
@@ -131,7 +131,7 @@ public:
 		// start from top element (this one is empty)
 		char** buff = stack.buffer;
 
-		int num = 0;
+		unsigned num = 0;
 		// skip the first element (empty) and print the rest of the stack
 		while (buff-- > stack.stackHead)
 			printf("%d: %s\n", num++, *buff);
@@ -147,6 +147,7 @@ public:
 			out.push(*head);
 	}
 };
+
 
 // associated functions
 namespace strstk {

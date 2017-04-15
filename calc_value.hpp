@@ -130,15 +130,13 @@ public:
 
 	// this causes a core dump (QwQ)
 	~CalcValue(){
-		//printf("deleting CV...\n");
 		if (type == STR || type == REF)
 			free(string); // free() accepts NULL pointers
 		else if (type == BLK)
 			delete block;
-		//printf("deleted CV...\n");
 	}
 
-	void setValue(const char* const str) {
+	void setValue(const char* const str){
 
 		// memory leaks are pretty bad
 		if (type == STR || type == REF)

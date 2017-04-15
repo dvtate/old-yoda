@@ -312,6 +312,7 @@ inline size_t linesToEnd(FILE* fil){
     return numLines;
 }
 
+// find the number of times a certain substring occurs in a string (unused)
 unsigned int countOccurances(const char* str, char* sub) {
 		unsigned int ret = 0;
 		while (*str) {
@@ -319,10 +320,8 @@ unsigned int countOccurances(const char* str, char* sub) {
             while (*substr && *substr == *str) {
             	str++; substr++;
 			}
-            if (!*substr)
-				ret++;
-            else
-				str++;
+            if (!*substr) ret++;
+            else str++;
 		}
 
 		return ret;
@@ -330,6 +329,7 @@ unsigned int countOccurances(const char* str, char* sub) {
 
 // You must free the result if result is non-NULL.
 // thanks: http://stackoverflow.com/questions/779875/what-is-the-function-to-replace-string-in-c
+// translated answer to C++
 char *str_replace(char *orig, const char *rep, const char *with) {
     char *result; // the return string
     char *ins;    // the next insert point

@@ -2,8 +2,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stack>
-#include <inttypes.h>
 
 
 // provided by fuck_windows.h

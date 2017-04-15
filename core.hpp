@@ -98,7 +98,6 @@ void runFile(char* programFile, bool& errorReporting){
 			// print the problem statement
 			color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(programFile, line));
 
-
 		  	// point to the problem area
 			for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
 				std::cerr <<' ';
@@ -161,13 +160,13 @@ bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 			color_fprintf(stderr, 255, 0, 0, "\t%s\t",
 						  getLineFromFile(prog_file, local_line));
 
-
+/*
 		  	// point to the problem area
 			for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
 				std::cerr <<' ';
 
 			color_fputs(stderr, "^\n", 255, 0, 0);
-
+*/
 			// prevent memory leaks...
 			free(rpnln_head);
 			return true;
