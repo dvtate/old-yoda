@@ -747,7 +747,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 						block.push(str);
 
 						// str_replace has blind allocation
-						free(str);
+						free(tmp);
 					}
 					break;
 
