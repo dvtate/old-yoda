@@ -260,6 +260,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `stristr`: case-insensitive strstr
   - `trim`: trims whitespace from start and end of the string
   - `split`: splits a string using given delimiters
+  - `str_replace`: replaces all occurances of a substring with another substring
   
 * File operators:
   -  `file_get_contents`, `file_put_contents`: convert between files and strings
