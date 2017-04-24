@@ -431,25 +431,44 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			if (mainStack.top().type != CalcValue::STR) {
 				PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
 			}
-			char delims[strlen(mainStack.top().string) + 1];
-			strcpy(delims, mainStack.top().string);
-			mainStack.pop();
+			if (!strlen(mainStack.top().string)) {
+				mainStack.pop();
+				// get str
+				CONVERT_REFS(mainStack, first_node, showErrors);
+				if (mainStack.top().type != CalcValue::STR) {
+					PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
+				}
+				char str[strlen(mainStack.top().string)];
+				strcpy(str, mainStack.top().string);
+				mainStack.pop();
 
-			// get str
-			CONVERT_REFS(mainStack, first_node, showErrors);
-			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
+				// push each character onto the stack
+				for (char ch : str) {
+					char chr[2] = { ch, '\0' };
+					//if (ch)
+						mainStack.push(chr);
+				}
+			} else {
+				// copy delimiters
+				char delims[strlen(mainStack.top().string) + 1];
+				strcpy(delims, mainStack.top().string);
+				mainStack.pop();
+
+				// get str
+				CONVERT_REFS(mainStack, first_node, showErrors);
+				if (mainStack.top().type != CalcValue::STR) {
+					PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
+				}
+				char str[strlen(mainStack.top().string) + 1];
+				strcpy(str, mainStack.top().string);
+				mainStack.pop();
+
+				char* pch = strtok(str, delims);
+				while (pch) {
+					mainStack.push(pch);
+					pch = strtok(NULL, delims);
+				}
 			}
-			char str[strlen(mainStack.top().string) + 1];
-			strcpy(str, mainStack.top().string);
-			mainStack.pop();
-
-			char* pch = strtok(str, delims);
-			while (pch) {
-				mainStack.push(pch);
-				pch = strtok(NULL, delims);
-			}
-
 		// replace substring
 		} else if (strcmp(p, "str_replace") == 0) {
 			if (mainStack.size() < 3) {
@@ -475,7 +494,6 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			char* tmp = str_replace(mainStack.top().string, repl, with);
 			mainStack.push(tmp);
 			free(tmp);
-
 
 
 		// line-comments
