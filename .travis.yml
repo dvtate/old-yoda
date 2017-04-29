@@ -1,20 +1,10 @@
-language: generic
+language: cpp
 
-addons:
-    apt:
-        sources:
-            - llvm-toolchain-precise
-            - ubuntu-toolchain-r-test
-        packages:
-            - clang-3.7
-            - g++-5
-            - gcc-5
 compiler:
+  - gcc
+  - clang
   
-CXX = g++-5
-CXXFLAGS
-  
-script: $(CXX) *.cpp -Wall -Wextra --std=c++14
+script: g++ *.cpp -Wall -Wextra --std=c++0x
 
 notifications:
   email: false
