@@ -662,16 +662,41 @@ end_printf:
 
 
 const RGB_t nameToColor(const char* const cname){
-	if (!cname)
+	if (!cname || strlen(cname) < 3)
 		return (RGB_t) { { 0 } };
 
 	char name[strlen(cname) + 1];
 	strcpy(name, cname);
 
+
 	// set name to lowercase
 	for (size_t i = 0; i <= strlen(name); i++)
 		*(name + i) = tolower(*(name + i));
 
+
+	/*	this would improve performance but would result in more loose input output
+		correlation
+
+	if (*name == 'a') { // colors starting with A
+		if (strlen(name) < 4)
+			goto bad_color;
+		if (*(name + 1) == 'q') {
+			if (strlen(name) >= 4) { // aqua
+				return (RGB_t) { { 65535 } };
+			} else { // aquamarine
+				return (RGB_t) { { 8388564 } };
+			}
+		} else if (*(name + 1) == 'z') { // azure
+			return (RGB_t) { { 15794175 } };
+		} else if (*(name + 1) == 'l') { // aliceblue
+			return (RGB_t) { { 15792383 } };
+		} else if (*(name + 1) == 'n') { // antiquewhite
+			return (RGB_t) { { 16444375 } };
+		}
+	} else if (*name == 'b') { // colors starting B
+
+	}...
+	*/
 
 	// most used colors come first
 	if (strcmp(name, "black") == 0)
@@ -971,7 +996,8 @@ const RGB_t nameToColor(const char* const cname){
 		return (RGB_t) { { 7372944 } };
 	else if (strcmp(name, "darkslategrey") == 0)
 		return (RGB_t) { { 3100495 } };
-	else
-		return (RGB_t) { { 0 } };
+
+//bad_color:
+	return (RGB_t) { { 0 } };
 
 }
