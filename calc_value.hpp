@@ -50,8 +50,6 @@ public:
 
 	CalcValue(const char* const str): type(STR) {
 
-		type = STR;
-
 		if (str) {
 			// allocate memory for the string
 		  	string = (char*) malloc(strlen(str) + 1);
@@ -128,7 +126,7 @@ public:
 
 	}
 
-	// this causes a core dump (QwQ)
+	// this sometimes causes a core dump (QwQ)
 	~CalcValue(){
 		if (type == STR || type == REF)
 			free(string); // free() accepts NULL pointers

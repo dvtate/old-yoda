@@ -152,7 +152,7 @@ bool printCalcValueRAW(CalcValue& val, UserVar* first_node){
 		size_t len = 50;
 		char* str = (char*) malloc(len);
 		val.block->toString(&str, &len);
-		printf(str);
+		printf("%s", str);
 		free(str);
   	} else if (val.type == CalcValue::NUM)
 		std::cout <<val.getNum();
@@ -180,79 +180,12 @@ bool printCalcValueRAW(CalcValue& val, UserVar* first_node){
 		return 1;
 	}
 
-	//printf(">\n");
-
 	return 0;
 
 }
 
 
-CalcValue* valAtRef(CalcValue cv, UserVar* first){
 
-find_var:
-	if (cv.type != CalcValue::REF)
-		return (CalcValue*) 0x0;
-
-	UserVar* var = vars::findVar(first, cv.string);
-	if (var == NULL)
-		return (CalcValue*) 0x0;
-
-	CalcValue* ret = &var->val;
-
-
-	if (ret->type == CalcValue::REF) {
-		cv = *ret;
-		goto find_var;
-	} else
-		return ret;
-
-
-}
-
-
-/*
-CalcValue* valAtRef(const CalcValue& cv, UserVar* first){
-
-find_var:
-	if (cv.type != CalcValue::REF)
-		return (CalcValue*) NULL;
-
-	UserVar* var = vars::findVar(first, cv.string);
-	if (var == NULL)
-		return (CalcValue*) NULL;
-
-	CalcValue* ret = &var->val;
-
-	if (ret->type == CalcValue::REF) {
-		cv = *ret;
-		goto find_var;
-	} else
-		return ret;
-
-
-}
-
-char*& valAtRef_debug(const CalcValue& cv, UserVar* first){
-
-find_var:
-	if (cv.type != CalcValue::REF)
-		return (char*) NULL;
-
-	UserVar* var = vars::findVar(first, cv.string);
-	if (var == NULL)
-		return cv.string;
-
-	CalcValue* ret = &var->val;
-
-	if (ret->type == CalcValue::REF) {
-		cv = *ret;
-		goto find_var;
-	} else
-		return (char*) NULL;
-
-
-}
-*/
 
 namespace commands {
 	inline void debugStack(std::stack<CalcValue> mainStack, UserVar* first_node){

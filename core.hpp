@@ -213,6 +213,7 @@ void runShell(UserVar* first_node, bool& errorReporting,
 	// prevent memory leaks...
 	free(rpnln_head);
 
+	// this fails...
 	if (!mainStack.empty()) {
 		ans = mainStack.top();
 		//ans.print(first_node);
@@ -262,8 +263,6 @@ void runStringStack(StrStack& code, bool& errorReporting){
 			processLine(mainStack, first_node, errorReporting, rpnln, elseStatement, stdin)) // note: stdin is a bad file for this purpose..
 			&& errorReporting
 		) {
-
-
 
 		  	// file name and
 		  	setTermEffect(TERM_EFF_BOLD);

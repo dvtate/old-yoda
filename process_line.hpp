@@ -46,7 +46,7 @@ extern CalcValue ans;
 		CalcValue* val = MAINSTACK.top().valAtRef(FIRST_NODE);\
 \
 		while (val && val->type == CalcValue::REF)\
-			val = valAtRef(*val, FIRST_NODE);\
+			val = val->valAtRef(FIRST_NODE);\
 \
 		if (val != NULL)\
 			MAINSTACK.top().setValue(*val);\
