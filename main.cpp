@@ -66,7 +66,7 @@ int main(int argc, char** argv){
 		printVersionInfo();
 
 	// help
-	} else if (strcmp(*argv, "--help") == 0 || strcmp(*argv, "-h") == 0) {
+	} else if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
 		std::cout <<"Usage: yoda [ option | file ] ...\nOptions:"
 					"   -h,\t--help\t: display's this help message (also --help)\n"
 					"   -V,\t--version\t: display's version information (also --version)\n\n";
