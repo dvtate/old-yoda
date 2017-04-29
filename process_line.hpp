@@ -438,15 +438,14 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				if (mainStack.top().type != CalcValue::STR) {
 					PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
 				}
-				char str[strlen(mainStack.top().string)];
+				char str[strlen(mainStack.top().string)]; // no room for '\0'
 				strcpy(str, mainStack.top().string);
 				mainStack.pop();
 
 				// push each character onto the stack
 				for (char ch : str) {
 					char chr[2] = { ch, '\0' };
-					//if (ch)
-						mainStack.push(chr);
+					mainStack.push(chr);
 				}
 			} else {
 				// copy delimiters
