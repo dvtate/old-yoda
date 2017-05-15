@@ -13,7 +13,10 @@ http://dvtate.github.io/dls/yoda.exe [updated 2017.4.2]
 After installing, you can run yoda as you would any other program from the terminal.
 # About YodaScript
 YodaScript is a stack-based language based on reverse polish notation.
-
+- Features coming soon:
+  + dynamic scope resolution
+  + restructuring code (more stl containers)
+  
 - Some features which I plan on implementing:
   + functions and subroutines
   + lists
