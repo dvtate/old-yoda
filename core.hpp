@@ -36,129 +36,129 @@ char* progName = NULL;
 
 void runFile(char* programFile, bool& errorReporting){
 
-	progName = programFile;
+    progName = programFile;
 
-	program = fopen(programFile, "r");
+    program = fopen(programFile, "r");
 
-  	// file error
-	if (program == NULL) {
+    // file error
+    if (program == NULL) {
 
-		setTermEffect(TERM_EFF_BOLD);
+        setTermEffect(TERM_EFF_BOLD);
 
-	  	std::cerr <<metaName <<": ";
-	  	color_fputs(stderr, "error: ", 255, 0, 0);
-	  	std::cerr <<": could not open file \'" <<programFile <<"\'\n";
+        std::cerr <<metaName <<": ";
+        color_fputs(stderr, "error: ", 255, 0, 0);
+        std::cerr <<": could not open file \'" <<programFile <<"\'\n";
 
-	  	setTermEffect();
+        setTermEffect();
 
-		exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
-	}
-
-
-	// the most important component of the program :)
-	std::stack<CalcValue> mainStack;
-
-	UserVar* first_node = new UserVar(NULL, " ", 0.0);
-  	first_node->first = first_node;
-
-	bool elseStatement = false;
-	char *rpnln = (char*) malloc(256), *rpnln_head = rpnln;
-	size_t lineLen = 256;
+    }
 
 
-	// for each line in the programFile...
-	for (;;) {
+    // the most important component of the program :)
+    std::stack<CalcValue> mainStack;
 
-	  	// used for line numbers in errors
-		line++;
+    UserVar* first_node = new UserVar(NULL, " ", 0.0);
+    first_node->first = first_node;
 
-		if (getline(&rpnln, &lineLen, program) == -1) {
-			// prevent memory leaks...
-			delete first_node;
-			fclose(program);
+    bool elseStatement = false;
+    char *rpnln = (char*) malloc(256), *rpnln_head = rpnln;
+    size_t lineLen = 256;
 
-			return; // EOF
-		}
-		rpnln_head = rpnln;
 
-		// I need a copy of it to call free() on later.
-		char *errorToken = NULL;
-		// process the line
-		if ((errorToken =
-			processLine(mainStack, first_node,errorReporting, rpnln, elseStatement, program))
-			&& errorReporting
-		) {
+    // for each line in the programFile...
+    for (;;) {
 
-		  	// file name and
-		  	setTermEffect(TERM_EFF_BOLD);
-			std::cerr <<programFile <<":" <<line <<':' <<errorToken - rpnln_head <<":\n";
-			setTermEffect();
+        // used for line numbers in errors
+        line++;
 
-			// print the problem statement
-			color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(programFile, line));
+        if (getline(&rpnln, &lineLen, program) == -1) {
+            // prevent memory leaks...
+            delete first_node;
+            fclose(program);
 
-		  	// point to the problem area
-			for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
-				std::cerr <<' ';
+            return; // EOF
+        }
+        rpnln_head = rpnln;
 
-			color_fputs(stderr, "^\n", 255, 0, 0);
+        // I need a copy of it to call free() on later.
+        char *errorToken = NULL;
+        // process the line
+        if ((errorToken =
+                     processLine(mainStack, first_node,errorReporting, rpnln, elseStatement, program))
+            && errorReporting
+                ) {
 
-			delete first_node;
-			// windows sucks :P
-			#ifdef _WIN32
-				std::cin.ignore();
-			#endif
-		  	// you're dead :P
-			exit(EXIT_FAILURE);
+            // file name and
+            setTermEffect(TERM_EFF_BOLD);
+            std::cerr <<programFile <<":" <<line <<':' <<errorToken - rpnln_head <<":\n";
+            setTermEffect();
 
-		}
+            // print the problem statement
+            color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(programFile, line));
 
-	}
+            // point to the problem area
+            for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
+                std::cerr <<' ';
+
+            color_fputs(stderr, "^\n", 255, 0, 0);
+
+            delete first_node;
+            // windows sucks :P
+#ifdef _WIN32
+            std::cin.ignore();
+#endif
+            // you're dead :P
+            exit(EXIT_FAILURE);
+
+        }
+
+    }
 
 }
 
 bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
-	      std::stack<CalcValue>& mainStack, bool& elseStatement
+             std::stack<CalcValue>& mainStack, bool& elseStatement
 ) {
 
-	if (!prog_file)
-		return true;
+    if (!prog_file)
+        return true;
 
-	size_t local_line = 0;
+    size_t local_line = 0;
 
-	char* rpnln = NULL, *rpnln_head = rpnln;
-	size_t lineLen = 256;
+    char* rpnln = NULL, *rpnln_head = rpnln;
+    size_t lineLen = 256;
 
-	// for each line in the programFile...
-	for (;;) {
+    // for each line in the programFile...
+    for (;;) {
 
-	  	// used for line numbers in errors
-		local_line++;
+        // used for line numbers in errors
+        local_line++;
 
-		if (getline(&rpnln, &lineLen, prog_file) == -1) {
-			//free(rpnln);
-			return false; // EOF
-		}
-		rpnln_head = rpnln;
-		// I need a copy of it to call free() on later.
-		char* errorToken = NULL;
-		// process the line
-		if ((errorToken =
-			processLine(mainStack, first_node,errorReporting, rpnln, elseStatement, prog_file))
-			&& errorReporting
-		) {
+        if (getline(&rpnln, &lineLen, prog_file) == -1) {
+            //free(rpnln);
+            return false; // EOF
+        }
+        rpnln_head = rpnln;
+        // I need a copy of it to call free() on later.
+        char* errorToken = NULL;
+        // process the line
+        if ((errorToken =
+                     processLine(mainStack, first_node,errorReporting, rpnln, elseStatement, prog_file))
+            && errorReporting
+                ) {
 
-		  	// file name and
-		  	setTermEffect(TERM_EFF_BOLD);
-			std::cerr <<progName <<":" <<line - linesToEnd(prog_file)
-					  <<':' <<errorToken - rpnln_head <<":\n";
-			setTermEffect();
+            // file name and
+            setTermEffect(TERM_EFF_BOLD);
+            std::cerr <<progName <<":" <<line - linesToEnd(prog_file)
+                      <<':' <<errorToken - rpnln_head <<":\n";
+            setTermEffect();
 
-			// print the problem statement
-			rewind(prog_file);
-			color_fprintf(stderr, 255, 0, 0, "\t%s\t",
-						  getLineFromFile(prog_file, local_line));
+            // print the problem statement
+            rewind(prog_file);
+            color_fprintf(stderr, 255, 0, 0, "\t%s\t",
+                          getLineFromFile(prog_file, local_line));
 
 /*
 		  	// point to the problem area
@@ -167,17 +167,17 @@ bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 
 			color_fputs(stderr, "^\n", 255, 0, 0);
 */
-			// prevent memory leaks...
-			free(rpnln_head);
-			return true;
-		}
-		free(rpnln_head);
-		rpnln = rpnln_head = NULL;
-	}
+            // prevent memory leaks...
+            free(rpnln_head);
+            return true;
+        }
+        free(rpnln_head);
+        rpnln = rpnln_head = NULL;
+    }
 
-	// prevent memory leaks...
-	free(rpnln_head);
-	return false;
+    // prevent memory leaks...
+    free(rpnln_head);
+    return false;
 
 }
 
@@ -186,46 +186,46 @@ bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 CalcValue ans;
 
 void runShell(UserVar* first_node, bool& errorReporting,
-	      std::stack<CalcValue>& mainStack, bool& elseStatement
+              std::stack<CalcValue>& mainStack, bool& elseStatement
 ){
 
-	std::cout <<line++ <<">>> ";
+    std::cout <<line++ <<">>> ";
 
-	char* rpnln = (char*) malloc(256);
-	size_t lineLen = 256;
+    char* rpnln = (char*) malloc(256);
+    size_t lineLen = 256;
 
-	if (getline(&rpnln, &lineLen, stdin) == -1) {
-		std::cerr <<"\aERROR: Input failed... email toast27@gmail.com if this persists\n\n";
-		return;
-	}
+    if (getline(&rpnln, &lineLen, stdin) == -1) {
+        std::cerr <<"\aERROR: Input failed... email toast27@gmail.com if this persists\n\n";
+        return;
+    }
 
-	// I need a copy of it to call free() on later.
-	char* rpnln_head = rpnln;
-
-
-	// process the line
-	bool errors = processLine(mainStack, first_node, errorReporting, rpnln, elseStatement, stdin);
-
-	if (errors)
-		emptyStack(mainStack);
+    // I need a copy of it to call free() on later.
+    char* rpnln_head = rpnln;
 
 
-	// prevent memory leaks...
-	free(rpnln_head);
+    // process the line
+    bool errors = processLine(mainStack, first_node, errorReporting, rpnln, elseStatement, stdin);
 
-	// this fails...
-	if (!mainStack.empty()) {
-		ans = mainStack.top();
-		//ans.print(first_node);
-		if (!printCalcValue(ans, first_node))
-			std::cout <<'\n';
-	}
+    if (errors)
+        emptyStack(mainStack);
 
-   	// this allows the ans keyword to function
-	if (!mainStack.empty())
-		ans = mainStack.top();
 
-	std::cout <<std::endl;
+    // prevent memory leaks...
+    free(rpnln_head);
+
+    // this fails...
+    if (!mainStack.empty()) {
+        ans = mainStack.top();
+        //ans.print(first_node);
+        if (!printCalcValue(ans, first_node))
+            std::cout <<'\n';
+    }
+
+    // this allows the ans keyword to function
+    if (!mainStack.empty())
+        ans = mainStack.top();
+
+    std::cout <<std::endl;
 
 }
 
@@ -233,61 +233,61 @@ void runShell(UserVar* first_node, bool& errorReporting,
 void runStringStack(StrStack& code, bool& errorReporting){
 
 
-	// the most important component of the program :)
-	std::stack<CalcValue> mainStack;
+    // the most important component of the program :)
+    std::stack<CalcValue> mainStack;
 
-	UserVar* first_node = new UserVar(NULL, " ", 0.0);
-  	first_node->first = first_node;
+    UserVar* first_node = new UserVar(NULL, " ", 0.0);
+    first_node->first = first_node;
 
-	static CalcValue ans(0.0); // here `0` could be a pointer
+    static CalcValue ans(0.0); // here `0` could be a pointer
 
-	bool elseStatement = false;
+    bool elseStatement = false;
 
-	char** stackHead = code.stackHead;
+    char** stackHead = code.stackHead;
 
-	// for each line in the string stack...
-	for (size_t i = 0; i < code.stackDepth; i++) {
+    // for each line in the string stack...
+    for (size_t i = 0; i < code.stackDepth; i++) {
 
-	  	// used for line numbers in errors
-		line++;
+        // used for line numbers in errors
+        line++;
 
-		char* rpnln = *(stackHead++);
+        char* rpnln = *(stackHead++);
 
-		// I need a copy of it to call free() on later.
-		char	*rpnln_head = rpnln,
-				*errorToken = NULL;
-
-
-		// process the line
-		if ((errorToken =
-			processLine(mainStack, first_node, errorReporting, rpnln, elseStatement, stdin)) // note: stdin is a bad file for this purpose..
-			&& errorReporting
-		) {
-
-		  	// file name and
-		  	setTermEffect(TERM_EFF_BOLD);
-			std::cerr <<progName <<":" <<line <<':' <<errorToken - rpnln_head <<":\n";
-			setTermEffect();
-
-			// print the problem statement
-			color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(progName, line));
-
-		  	// point to the problem area
-		  	for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
-				std::cerr <<' ';
-			color_fputs(stderr, "^\n", 255, 0, 0);
-
-			// windows sucks :P
-			#ifdef _WIN32
-				std::cin.ignore();
-			#endif
-
-		  	// you're dead :P
-			exit(EXIT_FAILURE);
+        // I need a copy of it to call free() on later.
+        char	*rpnln_head = rpnln,
+                *errorToken = NULL;
 
 
-		}
-	}
+        // process the line
+        if ((errorToken =
+                     processLine(mainStack, first_node, errorReporting, rpnln, elseStatement, stdin)) // note: stdin is a bad file for this purpose..
+            && errorReporting
+                ) {
+
+            // file name and
+            setTermEffect(TERM_EFF_BOLD);
+            std::cerr <<progName <<":" <<line <<':' <<errorToken - rpnln_head <<":\n";
+            setTermEffect();
+
+            // print the problem statement
+            color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(progName, line));
+
+            // point to the problem area
+            for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
+                std::cerr <<' ';
+            color_fputs(stderr, "^\n", 255, 0, 0);
+
+            // windows sucks :P
+#ifdef _WIN32
+            std::cin.ignore();
+#endif
+
+            // you're dead :P
+            exit(EXIT_FAILURE);
+
+
+        }
+    }
 }
 
 

@@ -69,68 +69,68 @@
 // why do I have to define this in the .cpp?
 // it would do perfectly fine here
 inline void resetANSI()
-	{ printf("\x1B[0m"); }
+{ printf("\x1B[0m"); }
 
 inline void fresetANSI(FILE* file)
-	{ fprintf(file, "\x1B[0m"); }
+{ fprintf(file, "\x1B[0m"); }
 
 // sets text effects as defined in the above macros
 inline void setTermEffect(const uint8_t eff = TERM_EFF_RESET)
 {
-	printf("\x1B[%dm", eff);
-	atexit(resetANSI);
+    printf("\x1B[%dm", eff);
+    atexit(resetANSI);
 }
 inline void fsetTermEffect(FILE* file, const uint8_t eff = TERM_EFF_RESET)
 {
-	fprintf(file, "\x1B[%dm", eff);
-	atexit(resetANSI);
+    fprintf(file, "\x1B[%dm", eff);
+    atexit(resetANSI);
 }
 
 
 // this solution is dependent on endianess, and is thus not cross-platform
 // this structure is used to store a 24bit color.
 typedef struct RGB_t {
-		union {
+    union {
 
-			// this is used as a handle. an example application is for converting
-			// hex strings to rgb values. (see hexToClr())
-			unsigned int val : 24;
+        // this is used as a handle. an example application is for converting
+        // hex strings to rgb values. (see hexToClr())
+        unsigned int val : 24;
 
-			struct {
+        struct {
 
-				// NOTE: this solutiondoes not handle middle-endian and
-				// may produce undefined behavior on such archatectures
+            // NOTE: this solutiondoes not handle middle-endian and
+            // may produce undefined behavior on such archatectures
 
-				#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-					unsigned int b : 8, g : 8, r : 8;
-				#else // __ORDER_BIG_ENDIAN__
-					unsigned int r : 8, g : 8, b : 8;
-				#endif // __ORDER_PDP_ENDIAN__ not supported
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+            unsigned int b : 8, g : 8, r : 8;
+#else // __ORDER_BIG_ENDIAN__
+            unsigned int r : 8, g : 8, b : 8;
+#endif // __ORDER_PDP_ENDIAN__ not supported
 
-			};
+        };
 
-		};
+    };
 
-		/*
-		// constructor for the weirdos (this is C++...) :/
-		RGB_t(const unsigned char rColor,const unsigned char gColor, const unsigned char bColor){
-			r = rColor;
-			g = gColor;
-			b = bColor;
-		}
+    /*
+    // constructor for the weirdos (this is C++...) :/
+    RGB_t(const unsigned char rColor,const unsigned char gColor, const unsigned char bColor){
+        r = rColor;
+        g = gColor;
+        b = bColor;
+    }
 
-		RGB_t(){};
-		RGB_t(const uint32_t clrVal): val(clrVal) {}
-		*/
+    RGB_t(){};
+    RGB_t(const uint32_t clrVal): val(clrVal) {}
+    */
 
 } RGB_t;
 
 
 // prints a string in rgb
 inline void color_puts(const char* text, uint8_t red, uint8_t green, uint8_t blue)
-	{ printf("\x1B[38;2;%d;%d;%dm%s\x1B[0m", red, green, blue, text); }
+{ printf("\x1B[38;2;%d;%d;%dm%s\x1B[0m", red, green, blue, text); }
 inline void color_fputs(FILE* file, const char* text, uint8_t red, uint8_t green, uint8_t blue)
-	{ fprintf(file, "\x1B[38;2;%d;%d;%dm%s\x1B[0m", red, green, blue, text); }
+{ fprintf(file, "\x1B[38;2;%d;%d;%dm%s\x1B[0m", red, green, blue, text); }
 
 // prints an rgb format string
 void color_printf(const uint8_t red, const uint8_t green, const uint8_t blue, const char* format, ...);
@@ -161,13 +161,13 @@ void fsetFgColor(FILE* file, const uint8_t red, const uint8_t green, const uint8
 void fsetFgColor(FILE* file, const RGB_t color);
 void fsetFgColor(FILE* file, const char* color);
 inline void setFgColor(FILE* file)
-	{  fsetTermEffect(file, TERM_EFF_DEFAULT_FG); }
+{  fsetTermEffect(file, TERM_EFF_DEFAULT_FG); }
 void setFgColor(const uint8_t red, const uint8_t green, const uint8_t blue);
 void setFgColor(const RGB_t color);
 inline void setFgColor(const char* ccolor)
-	{ return fsetFgColor(stdout, ccolor); }
+{ return fsetFgColor(stdout, ccolor); }
 inline void setFgColor()
-	{  setTermEffect(TERM_EFF_DEFAULT_FG); }
+{  setTermEffect(TERM_EFF_DEFAULT_FG); }
 
 
 // change the background color
@@ -175,32 +175,32 @@ void fsetBgColor(FILE* file, const uint8_t red, const uint8_t green, const uint8
 void fsetBgColor(FILE* file, const RGB_t color);
 void fsetBgColor(FILE* file, const char* color);
 inline void setBgColor(FILE* file)
-	{  fsetTermEffect(file, TERM_EFF_DEFAULT_BG); }
+{  fsetTermEffect(file, TERM_EFF_DEFAULT_BG); }
 void setBgColor(const uint8_t red, const uint8_t green, const uint8_t blue);
 void setBgColor(const RGB_t color);
 inline void setBgColor(const char* ccolor)
-	{ return fsetBgColor(stdout, ccolor); }
+{ return fsetBgColor(stdout, ccolor); }
 inline void setBgColor()
-	{  setTermEffect(TERM_EFF_DEFAULT_BG); }
+{  setTermEffect(TERM_EFF_DEFAULT_BG); }
 
 // this might get used in the distant future
 static inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi)
 {
-	// modify color
-	if (curHi == 0)
-		{ v0--; v1++; }
-	else if (curHi == 1)
-		{ v1--; v2++; }
-	else if (curHi == 2)
-		{ v2--; v0++; }
+    // modify color
+    if (curHi == 0)
+    { v0--; v1++; }
+    else if (curHi == 1)
+    { v1--; v2++; }
+    else if (curHi == 2)
+    { v2--; v0++; }
 
-	// change colors as needed
-	if (v0 <= 0 && curHi == 0)
-		curHi = 1;
-	else if (v1 <= 0 && curHi == 1)
-		curHi = 2;
-	else if (v2 <= 0 && curHi == 2)
-		curHi = 0;
+    // change colors as needed
+    if (v0 <= 0 && curHi == 0)
+        curHi = 1;
+    else if (v1 <= 0 && curHi == 1)
+        curHi = 2;
+    else if (v2 <= 0 && curHi == 2)
+        curHi = 0;
 }
 
 

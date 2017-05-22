@@ -3,7 +3,7 @@
 #include <cstring>
 
 #ifdef _WIN32
-	#include "fuck_windows.h"
+#include "fuck_windows.h"
 #endif
 
 #include <cstdio>
@@ -36,53 +36,51 @@ char* metaName;
 
 int main(int argc, char** argv){
 
-	metaName = *argv;
+    metaName = *argv;
 
-	// having errors should be the default
-	bool showErrors = true;
+    // having errors should be the default
+    bool showErrors = true;
 
-	// shell
-	if (argc == 1) {
+    // shell
+    if (argc == 1) {
 
-		// set up a namespace for variables
-		UserVar* first_node = new UserVar(NULL, " ", 0.0);
-		first_node->first = first_node;
+        // set up a namespace for variables
+        UserVar* first_node = new UserVar(NULL, " ", 0.0);
+        first_node->first = first_node;
 
-		bool elseStatement = false;
+        bool elseStatement = false;
 
-		// the most important component to the language
-		std::stack<CalcValue> mainStack;
+        // the most important component to the language
+        std::stack<CalcValue> mainStack;
 
-		for (;;)
-			runShell(first_node, showErrors, mainStack, elseStatement);
-
-		delete first_node;
-		return 0;
+        // process commands as they come in
+        for (;;)
+            runShell(first_node, showErrors, mainStack, elseStatement);
 
 
 
-	// version info
-	} else if (strcmp(argv[1], "-V") == 0 || strcmp(argv[1], "--version")  == 0) {
-		printVersionInfo();
+        // version info
+    } else if (strcmp(argv[1], "-V") == 0 || strcmp(argv[1], "--version")  == 0) {
+        printVersionInfo();
 
-	// help
-	} else if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
-		std::cout <<"Usage: yoda [ option | file ] ...\nOptions:"
-					"   -h,\t--help\t: display's this help message (also --help)\n"
-					"   -V,\t--version\t: display's version information (also --version)\n\n";
+        // help
+    } else if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
+        std::cout <<"Usage: yoda [ option | file ] ...\nOptions:"
+                "   -h,\t--help\t: display's this help message (also --help)\n"
+                "   -V,\t--version\t: display's version information (also --version)\n\n";
 
-		displayHelp();
+        displayHelp();
 
-	// file
-	} else {
+        // file
+    } else {
 
-		runFile(argv[1], showErrors);
+        runFile(argv[1], showErrors);
 
-		// windows sucks :P
-		#ifdef _WIN32
-			std::cin.ignore();
-		#endif
+        // windows sucks :P
+#ifdef _WIN32
+        std::cin.ignore();
+#endif
 
-	}
+    }
 
 }

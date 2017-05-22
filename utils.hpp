@@ -31,6 +31,15 @@ inline void displayHelp(){ // this could all be combined into one print statemen
 	#endif
 }
 
+
+// removes char from string
+// this is extremely inefficient, but the best way I can think of...
+inline void deleteChar(char* toDelete)
+{ memmove(toDelete, toDelete + 1, strlen(toDelete)); }
+inline void deleteChars(char* toDelete, const size_t numChars)
+{ memmove(toDelete, toDelete + numChars, strlen(toDelete)); }
+
+
 template<class T>
 inline T getNextValue(std::stack<T>& stk){
 	const T topVal = stk.top();

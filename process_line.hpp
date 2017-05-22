@@ -79,7 +79,7 @@ extern CalcValue ans;
 
 
 extern bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
-	      std::stack<CalcValue>& mainStack, bool& elseStatement
+		  std::stack<CalcValue>& mainStack, bool& elseStatement
 );
 
 
@@ -184,7 +184,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		} else if (*p == '+' && *(p + 1) == '\0') {
 
 
-		  	if (mainStack.size() < 2) {
+			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: Not enough data to satisfy `+` operator." <<std::endl);
 			}
 			CONVERT_REFS(mainStack, first_node, showErrors);
@@ -195,11 +195,11 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 
 			// handling null values
-		  	if (a.isEmpty() != b.isEmpty()) { // val + null
-		  		if (a.isEmpty())
-		  			mainStack.push(b);
-		  		else
-		  			mainStack.push(a);
+			if (a.isEmpty() != b.isEmpty()) { // val + null
+				if (a.isEmpty())
+					mainStack.push(b);
+				else
+					mainStack.push(a);
 
 				// get next token
 				p = qtok(rpnln, &rpnln);
@@ -216,7 +216,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 			}
 
-		  	// branching out all 4 permutations of string and num
+			// branching out all 4 permutations of string and num
 			if (a.type == CalcValue::STR) {
 				if (b.type == CalcValue::STR) {
 					// allocate enough memory for both strings and a null terminator
@@ -470,34 +470,137 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			}
 		// replace substring
 		} else if (strcmp(p, "str_replace") == 0) {
-			if (mainStack.size() < 3) {
-				PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
-			}
+            if (mainStack.size() < 3) {
+                PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
+            }
 
-			CONVERT_REFS(mainStack, first_node, showErrors);
-			if (mainStack.top().type != CalcValue::STR){
-				PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
-			}
-			char with[strlen(mainStack.top().string) + 1];
-			strcpy(with, mainStack.top().string);
-			mainStack.pop();
+            CONVERT_REFS(mainStack, first_node, showErrors);
+            if (mainStack.top().type != CalcValue::STR) {
+                PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
+            }
+            char with[strlen(mainStack.top().string) + 1];
+            strcpy(with, mainStack.top().string);
+            mainStack.pop();
 
-			CONVERT_REFS(mainStack, first_node, showErrors);
-			if (mainStack.top().type != CalcValue::STR){
-				PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
-			}
-			char repl[strlen(mainStack.top().string) + 1];
-			strcpy(repl, mainStack.top().string);
-			mainStack.pop();
+            CONVERT_REFS(mainStack, first_node, showErrors);
+            if (mainStack.top().type != CalcValue::STR) {
+                PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr\n");
+            }
+            char repl[strlen(mainStack.top().string) + 1];
+            strcpy(repl, mainStack.top().string);
+            mainStack.pop();
 
-			char* tmp = str_replace(mainStack.top().string, repl, with);
-			mainStack.push(tmp);
-			free(tmp);
+            char *tmp = str_replace(mainStack.top().string, repl, with);
+            mainStack.push(tmp);
+            free(tmp);
 
+        } else if (strcmp(p, "char_at") == 0) {
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: char_at expected a string and a numerical index\n");
+            }
+            CONVERT_REFS(mainStack, first_node, showErrors);
+
+            if (mainStack.top().type == CalcValue::STR && mainStack.top().string) {
+                char tmp[strlen(mainStack.top().string)];
+                strcpy(tmp, mainStack.top().string);
+                mainStack.pop();
+
+                CONVERT_REFS(mainStack, first_node, showErrors);
+                if (mainStack.top().type != CalcValue::NUM) {
+                    PASS_ERROR("\aERROR: char_at expected a string and a numerical index\n");
+                }
+
+                int i = mainStack.top().number;
+
+                if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
+                    PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
+                }
+                mainStack.pop();
+
+                char chr[2];
+
+                // negative index starts from back
+                chr[0] = tmp[i >= 0 ? i : strlen(tmp) + i];
+                chr[1] = '\0';
+                mainStack.push(chr);
+
+            } else if (mainStack.top().type == CalcValue::NUM) {
+
+                int i = mainStack.top().number;
+                mainStack.pop();
+                CONVERT_REFS(mainStack, first_node, showErrors);
+
+                if (mainStack.top().type != CalcValue::STR) {
+                    PASS_ERROR("\aERROR: char_at expected a string and a numerical index\n");
+                }
+
+                char chr[2];
+                if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
+                    PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
+                }
+                chr[0] = mainStack.top().string[i >= 0 ? i : strlen(mainStack.top().string) + i];
+                mainStack.pop();
+                mainStack.push(chr);
+
+            }
+
+        // delete a char from a string at an index
+        } else if (strcmp(p, "del_char") == 0) {
+
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: del_char expected a string and a numerical index\n");
+            }
+            CONVERT_REFS(mainStack, first_node, showErrors);
+
+            if (mainStack.top().type == CalcValue::STR && mainStack.top().string) {
+
+                // copy top string
+                char tmp[strlen(mainStack.top().string)];
+                strcpy(tmp, mainStack.top().string);
+                mainStack.pop();
+
+                // get index
+                CONVERT_REFS(mainStack, first_node, showErrors);
+                if (mainStack.top().type != CalcValue::NUM) {
+                    PASS_ERROR("\aERROR: del_char expected a string and a numerical index\n");
+                }
+                int i = (int) mainStack.top().number;
+                mainStack.pop();
+
+                // assert index in range
+                if (abs(i) > strlen(tmp) || i == strlen(tmp)) {
+                    PASS_ERROR("\aERROR: del_char: index `" << i << "` out of bounds\n");
+                }
+
+                // delete char at index
+                deleteChar(i >= 0 ? tmp + i  : tmp + strlen(tmp) + i);
+                mainStack.push(tmp);
+
+
+            } else if (mainStack.top().type == CalcValue::NUM) {
+                // get index
+                int i = (int) mainStack.top().number;
+                mainStack.pop();
+
+                // check range of index
+                if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
+                    PASS_ERROR("\aERROR: del_char: index `" << i << "` out of bounds\n");
+                }
+
+                // verify string
+                CONVERT_REFS(mainStack, first_node, showErrors);
+                if (mainStack.top().type != CalcValue::STR) {
+                    PASS_ERROR("\aERROR: del_char expected a string and a numerical index");
+                }
+
+                char* str = mainStack.top().string;
+                deleteChar(i >= 0 ? i + str : str + strlen(str) + i);
+
+            }
 
 		// line-comments
 		} else if (*p == '#')
-			break;
+			break; // ignore rest of line
 
 		// pi
 		else if (strcmp(p, "pi") == 0)
@@ -713,7 +816,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				PASS_ERROR("\aERROR: file_get_contents expected a string for the contents to write.\n\n");
 			}
 
-   			fwrite(mainStack.top().string, 1, strlen(mainStack.top().string) + 1, output_file);
+			fwrite(mainStack.top().string, 1, strlen(mainStack.top().string) + 1, output_file);
 			mainStack.pop();
 			fclose(output_file);
 
@@ -724,7 +827,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
-		  	if (val.type == CalcValue::STR)
+			if (val.type == CalcValue::STR)
 				mainStack.push(val.getStr());
 			else if (val.type == CalcValue::NUM) {
 				char str[27];
@@ -752,7 +855,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 						char* tmp = str_replace(tmpStack.top().string, "\"", "\\\"");
 
 						// allocate enough space for the string
-						int len = strlen(tmp);
+						size_t len = strlen(tmp);
 						char str[len + 4 + 1];
 
 						// put string in quotes and end line
@@ -795,8 +898,8 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			CalcValue val = getNextValue(mainStack);
 
 			if (val.isEmpty())
-			 	mainStack.push(0.0);
-		  	else if (val.type == CalcValue::NUM)
+				mainStack.push(0.0);
+			else if (val.type == CalcValue::NUM)
 				mainStack.push(val.getNum());
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atof(val.getStr()));
@@ -808,8 +911,8 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			CalcValue val = getNextValue(mainStack);
 
 			if (val.isEmpty())
-			 	mainStack.push(0.0);
-		  	else if (val.type == CalcValue::NUM)
+				mainStack.push(0.0);
+			else if (val.type == CalcValue::NUM)
 				mainStack.push(round(val.getNum()));
 			else if (val.type == CalcValue::STR)
 				mainStack.push( round( atof( val.getStr() ) ) );
@@ -820,8 +923,8 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			CalcValue val = getNextValue(mainStack);
 
 			if (val.isEmpty())
-			 	mainStack.push(0.0);
-		  	else if (val.type == CalcValue::NUM)
+				mainStack.push(0.0);
+			else if (val.type == CalcValue::NUM)
 				mainStack.push(floor(val.getNum()));
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atoi(val.getStr()));
@@ -1004,7 +1107,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			}
 
 			CONVERT_REFS(mainStack, first_node, showErrors);
-			size_t timesToRepeat = abs(mainStack.top().getNum());
+			size_t timesToRepeat = (size_t) abs(mainStack.top().getNum());
 			mainStack.pop();
 
 			CONVERT_REFS(mainStack, first_node, showErrors);
@@ -1089,7 +1192,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
 			|| !strcmp(p, "exit") || !strcmp(p, "quit")
-	  	)
+		)
 			exit(EXIT_SUCCESS); // exit the program
 
 		// show help
@@ -1107,7 +1210,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		// essentially restarts the program (don't display help)
 		} else if (strcmp(p, "reset") == 0 ) { //
 			ans = 0.0;
-		  	emptyStack(mainStack);
+			emptyStack(mainStack);
 			vars::wipeAll(first_node);
 
 		// useful for debugging
@@ -1147,15 +1250,15 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 		else if (strcmp(p, "typeof") == 0) {
 			ASSERT_NOT_EMPTY(p);
 
-		 	if (mainStack.top().type == CalcValue::REF) {
+			if (mainStack.top().type == CalcValue::REF) {
 				UserVar* var = vars::findVar(first_node, mainStack.top().string);
 				if (var)
-			  		mainStack.top().setValue(var->val);
+					mainStack.top().setValue(var->val);
 
 			}
 
 			CalcValue val = mainStack.top();
-		  	mainStack.pop();
+			mainStack.pop();
 
 			if (val.isNull()) // NULL string pointer
 				mainStack.push("NULL_VAL");
@@ -1233,7 +1336,6 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 				PASS_ERROR("\aERROR: inappropriate use of assignment operator. (no variable given)\n" <<std::endl);
 			}
 
-
 		} else if (strcmp(p, "is_defined") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			if (mainStack.top().type != CalcValue::REF) {
@@ -1302,7 +1404,7 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 
 		// duplicate the top elements a set number of times
 		} else if (strcmp(p, "dupx") == 0 || strcmp(p, "dupn") == 0) {
-		  	if (mainStack.size() < 2) {
+			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: Not enough data to satisfy `" <<p <<"` operator." <<std::endl);
 			}
 			CONVERT_REFS(mainStack, first_node, showErrors);
