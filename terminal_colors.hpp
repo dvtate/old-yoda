@@ -77,51 +77,51 @@ inline void fresetANSI(FILE* file)
 // sets text effects as defined in the above macros
 inline void setTermEffect(const uint8_t eff = TERM_EFF_RESET)
 {
-    printf("\x1B[%dm", eff);
-    atexit(resetANSI);
+	printf("\x1B[%dm", eff);
+	atexit(resetANSI);
 }
 inline void fsetTermEffect(FILE* file, const uint8_t eff = TERM_EFF_RESET)
 {
-    fprintf(file, "\x1B[%dm", eff);
-    atexit(resetANSI);
+	fprintf(file, "\x1B[%dm", eff);
+	atexit(resetANSI);
 }
 
 
 // this solution is dependent on endianess, and is thus not cross-platform
 // this structure is used to store a 24bit color.
 typedef struct RGB_t {
-    union {
+	union {
 
-        // this is used as a handle. an example application is for converting
-        // hex strings to rgb values. (see hexToClr())
-        unsigned int val : 24;
+		// this is used as a handle. an example application is for converting
+		// hex strings to rgb values. (see hexToClr())
+		unsigned int val : 24;
 
-        struct {
+		struct {
 
-            // NOTE: this solutiondoes not handle middle-endian and
-            // may produce undefined behavior on such archatectures
+			// NOTE: this solutiondoes not handle middle-endian and
+			// may produce undefined behavior on such archatectures
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-            unsigned int b : 8, g : 8, r : 8;
+			unsigned int b : 8, g : 8, r : 8;
 #else // __ORDER_BIG_ENDIAN__
-            unsigned int r : 8, g : 8, b : 8;
+			unsigned int r : 8, g : 8, b : 8;
 #endif // __ORDER_PDP_ENDIAN__ not supported
 
-        };
+		};
 
-    };
+	};
 
-    /*
-    // constructor for the weirdos (this is C++...) :/
-    RGB_t(const unsigned char rColor,const unsigned char gColor, const unsigned char bColor){
-        r = rColor;
-        g = gColor;
-        b = bColor;
-    }
+	/*
+	// constructor for the weirdos (this is C++...) :/
+	RGB_t(const unsigned char rColor,const unsigned char gColor, const unsigned char bColor){
+		r = rColor;
+		g = gColor;
+		b = bColor;
+	}
 
-    RGB_t(){};
-    RGB_t(const uint32_t clrVal): val(clrVal) {}
-    */
+	RGB_t(){};
+	RGB_t(const uint32_t clrVal): val(clrVal) {}
+	*/
 
 } RGB_t;
 
@@ -186,21 +186,21 @@ inline void setBgColor()
 // this might get used in the distant future
 static inline void cycle3(uint8_t& v0, uint8_t& v1, uint8_t& v2, uint8_t& curHi)
 {
-    // modify color
-    if (curHi == 0)
-    { v0--; v1++; }
-    else if (curHi == 1)
-    { v1--; v2++; }
-    else if (curHi == 2)
-    { v2--; v0++; }
+	// modify color
+	if (curHi == 0)
+	{ v0--; v1++; }
+	else if (curHi == 1)
+	{ v1--; v2++; }
+	else if (curHi == 2)
+	{ v2--; v0++; }
 
-    // change colors as needed
-    if (v0 <= 0 && curHi == 0)
-        curHi = 1;
-    else if (v1 <= 0 && curHi == 1)
-        curHi = 2;
-    else if (v2 <= 0 && curHi == 2)
-        curHi = 0;
+	// change colors as needed
+	if (v0 <= 0 && curHi == 0)
+		curHi = 1;
+	else if (v1 <= 0 && curHi == 1)
+		curHi = 2;
+	else if (v2 <= 0 && curHi == 2)
+		curHi = 0;
 }
 
 

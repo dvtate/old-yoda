@@ -470,133 +470,133 @@ char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 			}
 		// replace substring
 		} else if (strcmp(p, "str_replace") == 0) {
-            if (mainStack.size() < 3) {
-                PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
-            }
+			if (mainStack.size() < 3) {
+				PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
+			}
 
-            CONVERT_REFS(mainStack, first_node, showErrors);
-            if (mainStack.top().type != CalcValue::STR) {
-                PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
-            }
-            char with[strlen(mainStack.top().string) + 1];
-            strcpy(with, mainStack.top().string);
-            mainStack.pop();
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR) {
+				PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
+			}
+			char with[strlen(mainStack.top().string) + 1];
+			strcpy(with, mainStack.top().string);
+			mainStack.pop();
 
-            CONVERT_REFS(mainStack, first_node, showErrors);
-            if (mainStack.top().type != CalcValue::STR) {
-                PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr\n");
-            }
-            char repl[strlen(mainStack.top().string) + 1];
-            strcpy(repl, mainStack.top().string);
-            mainStack.pop();
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR) {
+				PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr\n");
+			}
+			char repl[strlen(mainStack.top().string) + 1];
+			strcpy(repl, mainStack.top().string);
+			mainStack.pop();
 
-            char *tmp = str_replace(mainStack.top().string, repl, with);
-            mainStack.push(tmp);
-            free(tmp);
+			char *tmp = str_replace(mainStack.top().string, repl, with);
+			mainStack.push(tmp);
+			free(tmp);
 
-        } else if (strcmp(p, "char_at") == 0) {
-            if (mainStack.size() < 2) {
-                PASS_ERROR("\aERROR: char_at expected a string and a numerical index\n");
-            }
-            CONVERT_REFS(mainStack, first_node, showErrors);
+		} else if (strcmp(p, "char_at") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: char_at expected a string and a numerical index\n");
+			}
+			CONVERT_REFS(mainStack, first_node, showErrors);
 
-            if (mainStack.top().type == CalcValue::STR && mainStack.top().string) {
-                char tmp[strlen(mainStack.top().string)];
-                strcpy(tmp, mainStack.top().string);
-                mainStack.pop();
+			if (mainStack.top().type == CalcValue::STR && mainStack.top().string) {
+				char tmp[strlen(mainStack.top().string)];
+				strcpy(tmp, mainStack.top().string);
+				mainStack.pop();
 
-                CONVERT_REFS(mainStack, first_node, showErrors);
-                if (mainStack.top().type != CalcValue::NUM) {
-                    PASS_ERROR("\aERROR: char_at expected a string and a numerical index\n");
-                }
+				CONVERT_REFS(mainStack, first_node, showErrors);
+				if (mainStack.top().type != CalcValue::NUM) {
+					PASS_ERROR("\aERROR: char_at expected a string and a numerical index\n");
+				}
 
-                int i = mainStack.top().number;
+				int i = mainStack.top().number;
 
-                if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
-                    PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
-                }
-                mainStack.pop();
+				if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
+					PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
+				}
+				mainStack.pop();
 
-                char chr[2];
+				char chr[2];
 
-                // negative index starts from back
-                chr[0] = tmp[i >= 0 ? i : strlen(tmp) + i];
-                chr[1] = '\0';
-                mainStack.push(chr);
+				// negative index starts from back
+				chr[0] = tmp[i >= 0 ? i : strlen(tmp) + i];
+				chr[1] = '\0';
+				mainStack.push(chr);
 
-            } else if (mainStack.top().type == CalcValue::NUM) {
+			} else if (mainStack.top().type == CalcValue::NUM) {
 
-                int i = mainStack.top().number;
-                mainStack.pop();
-                CONVERT_REFS(mainStack, first_node, showErrors);
+				int i = mainStack.top().number;
+				mainStack.pop();
+				CONVERT_REFS(mainStack, first_node, showErrors);
 
-                if (mainStack.top().type != CalcValue::STR) {
-                    PASS_ERROR("\aERROR: char_at expected a string and a numerical index\n");
-                }
+				if (mainStack.top().type != CalcValue::STR) {
+					PASS_ERROR("\aERROR: char_at expected a string and a numerical index\n");
+				}
 
-                char chr[2];
-                if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
-                    PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
-                }
-                chr[0] = mainStack.top().string[i >= 0 ? i : strlen(mainStack.top().string) + i];
-                mainStack.pop();
-                mainStack.push(chr);
+				char chr[2];
+				if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
+					PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
+				}
+				chr[0] = mainStack.top().string[i >= 0 ? i : strlen(mainStack.top().string) + i];
+				mainStack.pop();
+				mainStack.push(chr);
 
-            }
+			}
 
-        // delete a char from a string at an index
-        } else if (strcmp(p, "del_char") == 0) {
+		// delete a char from a string at an index
+		} else if (strcmp(p, "del_char") == 0) {
 
-            if (mainStack.size() < 2) {
-                PASS_ERROR("\aERROR: del_char expected a string and a numerical index\n");
-            }
-            CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: del_char expected a string and a numerical index\n");
+			}
+			CONVERT_REFS(mainStack, first_node, showErrors);
 
-            if (mainStack.top().type == CalcValue::STR && mainStack.top().string) {
+			if (mainStack.top().type == CalcValue::STR && mainStack.top().string) {
 
-                // copy top string
-                char tmp[strlen(mainStack.top().string)];
-                strcpy(tmp, mainStack.top().string);
-                mainStack.pop();
+				// copy top string
+				char tmp[strlen(mainStack.top().string)];
+				strcpy(tmp, mainStack.top().string);
+				mainStack.pop();
 
-                // get index
-                CONVERT_REFS(mainStack, first_node, showErrors);
-                if (mainStack.top().type != CalcValue::NUM) {
-                    PASS_ERROR("\aERROR: del_char expected a string and a numerical index\n");
-                }
-                int i = (int) mainStack.top().number;
-                mainStack.pop();
+				// get index
+				CONVERT_REFS(mainStack, first_node, showErrors);
+				if (mainStack.top().type != CalcValue::NUM) {
+					PASS_ERROR("\aERROR: del_char expected a string and a numerical index\n");
+				}
+				int i = (int) mainStack.top().number;
+				mainStack.pop();
 
-                // assert index in range
-                if (abs(i) > strlen(tmp) || i == strlen(tmp)) {
-                    PASS_ERROR("\aERROR: del_char: index `" << i << "` out of bounds\n");
-                }
+				// assert index in range
+				if (abs(i) > strlen(tmp) || i == strlen(tmp)) {
+					PASS_ERROR("\aERROR: del_char: index `" << i << "` out of bounds\n");
+				}
 
-                // delete char at index
-                deleteChar(i >= 0 ? tmp + i  : tmp + strlen(tmp) + i);
-                mainStack.push(tmp);
+				// delete char at index
+				deleteChar(i >= 0 ? tmp + i  : tmp + strlen(tmp) + i);
+				mainStack.push(tmp);
 
 
-            } else if (mainStack.top().type == CalcValue::NUM) {
-                // get index
-                int i = (int) mainStack.top().number;
-                mainStack.pop();
+			} else if (mainStack.top().type == CalcValue::NUM) {
+				// get index
+				int i = (int) mainStack.top().number;
+				mainStack.pop();
 
-                // check range of index
-                if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
-                    PASS_ERROR("\aERROR: del_char: index `" << i << "` out of bounds\n");
-                }
+				// check range of index
+				if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
+					PASS_ERROR("\aERROR: del_char: index `" << i << "` out of bounds\n");
+				}
 
-                // verify string
-                CONVERT_REFS(mainStack, first_node, showErrors);
-                if (mainStack.top().type != CalcValue::STR) {
-                    PASS_ERROR("\aERROR: del_char expected a string and a numerical index");
-                }
+				// verify string
+				CONVERT_REFS(mainStack, first_node, showErrors);
+				if (mainStack.top().type != CalcValue::STR) {
+					PASS_ERROR("\aERROR: del_char expected a string and a numerical index");
+				}
 
-                char* str = mainStack.top().string;
-                deleteChar(i >= 0 ? i + str : str + strlen(str) + i);
+				char* str = mainStack.top().string;
+				deleteChar(i >= 0 ? i + str : str + strlen(str) + i);
 
-            }
+			}
 
 		// line-comments
 		} else if (*p == '#')

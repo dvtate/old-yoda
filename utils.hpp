@@ -15,7 +15,7 @@
 #include "terminal_colors.hpp"
 
 inline void displayHelp(){ // this could all be combined into one print statement...
-    std::cout <<"If this is your first time using this language, you should check\
+	std::cout <<"If this is your first time using this language, you should check\
  the README on this project's github page for a short intro.\n";
 
 	// I want the URL to be underlined and blink :)
@@ -63,10 +63,10 @@ inline char* skipSpaces(char* p){
 char* getLineFromFile(const char* filename, size_t lineNumber){
 	FILE *file = fopen(filename, "r");
 
-  	size_t count = 1;
+	size_t count = 1;
 	if (file != NULL) {
 
-	  	char* line = (char*) malloc(200);
+		char* line = (char*) malloc(200);
 		size_t lineLen = 200;
 
 
@@ -94,10 +94,10 @@ char* getLineFromFile(const char* filename, size_t lineNumber){
 }
 char* getLineFromFile(FILE* file, size_t lineNumber){
 
-  	size_t count = 1;
+	size_t count = 1;
 	if (file != NULL) {
 
-	  	char* line = (char*) malloc(200);
+		char* line = (char*) malloc(200);
 		size_t lineLen = 200;
 
 
@@ -163,7 +163,7 @@ bool printCalcValueRAW(CalcValue& val, UserVar* first_node){
 		val.block->toString(&str, &len);
 		printf("%s", str);
 		free(str);
-  	} else if (val.type == CalcValue::NUM)
+	} else if (val.type == CalcValue::NUM)
 		std::cout <<val.getNum();
 	else if (val.type == CalcValue::STR)
 		std::cout <<val.getStr();
@@ -244,26 +244,26 @@ inline char* trimStr(char* string){
 }
 
 inline size_t linesToEnd(FILE* fil){
-    size_t numLines = 0;
+	size_t numLines = 0;
 
-    int ch;
-    while (EOF != (ch=getc(fil)))
-        if ('\n' == ch)
-            ++numLines;
+	int ch;
+	while (EOF != (ch=getc(fil)))
+		if ('\n' == ch)
+			++numLines;
 
-    return numLines;
+	return numLines;
 }
 
 // find the number of times a certain substring occurs in a string (unused)
 unsigned int countOccurances(const char* str, char* sub) {
 		unsigned int ret = 0;
 		while (*str) {
-            char* substr = sub;
-            while (*substr && *substr == *str) {
-            	str++; substr++;
+			char* substr = sub;
+			while (*substr && *substr == *str) {
+				str++; substr++;
 			}
-            if (!*substr) ret++;
-            else str++;
+			if (!*substr) ret++;
+			else str++;
 		}
 
 		return ret;
@@ -273,55 +273,55 @@ unsigned int countOccurances(const char* str, char* sub) {
 // thanks: http://stackoverflow.com/questions/779875/what-is-the-function-to-replace-string-in-c
 // translated answer to C++
 char *str_replace(char *orig, const char *rep, const char *with) {
-    char *result; // the return string
-    char *ins;    // the next insert point
-    char *tmp;    // varies
-    size_t len_rep;  // length of rep (the string to remove)
-    int len_with; // length of with (the string to replace rep with)
-    int len_front; // distance between rep and end of last rep
-    int count;    // number of replacements
+	char *result; // the return string
+	char *ins;    // the next insert point
+	char *tmp;    // varies
+	size_t len_rep;  // length of rep (the string to remove)
+	int len_with; // length of with (the string to replace rep with)
+	int len_front; // distance between rep and end of last rep
+	int count;    // number of replacements
 
-    // sanity checks and initialization
-    if (!orig || !rep)
-        return NULL;
+	// sanity checks and initialization
+	if (!orig || !rep)
+		return NULL;
 
-    len_rep = strlen(rep);
+	len_rep = strlen(rep);
 
-    // empty rep causes infinite loop during count
-    if (len_rep == 0)
-        return NULL;
+	// empty rep causes infinite loop during count
+	if (len_rep == 0)
+		return NULL;
 
-    if (!with) {
+	if (!with) {
 		char emptystring[1];
-        with = emptystring;
-    }
-    len_with = strlen(with);
+		with = emptystring;
+	}
+	len_with = strlen(with);
 
-    // count the number of replacements needed
-    ins = orig;
-    for (count = 0; (tmp = strstr(ins, rep)); ++count) {
-        ins = tmp + len_rep;
-    }
+	// count the number of replacements needed
+	ins = orig;
+	for (count = 0; (tmp = strstr(ins, rep)); ++count) {
+		ins = tmp + len_rep;
+	}
 
-    tmp = result = (char*) malloc(strlen(orig) + (len_with - len_rep) * count + 1);
+	tmp = result = (char*) malloc(strlen(orig) + (len_with - len_rep) * count + 1);
 
-    if (!result)
-        return NULL;
+	if (!result)
+		return NULL;
 
-    // first time through the loop, all the variable are set correctly
-    // from here on,
-    //    tmp points to the end of the result string
-    //    ins points to the next occurrence of rep in orig
-    //    orig points to the remainder of orig after "end of rep"
-    while (count--) {
-        ins = strstr(orig, rep);
-        len_front = ins - orig;
-        tmp = strncpy(tmp, orig, len_front) + len_front;
-        tmp = strcpy(tmp, with) + len_with;
-        orig += len_front + len_rep; // move to next "end of rep"
-    }
-    strcpy(tmp, orig);
-    return result;
+	// first time through the loop, all the variable are set correctly
+	// from here on,
+	//    tmp points to the end of the result string
+	//    ins points to the next occurrence of rep in orig
+	//    orig points to the remainder of orig after "end of rep"
+	while (count--) {
+		ins = strstr(orig, rep);
+		len_front = ins - orig;
+		tmp = strncpy(tmp, orig, len_front) + len_front;
+		tmp = strcpy(tmp, with) + len_with;
+		orig += len_front + len_rep; // move to next "end of rep"
+	}
+	strcpy(tmp, orig);
+	return result;
 }
 
 #endif
