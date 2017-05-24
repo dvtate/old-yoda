@@ -143,8 +143,11 @@ inline void setFgColor(const RGB_t color)
 
 void fsetFgColor(FILE* file, const char* ccolor){
 
+	// null color passed == reset color
+	if (!ccolor)
+		setFgColor();
 	// no color given, this could be desired (pass no error)
-	if (!ccolor || strlen(ccolor) == 0)
+	if (strlen(ccolor) == 0)
 		return;
 
 	// copy the color out of the const qualifier
@@ -258,8 +261,12 @@ inline void fsetBgColor(FILE* file, const RGB_t color)
 
 void fsetBgColor(FILE* file, const char* ccolor){
 
+	// null color passed == reset color
+	if (!ccolor)
+		setBgColor();
+
 	// no color given, this could be desired (pass no error)
-	if (!ccolor || strlen(ccolor) == 0)
+	if (strlen(ccolor) == 0)
 		return;
 
 	// copy the color out of the const qualifier
@@ -656,7 +663,6 @@ void color_printf(const char* ccolor, const char* format, ...){
 	free(color_cpy);
 
 }
-
 
 
 

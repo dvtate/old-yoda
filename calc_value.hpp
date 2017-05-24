@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <vector>
 
 #include "string_stack.hpp"
 
@@ -14,7 +14,10 @@ class CalcValue;
 class UserVar;
 namespace vars {
 	extern CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
-	extern UserVar* findVar(UserVar* first, char* name);
+	extern CalcValue* valueAtVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
+	extern UserVar* findVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
+	extern UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
+
 }
 
 
@@ -28,7 +31,7 @@ public:
 		STR,	// string
 		REF,	// reference to a variable
 		//ARR,	// linked-list
-				BLK	// Block of code (StrStack) (subroutine) (executable array)
+		BLK	// Block of code (StrStack) (subroutine) (executable array)
 	} type;
 
 	// contains the data
@@ -248,6 +251,13 @@ public:
 	CalcValue* valAtRef(UserVar* first){
 		if (type == REF)
 			return vars::valueAtVar(first, string);
+		else
+			return NULL;
+	}
+
+	CalcValue* valAtRef(std::vector<UserVar>& vars){
+		if (type == REF)
+			return vars::valueAtVar(vars, string);
 		else
 			return NULL;
 	}

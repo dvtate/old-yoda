@@ -119,7 +119,7 @@ char* getLineFromFile(FILE* file, size_t lineNumber){
 
 }
 
-bool printCalcValue(CalcValue& val, UserVar* first_node){
+bool printCalcValue(CalcValue& val, std::vector<UserVar> var_nodes){
 
 	if (val.isNull())
 		std::cout <<"null";
@@ -128,18 +128,18 @@ bool printCalcValue(CalcValue& val, UserVar* first_node){
 	else if (val.type == CalcValue::STR)
 		std::cout <<'\"' <<val.getStr() <<'\"';
 	else if (val.type == CalcValue::REF) {
-		CalcValue* ret = val.valAtRef(first_node);
+		CalcValue* ret = val.valAtRef(var_nodes);
 		while (ret && ret->type == CalcValue::REF)
-			ret = ret->valAtRef(first_node);
+			ret = ret->valAtRef(var_nodes);
 		if (ret)
-			return printCalcValue(*ret, first_node);
+			return printCalcValue(*ret, var_nodes);
 
 		// find the broken reference
-		ret = val.valAtRef(first_node);
+		ret = val.valAtRef(var_nodes);
 		if (ret)
 			while (ret->type == CalcValue::REF)
-				if (ret->valAtRef(first_node))
-					ret = ret->valAtRef(first_node);
+				if (ret->valAtRef(var_nodes))
+					ret = ret->valAtRef(var_nodes);
 				else
 					break;
 		else
@@ -153,7 +153,7 @@ bool printCalcValue(CalcValue& val, UserVar* first_node){
 	return 0;
 }
 
-bool printCalcValueRAW(CalcValue& val, UserVar* first_node){
+bool printCalcValueRAW(CalcValue& val, std::vector<UserVar> var_nodes){
 	//printf("value is<");
 	if (val.isNull())
 		std::cout <<"null";
@@ -168,18 +168,18 @@ bool printCalcValueRAW(CalcValue& val, UserVar* first_node){
 	else if (val.type == CalcValue::STR)
 		std::cout <<val.getStr();
 	else if (val.type == CalcValue::REF) {
-		CalcValue* ret = val.valAtRef(first_node);
+		CalcValue* ret = val.valAtRef(var_nodes);
 		while (ret && ret->type == CalcValue::REF)
-			ret = ret->valAtRef(first_node);
+			ret = ret->valAtRef(var_nodes);
 		if (ret)
-			return printCalcValueRAW(*ret, first_node);
+			return printCalcValueRAW(*ret, var_nodes);
 
 		// find the broken reference
-		ret = val.valAtRef(first_node);
+		ret = val.valAtRef(var_nodes);
 		if (ret)
 			while (ret->type == CalcValue::REF)
-				if (ret->valAtRef(first_node))
-					ret = ret->valAtRef(first_node);
+				if (ret->valAtRef(var_nodes))
+					ret = ret->valAtRef(var_nodes);
 				else
 					break;
 		else
@@ -197,12 +197,12 @@ bool printCalcValueRAW(CalcValue& val, UserVar* first_node){
 
 
 namespace commands {
-	inline void debugStack(std::stack<CalcValue> mainStack, UserVar* first_node){
+	inline void debugStack(std::stack<CalcValue> mainStack, std::vector<UserVar>& vars){
 		// since the stack is copied, we can modify it as we wish in here :)
 		size_t index = 0;
 		while (!mainStack.empty()) {
 			std::cout <<index++ <<" : ";
-			printCalcValue(mainStack.top(), first_node);
+			printCalcValue(mainStack.top(), vars);
 			std::cout <<'\n';
 
 			mainStack.pop();
