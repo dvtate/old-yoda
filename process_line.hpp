@@ -1005,12 +1005,17 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 		// conditionals::else
 		} else if (strcmp(p, "else") == 0) {
+			/// sets else flag true so we know that we need to deal with it later
 			ASSERT_NOT_EMPTY(p);
 			//CONVERT_REFS(mainStack, var_nodes, showErrors);
 			elseStatement = true;
 
-		// conditionals::elseif (dysfunctional)
+		// conditionals::elseif
 		} else if (strcmp(p, "elseif") == 0) {
+			/// works by combining else and elseif statement into a single else
+			/// statement with an if-else system inside
+			/// multi-statment if elseif statments will have multiple layers
+
 			if (mainStack.size() < 2 || (elseStatement && mainStack.size() < 3)) {
 				PASS_ERROR("\aERROR: elseif expected a condition and a block of code (takes 2 arguments)\n" <<std::endl);
 			}
@@ -1101,6 +1106,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					} // else, it's a value that should stay at the top of the stack
 				} // else, don't do anything as there isn't an else clause
 
+		// errs if stack top is false
 		} else if (strcmp(p, "assert") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, var_nodes, showErrors);
@@ -1131,6 +1137,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			for (; timesToRepeat > 0; timesToRepeat--) {
 				RUN_STR_STK(block, mainStack);
 			}
+
 		// while loop
 		} else if (strcmp(p, "while") == 0) {
 			if (mainStack.size() < 2) {
@@ -1258,7 +1265,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					var = var->next;
 				}
 
-
 			}
 
 		// print the contents of the stack
@@ -1273,7 +1279,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				UserVar* var = vars::findVar(var_nodes, mainStack.top().string);
 				if (var)
 					mainStack.top().setValue(var->val);
-
 			}
 
 			CalcValue val = mainStack.top();
@@ -1307,7 +1312,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: cannot make a system call with a number...\n" <<std::endl);
 			}
 			mainStack.pop();
-
 
 		// assignment operator
 		} else if (*p == '=' && *(p + 1) == '\0') { // variable assignment
@@ -1416,7 +1420,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.push(val1);
 			mainStack.push(val2);
 
-
 		// duplicate the top of the stack
 		} else if (strcmp(p, "dup") == 0) {
 			ASSERT_NOT_EMPTY(p);
@@ -1482,9 +1485,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 	return NULL;
 
 }
-
-
-
 
 
 #endif
