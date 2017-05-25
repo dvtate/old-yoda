@@ -119,7 +119,7 @@ char* getLineFromFile(FILE* file, size_t lineNumber){
 
 }
 
-bool printCalcValue(CalcValue& val, std::vector<UserVar> var_nodes){
+bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes){
 
 	if (val.isNull())
 		std::cout <<"null";
@@ -153,7 +153,7 @@ bool printCalcValue(CalcValue& val, std::vector<UserVar> var_nodes){
 	return 0;
 }
 
-bool printCalcValueRAW(CalcValue& val, std::vector<UserVar> var_nodes){
+bool printCalcValueRAW(CalcValue& val, std::vector<UserVar>& var_nodes){
 	//printf("value is<");
 	if (val.isNull())
 		std::cout <<"null";

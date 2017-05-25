@@ -17,7 +17,6 @@ namespace vars {
 	extern CalcValue* valueAtVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
 	extern UserVar* findVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
 	extern UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
-
 }
 
 

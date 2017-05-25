@@ -40,6 +40,7 @@ public:
 		val.setValue(contents);
 	}
 
+
 	// geting the values
 	double getNumber()
 	{ return val.getNum(); }

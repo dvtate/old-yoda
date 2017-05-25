@@ -45,9 +45,6 @@ extern CalcValue ans;
 	if (MAINSTACK.top().type == CalcValue::REF) {\
 		CalcValue* val = MAINSTACK.top().valAtRef(VAR_NODES);\
 \
-		while (val && val->type == CalcValue::REF)\
-			val = val->valAtRef(VAR_NODES);\
-\
 		if (val != NULL)\
 			MAINSTACK.top().setValue(*val);\
 		else {\
@@ -70,11 +67,21 @@ extern CalcValue ans;
 		rewind(statement);\
 		free(buff);\
 \
+		/* add layer to scope*/\
+		UserVar first_node(NULL, " ", 0.0);\
+		first_node.first = &first_node;\
+		var_nodes.push_back(first_node);\
+\
 		/* run the temp file */\
 		if (runFile(statement, var_nodes, showErrors, (STACK), elseStatement)) {\
 			PASS_ERROR("\aERROR: @ (exec operator) failed\n");\
 		}\
 		fclose(statement);\
+\
+		/* variables go out of scope */\
+		UserVar* node = &var_nodes[var_nodes.size() - 1];\
+		vars::wipeAll(node);\
+		var_nodes.pop_back();\
 	}
 
 
@@ -85,7 +92,7 @@ extern bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& erro
 /// returns: location/source of error or NULL
 /// params: environment/operation variables
 /// this function runs the user's code, most essential part of the interpreter
-char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nodes,
+char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
 	bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed
 ){
 
@@ -454,7 +461,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nod
 
 				// get str
 				CONVERT_REFS(mainStack, var_nodes, showErrors);
-				if (mainStack.top().type != CalcValue::STR) {
+				if (!mainStack.top().isStr()) {
 					PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
 				}
 				char str[strlen(mainStack.top().string) + 1];
@@ -981,7 +988,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nod
 			ASSERT_NOT_EMPTY(p);
 
 			CONVERT_REFS(mainStack, var_nodes, showErrors);
-
 			CalcValue top = CalcValue(mainStack.top());
 			mainStack.pop();
 
@@ -1225,7 +1231,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nod
 		} else if (strcmp(p, "vars") == 0 || strcmp(p, "ls_vars") == 0) {
 			for (size_t i = 0; i < var_nodes.size(); i++) {
 				std::cout <<"Scope<" <<i <<"> ====\n";
-				UserVar *var = var_nodes[0].next;
+				UserVar *var = var_nodes[i].next;
 
 				while (var != NULL) {
 					if (var->val.type == CalcValue::NUM)
@@ -1323,7 +1329,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nod
 					var = new UserVar(&var_nodes[var_nodes.size() - 1], lhs.string, rhs);
 					var->val.type = rhs.type;
 					vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
-
+					//vars::assignVar(var_nodes, lhs.string, rhs);
 				// changing the variable's value
 				} else
 					var->setValue(rhs);
@@ -1339,6 +1345,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nod
 					var = new UserVar(&var_nodes[var_nodes.size() - 1], rhs.string, lhs);
 					var->val.type = lhs.type;
 					vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
+					//vars::assignVar(var_nodes, rhs.string, lhs);
 
 				// changing the variable's value
 				} else

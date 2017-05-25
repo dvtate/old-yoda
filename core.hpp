@@ -126,12 +126,6 @@ bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReport
 	if (!prog_file)
 		return true;
 
-	// add a variable layer to our scope...
-	UserVar first_node(NULL, " ", 0.0);
-	first_node.first = &first_node;
-
-	var_nodes.push_back(first_node);
-
 
 	size_t local_line = 0;
 
@@ -182,9 +176,6 @@ bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReport
 		}
 		free(rpnln_head);
 		rpnln = rpnln_head = NULL;
-		UserVar* node = &var_nodes[var_nodes.size() - 1];
-		vars::wipeAll(node);
-		var_nodes.pop_back();
 	}
 
 	// prevent memory leaks...
