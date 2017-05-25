@@ -1,0 +1,21 @@
+# macros are similar to inline functions
+{
+	# kindof a parameter...
+	num $param =
+
+	# print param
+	$param println
+
+	# if param > 1 then call self
+	{
+		# call self with halved value
+		$param 2 /
+			$recTest @
+	} $param 1 > if
+
+# store macro in a variable
+} $recTest =
+
+
+# call macro
+2 20 ** $recTest @
