@@ -40,6 +40,7 @@ public:
 		val.setValue(contents);
 	}
 
+
 	// geting the values
 	double getNumber()
 	{ return val.getNum(); }
@@ -108,29 +109,32 @@ public:
 
 namespace vars {
 
-	// first node in the linked list of variables
-	extern UserVar* first_node;
-
 	// the last element on the linked list
 	extern UserVar* lastVar(UserVar* first);
 
 	// to be called after reset
-	extern void wipeAll(UserVar*& first);
+	extern void wipeAll(UserVar* first);
 
 	// to make a  new variable, or change it's value
 	//extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH], double value);
 	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH], CalcValue value);
+	extern void assignVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH], CalcValue value);
 
 	// to remove an individial variable
 	extern void removeVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
+	extern void removeVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
 
 	// returns a pointer to the variable
 	extern UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
+	extern UserVar* findVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
 
-	// has the variable been declared yet?
+		// has the variable been declared yet?
 	extern bool varExists(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
+	extern bool varExists(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
+
 
 	extern CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
+	extern CalcValue* valueAtVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
 }
 
 

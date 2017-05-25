@@ -45,8 +45,11 @@ int main(int argc, char** argv){
 	if (argc == 1) {
 
 		// set up a namespace for variables
-		UserVar* first_node = new UserVar(NULL, " ", 0.0);
-		first_node->first = first_node;
+		UserVar first_node(NULL, " ", 0.0);
+		first_node.first = &first_node;
+
+		std::vector<UserVar> var_nodes;
+		var_nodes.push_back(first_node);
 
 		bool elseStatement = false;
 
@@ -55,7 +58,7 @@ int main(int argc, char** argv){
 
 		// process commands as they come in
 		for (;;)
-			runShell(first_node, showErrors, mainStack, elseStatement);
+			runShell(var_nodes, showErrors, mainStack, elseStatement);
 
 
 

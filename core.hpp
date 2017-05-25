@@ -59,8 +59,11 @@ void runFile(char* programFile, bool& errorReporting){
 	// the most important component of the program :)
 	std::stack<CalcValue> mainStack;
 
-	UserVar* first_node = new UserVar(NULL, " ", 0.0);
-	first_node->first = first_node;
+	UserVar first_node(NULL, " ", 0.0);
+	first_node.first = &first_node;
+
+	std::vector<UserVar> var_nodes;
+	var_nodes.push_back(first_node);
 
 	bool elseStatement = false;
 	char *rpnln = (char*) malloc(256), *rpnln_head = rpnln;
@@ -75,7 +78,6 @@ void runFile(char* programFile, bool& errorReporting){
 
 		if (getline(&rpnln, &lineLen, program) == -1) {
 			// prevent memory leaks...
-			delete first_node;
 			fclose(program);
 
 			return; // EOF
@@ -86,7 +88,7 @@ void runFile(char* programFile, bool& errorReporting){
 		char *errorToken = NULL;
 		// process the line
 		if ((errorToken =
-					 processLine(mainStack, first_node,errorReporting, rpnln, elseStatement, program))
+					 processLine(mainStack, var_nodes,errorReporting, rpnln, elseStatement, program))
 			&& errorReporting
 				) {
 
@@ -104,7 +106,6 @@ void runFile(char* programFile, bool& errorReporting){
 
 			color_fputs(stderr, "^\n", 255, 0, 0);
 
-			delete first_node;
 			// windows sucks :P
 #ifdef _WIN32
 			std::cin.ignore();
@@ -118,12 +119,13 @@ void runFile(char* programFile, bool& errorReporting){
 
 }
 
-bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
+bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReporting,
 			 std::stack<CalcValue>& mainStack, bool& elseStatement
 ) {
 
 	if (!prog_file)
 		return true;
+
 
 	size_t local_line = 0;
 
@@ -140,12 +142,13 @@ bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 			//free(rpnln);
 			return false; // EOF
 		}
+
 		rpnln_head = rpnln;
 		// I need a copy of it to call free() on later.
 		char* errorToken = NULL;
 		// process the line
 		if ((errorToken =
-					 processLine(mainStack, first_node,errorReporting, rpnln, elseStatement, prog_file))
+					 processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, prog_file))
 			&& errorReporting
 				) {
 
@@ -185,7 +188,7 @@ bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
 // a NULL CalcValue
 CalcValue ans;
 
-void runShell(UserVar* first_node, bool& errorReporting,
+void runShell(std::vector<UserVar>& var_nodes, bool& errorReporting,
 			  std::stack<CalcValue>& mainStack, bool& elseStatement
 ){
 
@@ -204,7 +207,7 @@ void runShell(UserVar* first_node, bool& errorReporting,
 
 
 	// process the line
-	bool errors = processLine(mainStack, first_node, errorReporting, rpnln, elseStatement, stdin);
+	bool errors = processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, stdin);
 
 	if (errors)
 		emptyStack(mainStack);
@@ -216,8 +219,7 @@ void runShell(UserVar* first_node, bool& errorReporting,
 	// this fails...
 	if (!mainStack.empty()) {
 		ans = mainStack.top();
-		//ans.print(first_node);
-		if (!printCalcValue(ans, first_node))
+		if (!printCalcValue(ans, var_nodes))
 			std::cout <<'\n';
 	}
 
@@ -236,8 +238,10 @@ void runStringStack(StrStack& code, bool& errorReporting){
 	// the most important component of the program :)
 	std::stack<CalcValue> mainStack;
 
-	UserVar* first_node = new UserVar(NULL, " ", 0.0);
-	first_node->first = first_node;
+	UserVar first_node(NULL, " ", 0.0);
+	first_node.first = &first_node;
+	std::vector<UserVar> var_nodes;
+	var_nodes.push_back(first_node);
 
 	static CalcValue ans(0.0); // here `0` could be a pointer
 
@@ -260,7 +264,7 @@ void runStringStack(StrStack& code, bool& errorReporting){
 
 		// process the line
 		if ((errorToken =
-					 processLine(mainStack, first_node, errorReporting, rpnln, elseStatement, stdin)) // note: stdin is a bad file for this purpose..
+					 processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, stdin)) // note: stdin is a bad file for this purpose..
 			&& errorReporting
 				) {
 
