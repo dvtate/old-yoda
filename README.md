@@ -1,8 +1,8 @@
 # RPN Shell / Yoda-Script
-A Yoda-Script (.ys) interpreter which is now turing complete! Using the shell, it can be used as a calculator by those familiar with reverse polish notation (RPN). It is already useful, but it still has a ways to go.
+A Yoda-Script (.ys) interpreter which is now turing complete! The language is dynamically typed, and although it has a rather unique syntax, those familiar to RPN may prefer it to other languages. This is just a side project of mine suggestions and help are welcome. Using the shell, it can be used as a calculator by those familiar with reverse polish notation (RPN). It is already useful, but it still has a ways to go to become a practical language for develolpers.
 
 # Build and Run [![Build Status](https://travis-ci.org/dvtate/yoda.svg?branch=master)](https://travis-ci.org/dvtate/yoda/)
-If you are a windows user and don't know anything about C++ compilers, you can download this precompiled executable  <b>Warning</b>, I cross-compiled this on Linux, it hasn't been tested on a native installation<br/>
+If you are a Windows user and don't know anything about C++ compilers, you can download this precompiled executable  <b>Warning</b>, I cross-compiled this on Linux, it hasn't been tested on a native installation<br/>
 http://dvtate.github.io/dls/yoda.exe [updated 2017.4.2]
 - Compiling:
 `yoda $ g++ *.cpp -o yoda`
@@ -13,16 +13,12 @@ http://dvtate.github.io/dls/yoda.exe [updated 2017.4.2]
 After installing, you can run yoda as you would any other program from the terminal.
 # About YodaScript
 YodaScript is a stack-based language based on reverse polish notation.
-- Features coming soon:
-  + dynamic scope resolution
-  + restructuring code (more stl containers)
+- Features coming soon (fast-track):
+  + lists (std::vector<CalcValue>)
   
-- Some features which I plan on implementing:
-  + functions and subroutines
-  + lists
+- Some features which I plan on implementing (totem-poll):
+  + **proper** functions and subroutines (not macros)
   + associative arrays (dictionaries)
-  + more types of loops (do-while, range-based for, for-each, for)
-  + scoping (maybe something like what PHP does)
   + proper string manipulation funcitons and such
   + regular expressions
   + concurrency (multi-threaded/async) (maybe with std::thread)
@@ -70,7 +66,7 @@ YodaScript is a stack-based language based on reverse polish notation.
  >>> $a print
  4
 ```
-  Variables are references to data, variables can reference eachother. Changing the value of a reference changes the value  of it's referenced variable.  If you want to make a deep copy, use the copy operator (`~`). 
+  Variables are references to data, variables can reference eachother. Changing the value of a reference changes the value  of it's referenced variable.  If you want to make a deep copy, use the copy operator (`~`). Also, note: this language uses dynamic scope resolution and variables are deleted as they go out of scope. If 2 variables in different scopes have the same name, the one in the more specific scope will be used.
 ```
 >>> $a 8 =    # now $a is a reference to the number 8 
 >>> $b $a =   # now $b is a reference to $a and $a is a reference to the number 8
@@ -92,12 +88,12 @@ YodaScript is a stack-based language based on reverse polish notation.
   } =
   >>> $mySub @
   hello there
-  >>> $a print # note, variables declared within the subroutine remain after it's done
-  5
+  >>> $a print # note, variables declared within the macro are deleted wen they go out of scope
+  ERROR: broken reference to `$a`.
   ```
   
  - <b>Loops:</b>
-  Loops can be used to repeat the same code a number of times. This language has several types of loops built in.
+  Loops can be used to repeat the code a number of times. This language has several types of loops built in.
   - <b>Repeat Loops:</b>
    runs code <i>n</i> times
    ```
@@ -147,56 +143,14 @@ YodaScript is a stack-based language based on reverse polish notation.
   Woooooooooooow!
   ```
   
- - <b>Keywords and Commands:</b>
-    * `>>> help` <br/>
-      The help command displays a short dialog to help get you started.
-    *`>>> clear` <br/>
-      clears the terminal (using a system call (suports 3 major operating systems))
-    * `>>> reset` <br/>
-      resets the line numbering and variables
-    * `>>> exit` <br/>
-      closes the program
-    * `>>> q`<br/>
-      same as `exit`
-    * `>>> ans`<br/>
-      previous answer, initialized to 0. (access it as you would a variable)
-    * `>>> pi`<br/>
-      an approximate value for pi (access it as you would `ans`)
-    * `>>> true`<br/>
-      puts 1 on the top of the stack
-    * `>>> false`<br/>
-      puts 0 on the top of the stack
-    * `>>> null`<br/>
-      puts a NULL object on the top of the stack (deprecated)
-    * `>>> print`<br/>
-      prints the element at the top of the stack
-    * `>>> println`<br/>
-      prints the element at the top of the stack and a newline
-    * `>>> input`<br/>
-      returns user input as a string
-    * `>>> getchar`<br/>
-      inputs a single character from the user as a string
-    * `>>> vars` = `>>> listvars` <br/>
-      prints the status and types of all the variables (useful for debugging)
-    * `>>> typeof`<br/>
-      returns the type of the given variable or constant
-    * `>>> syscall`<br/>
-      calls `system()` on the given string.
-    * `>>> errors-on` & `>>> errors-off`<br/>
-      enable/disable errors (by default they are on)
-    * `>>> color_print`<br/>
-      prints a value (string, number, etc.) to the terminal in a given HTML color in a string. The color should be on top
-    * `>>> setFgColor` & `>>> setBgColor`<br/>
-      changes the terminal color to a given html color contained in a string
-    * `>>> reset_color` & `>>> resetFgColor` & `>>> resetBgColor` <br/>
-      resets the background and/or foreground colors
-    * `>>> file_get_contents`<br/>
-      loads the contents of a file into a string
-    * `>>> file_put_contents`<br/>
-      loads the contents of a string into a file
-    * `>>> assert`<br/>
-      errors if condition is false, otherwise execution continues
-# A incomplete list of built-in operators and functions:
+# An incomplete list of built-in operators, functions, constants, etc.:
+* Constants:
+  - `true` = 1
+  - `false` = 0
+  - `null`: passes null object
+  - `pi`: pushes approximation of pi
+  - `ans`: only available in shell; Pushes value at top of stack
+  
 * Mathematical operators:
   - `+`: add (also concatenates when one or more of the arguments is a string)
   - `-`: subtract
@@ -256,7 +210,8 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `=`: assignment operator
   - `delete`: deletes a variable/reference
   - `is_defined`: returns whether or not the given variable is defined or not
-  
+  - `vars`, `ls_vars`: prints list of variables in all scopes plus debugging info
+  - `typeof`: pushes string containing type of a value
 * String operators:
   - `strlen`: returns the length of a given string
   - `strstr`: finds a sub-string in a string
@@ -264,18 +219,36 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `trim`: trims whitespace from start and end of the string
   - `split`: splits a string using given delimiters
   - `str_replace`: replaces all occurances of a substring with another substring
-  
+
+* I/O:
+  - `print`: prints previous value
+  - `println`: prints previous value and ends line (&flushes file)
+  - `input`, `getline`: reads a line from terminal (returns a string)
+  - `getchar`: reads a character from terminal (returns a string)
+  - `color_print`: prints a value in a given HTML color in a string. The color should be come after value
+  - `setFgColor`, `setBgColor`: change text color to an html color, passing `null` resets color
+      changes the terminal color to a given html color contained in a string
+  - `reset_color`, `resetFgColor`, `resetBgColor`: resets background and/or forground colors and effects
+
 * File operators:
   -  `file_get_contents`, `file_put_contents`: convert between files and strings
-  
+
 * Execuatable Array Operators:
   - `@`, `eval`: runs the given subroutine or string as code (also accepts strings)
-  - `stk`: puts the contents [of the stack] into an executable array
+  - `stk`: puts all values passed into an executable array
   
 * Structure-Equivalent Operators:
   - `else`, `elseif`, `if`: conditional operators
   - `repeat`, `while`, `for-each`: looping operators
-  
+
+* Interpreter Commands
+  - `q`, `exit`, `quit`: stops interpretation of the script
+  - `help`: displays help message
+  - `reset`: deletes all variables, stack, etc. (essentially restarts interpreter)
+  - `errors-on`, `errors-off`: toggle error messages (on by default)
+  - `syscall`: calls `system()` on the given string. (for running system shell commands)
+
+
 # Related Repos
   When I develop the interpreter I like to develop different portions separately and then add them to my code-base once I've rigorously tested them. If you want to contribute to a particular sub-system, I'd reccomend editing these repos instead of this one.
   - https://github.com/dvtate/stack-demo
