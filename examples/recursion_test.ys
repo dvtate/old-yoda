@@ -1,28 +1,25 @@
-# macros are somewhat
-# similar to subroutines
+# macros are similar to inline functions
 {
-	# kinda like parameters
+	# kindof a parameter...
 	num $param = 
-
-	# decrement param
+	
+	# halve param (could use bitshift)
 	$param $param 2 / =
 
 	# print param
 	$param println
 
-	# push value stored in param onto stacksss
+	# push value stored in param onto stack 3x
 	$param ~ dup dup
-
-	# delete param
-	$param delete
 
 	# if param > 1 then call self
 	{ $recTest @ } swap 1 > if
 
-# this variable stores the macros
+# this variable stores the macro
 } $recTest =
 
 
 # run the executable array
 2 20 ** $recTest @
+
 
