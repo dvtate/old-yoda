@@ -26,11 +26,11 @@ class CalcValue {
 public:
 
 	// which type is represented by the data union
-	enum { NUM,	// number/boolean
-		STR,	// string
-		REF,	// reference to a variable
-		//ARR,	// linked-list
-		BLK	// Block of code (StrStack) (subroutine) (executable array)
+	enum {  NUM,	// number/boolean
+			STR,	// string
+			REF,	// reference to a variable
+			ARR,	// vector
+			BLK		// Block of code (StrStack) (subroutine) (executable array)
 	} type;
 
 	// contains the data
@@ -38,6 +38,7 @@ public:
 		double		number;
 		char*		string;
 		StrStack*	block;
+		std::vector<CalcValue> list;
 	};
 
 	// Null object
@@ -65,10 +66,13 @@ public:
 	}
 
 	CalcValue(const StrStack& codeBlock): type(BLK)
-	{ block = new StrStack(codeBlock); }
+		{ block = new StrStack(codeBlock); }
 
 	CalcValue(StrStack* codeBlock): type(BLK)
-	{ block = new StrStack(*codeBlock); }
+		{ block = new StrStack(*codeBlock); }
+
+	CalcValue(std::vector<CalcValue> in_list): type(ARR)
+		{ list = in_list; }
 
 	CalcValue(const CalcValue& in){
 		// no need to delete anything as nothing is there yet
@@ -89,6 +93,8 @@ public:
 
 		} else if (type == BLK)
 			block = new StrStack(*in.block);
+		else if (type == ARR)
+			list = in.list;
 
 		//printf("copying CV...\n");
 		//printf("copyied CV...\n");
@@ -101,6 +107,10 @@ public:
 		return *this;
 	}
 
+	CalcValue& operator=(const CalcValue& in) {
+		setValue(in);
+		return *this;
+	}
 	void setValue(const CalcValue& in){
 
 		// delete old value
@@ -125,7 +135,8 @@ public:
 
 		} else if (type == BLK)
 			block = new StrStack(*in.block);
-
+		else if (type == ARR)
+			list = in.list;
 	}
 
 	// this sometimes causes a core dump (QwQ)
@@ -179,6 +190,17 @@ public:
 		number = val;
 	}
 
+	void setValue(const std::vector<CalcValue>& arr) {
+		// delete old value
+		if (type == STR || type == REF)
+			free(string); // free(NULL) gives no errors :)
+		else if (type == BLK)
+			delete block;
+
+		type = ARR;
+		list = arr;
+
+	}
 
 	CalcValue& setRef(const char* const str){
 
@@ -196,6 +218,7 @@ public:
 
 		return *this;
 	}
+
 	CalcValue& setStr(const char* const str){
 		// memory leaks are pretty bad
 		if (type == STR || type == REF)
@@ -280,20 +303,21 @@ public:
 
 	// A Null value
 	bool isEmpty()
-	{ return (type == STR) && (string == NULL); }
+		{ return (type == STR) && (string == NULL); }
 	bool isNull()
-	{ return isEmpty(); }
+		{ return isEmpty(); }
 
 	// type checking (doesn't get used) :/
 	bool isRef()
-	{ return type == REF; }
+		{ return type == REF; }
 	bool isStr()
-	{ return !isEmpty() && type == STR; }
+		{ return !isEmpty() && type == STR; }
 	bool isNum()
-	{ return type == NUM; }
+		{ return type == NUM; }
 	bool isBlk()
-	{ return type == BLK; }
-
+		{ return type == BLK; }
+	bool isArr()
+		{ return type == ARR; }
 };
 
 

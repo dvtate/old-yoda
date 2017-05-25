@@ -139,4 +139,46 @@ char* qtok(char* str, char** next){
 }
 
 
+std::vector<std::string> splitList(std::string& str) {
+	ssize_t pos = 0, past = 0;
+	uint16_t ldepth = 0;
+	uint16_t sdepth = 0;
+	bool quoted = false;
+	bool commented = false;
+	std::vector<std::string> ret;
+
+	for (char ch : str) {
+		switch (ch) {
+			case '(':
+				ldepth++; break;
+			case ')':
+				ldepth--; break;
+			case '{':
+				sdepth++; break;
+			case '}':
+				sdepth--; break;
+			case '\"':
+				quoted = !quoted;
+				break;
+			case '#':
+				commented = true;
+				break;
+			case '\n':
+				commented = false;
+				break;
+			case ',':
+				if (ldepth <= 0  && sdepth <= 0 && !quoted && !commented) {
+					ret.push_back(str.substr(past, pos - past));
+					printf("<%d, %d>", pos, past);
+					past = pos + 1;
+				}
+				break;
+		}
+		pos++;
+	}
+
+	return ret;
+
+}
+
 #endif

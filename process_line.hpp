@@ -22,6 +22,11 @@
 // version info
 #include "lolcat_version.h"
 
+// lists
+#include "list.hpp"
+
+
+
 extern CalcValue ans;
 
 
@@ -938,6 +943,59 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				mainStack.push(floor(val.getNum()));
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atoi(val.getStr()));
+
+		// initialize a list
+		} else if (*p == '(') {
+
+			char* newLine;
+
+			if (lineLen - (p - pInit) > 1) { // ( more code....
+				if (*++p == '\0')
+					p++;
+				newLine = NULL;
+
+			} else { // (\n
+				newLine = (char*) malloc(256);
+				size_t lineLen = 256;
+
+				if (getline(&newLine, &lineLen, codeFeed) == -1) {
+					PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
+				} else
+					line++;
+
+				p = newLine;
+
+			}
+
+			std::string listBody = list::getList(p, codeFeed);
+			if (listBody == "(") {
+				PASS_ERROR("\aERROR: `(` invalid list, possible missing `)`\n");
+			}
+			std::vector<std::string> elems = splitList(listBody);
+			//for (std::string elem : elems)
+			//	std::cout <<": " << elem <<std::endl;
+
+			std::stack<CalcValue> tmpStack;
+			char* str = (char*) malloc(500);
+			char* str_cpy = str;
+			for (std::string elem : elems) {
+
+				str = (char*) realloc(str_cpy, elem.length() + 1);
+				strcpy(str, elem.c_str());
+				char *err = processLine(tmpStack, var_nodes, showErrors, str, elseStatement, codeFeed);
+				free(str_cpy);
+				if (err) {
+					PASS_ERROR("\aERROR in block near `" << err << "`. Called here:\n");
+				}
+			}
+			std::vector<CalcValue> arr;
+			while (!tmpStack.empty()) {
+				arr.push_back(CalcValue(mainStack.top()));
+				tmpStack.pop();
+			}
+
+			mainStack.push(arr);
+			free(newLine);
 
 		// initialize a strStack
 		} else if (*p == '{') {
