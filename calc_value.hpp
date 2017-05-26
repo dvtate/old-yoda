@@ -4,14 +4,17 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include <vector>
 
 #include "string_stack.hpp"
 
 #define USERVAR_NAME_MAXLENGTH 20
+
 // to be defined later
 class CalcValue;
 class UserVar;
+
 namespace vars {
 	extern CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
 	extern CalcValue* valueAtVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
@@ -71,8 +74,8 @@ public:
 	CalcValue(StrStack* codeBlock): type(BLK)
 		{ block = new StrStack(*codeBlock); }
 
-	CalcValue(std::vector<CalcValue> in_list): type(ARR)
-		{ list = in_list; }
+	CalcValue(const std::vector<CalcValue>& in_list):
+		type(ARR), list(in_list) { }
 
 	CalcValue(const CalcValue& in){
 		// no need to delete anything as nothing is there yet
@@ -284,20 +287,32 @@ public:
 			return NULL;
 	}
 
-	bool operator==(const CalcValue& val2){
+
+	bool operator==(const CalcValue& cv2) {
 
 		// same type
-		if (type == val2.type) {
+		if (type == cv2.type) {
 
 			// same value
-			if (type == NUM && number == val2.number)
+			if (type == CalcValue::NUM && number == cv2.number)
 				return true;
-			else if ((type == STR || type == REF) && strcmp(string, val2.string) == 0)
-				return true;
+			else if ((type == CalcValue::STR || cv2.type == CalcValue::REF))
+				return strcmp(string, cv2.string) == 0;
+			/*
+			// this doesnt work...
+			else if (type == CalcValue::ARR) {
+				if (list.size() != cv2.list.size())
+					return false;
+				for (size_t i = 0; i < list.size() - 1; i++)
+					if (!(list[i] == cv2.list[i]))
+						return false;
 
+				return true;
+			}*/
 		}
 
 		return false;
+
 
 	}
 
@@ -319,6 +334,7 @@ public:
 	bool isArr()
 		{ return type == ARR; }
 };
+
 
 
 #define NULL_CALCVAL_OBJECT CalcValue((char*) NULL)

@@ -147,7 +147,15 @@ bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes){
 
 		std::cerr <<"\aERROR: broken reference to `$" <<(ret->string) <<"`.\n";
 		return 1;
+	} else if (val.type == CalcValue::ARR) {
+		std::cout <<"(";
+
+		for (CalcValue elem : val.list) {
+			printCalcValue(elem, var_nodes);
+			std::cout <<", ";
+		}
 	}
+
 
 
 	return 0;
@@ -187,6 +195,12 @@ bool printCalcValueRAW(CalcValue& val, std::vector<UserVar>& var_nodes){
 
 		std::cerr <<"\aERROR: broken reference to `$" <<(ret->string) <<"`.\n";
 		return 1;
+	}else if (val.type == CalcValue::ARR) {
+		std::cout <<"(";
+		for (CalcValue elem : val.list) {
+			printCalcValueRAW(elem, var_nodes);
+			std::cout <<", ";
+		}
 	}
 
 	return 0;

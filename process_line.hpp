@@ -194,7 +194,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 		} else if (*p == '+' && *(p + 1) == '\0') {
 
-
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: Not enough data to satisfy `+` operator." <<std::endl);
 			}
@@ -433,6 +432,14 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.push(trimStr(str));
 
 		} else if (strcmp(p, "split") == 0) {
+			if (mainStack.size() && mainStack.top().type == CalcValue::ARR) {
+				std::vector<CalcValue> arrcpy = mainStack.top().list;
+				mainStack.pop();
+				for (CalcValue elem : arrcpy) {
+					mainStack.push(elem);
+				}
+				continue;
+			}
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
 			}
@@ -976,6 +983,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			//	std::cout <<": " << elem <<std::endl;
 
 			std::stack<CalcValue> tmpStack;
+			std::vector<CalcValue> arr;
 			char* str = (char*) malloc(500);
 			char* str_cpy = str;
 			for (std::string elem : elems) {
@@ -987,14 +995,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				if (err) {
 					PASS_ERROR("\aERROR in block near `" << err << "`. Called here:\n");
 				}
-			}
-			std::vector<CalcValue> arr;
-			while (!tmpStack.empty()) {
-				arr.push_back(CalcValue(mainStack.top()));
-				tmpStack.pop();
+				arr.push_back(tmpStack.empty() ? CalcValue() : tmpStack.top());
+				emptyStack(tmpStack);
 			}
 
-			mainStack.push(arr);
+			mainStack.push(CalcValue(arr));
 			free(newLine);
 
 		// initialize a strStack

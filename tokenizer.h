@@ -169,7 +169,6 @@ std::vector<std::string> splitList(std::string& str) {
 			case ',':
 				if (ldepth <= 0  && sdepth <= 0 && !quoted && !commented) {
 					ret.push_back(str.substr(past, pos - past));
-					printf("<%d, %d>", pos, past);
 					past = pos + 1;
 				}
 				break;
