@@ -951,6 +951,10 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atoi(val.getStr()));
 
+		} else if (strcmp(p, "list_size") == 0) {
+			std::cout <<mainStack.top().list.size() <<std::endl;
+			mainStack.pop();
+
 		// initialize a list
 		} else if (*p == '(') {
 

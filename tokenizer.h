@@ -176,6 +176,10 @@ std::vector<std::string> splitList(std::string& str) {
 		pos++;
 	}
 
+	// gets value after last comma
+	ret.push_back(str.substr(past, pos - past));
+
+
 	return ret;
 
 }

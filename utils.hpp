@@ -149,11 +149,12 @@ bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes){
 		return 1;
 	} else if (val.type == CalcValue::ARR) {
 		std::cout <<"(";
-
-		for (CalcValue elem : val.list) {
-			printCalcValue(elem, var_nodes);
+		printCalcValue(val.list[0], var_nodes);
+		for (size_t i = 0; i < val.list.size(); i++) {
 			std::cout <<", ";
+			printCalcValue(val.list[i], var_nodes);
 		}
+		std::cout <<")\n";
 	}
 
 
@@ -195,12 +196,16 @@ bool printCalcValueRAW(CalcValue& val, std::vector<UserVar>& var_nodes){
 
 		std::cerr <<"\aERROR: broken reference to `$" <<(ret->string) <<"`.\n";
 		return 1;
-	}else if (val.type == CalcValue::ARR) {
+	} else if (val.type == CalcValue::ARR) {
 		std::cout <<"(";
-		for (CalcValue elem : val.list) {
-			printCalcValueRAW(elem, var_nodes);
-			std::cout <<", ";
-		}
+
+ 		printCalcValueRAW(val.list[0], var_nodes);
+		if (val.list.size() > 1)
+			for (size_t i = 0; i < val.list.size(); i++) {
+				std::cout << ", ";
+				printCalcValueRAW(val.list[i], var_nodes);
+			}
+		std::cout <<")\n";
 	}
 
 	return 0;
