@@ -203,6 +203,8 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `str`: converts to string
   - `num`: converts to a number
   - `int`: converts to a integer (rounding)
+  - `list`: puts values on stack into a list
+  - `stk`: puts values on stack into a list
   - `floor`: static casts to an int
   - `~`: copy operator, replaces a reference with the basic value it points to
   
@@ -216,13 +218,14 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `strlen`: returns the length of a given string
   - `strstr`: finds a sub-string in a string
   - `stristr`: case-insensitive strstr
-  - `trim`: trims whitespace from start and end of the string
+  - `trim`: trims whitespace from start and end of the stringsubroutine
   - `split`: splits a string using given delimiters
   - `str_replace`: replaces all occurances of a substring with another substring
 
 * I/O:
   - `print`: prints previous value
   - `println`: prints previous value and ends line (&flushes file)
+  - `print_blk`: prints the contents of a macro/block
   - `input`, `getline`: reads a line from terminal (returns a string)
   - `getchar`: reads a character from terminal (returns a string)
   - `color_print`: prints a value in a given HTML color in a string. The color should be come after value
@@ -233,9 +236,8 @@ YodaScript is a stack-based language based on reverse polish notation.
 * File operators:
   -  `file_get_contents`, `file_put_contents`: convert between files and strings
 
-* Execuatable Array Operators:
-  - `@`, `eval`: runs the given subroutine or string as code (also accepts strings)
-  - `stk`: puts all values passed into an executable array
+* Macro Operators:
+  - `@`, `eval`: runs the given macro or string as code (also accepts strings)
   
 * Structure-Equivalent Operators:
   - `else`, `elseif`, `if`: conditional operators
