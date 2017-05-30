@@ -150,7 +150,7 @@ bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes){
 	} else if (val.type == CalcValue::ARR) {
 		std::cout <<"(";
 		printCalcValue(val.list[0], var_nodes);
-		for (size_t i = 0; i < val.list.size(); i++) {
+		for (size_t i = 1; i < val.list.size(); i++) {
 			std::cout <<", ";
 			printCalcValue(val.list[i], var_nodes);
 		}
@@ -201,7 +201,7 @@ bool printCalcValueRAW(CalcValue& val, std::vector<UserVar>& var_nodes){
 
  		printCalcValueRAW(val.list[0], var_nodes);
 		if (val.list.size() > 1)
-			for (size_t i = 0; i < val.list.size(); i++) {
+			for (size_t i = 1; i < val.list.size(); i++) {
 				std::cout << ", ";
 				printCalcValueRAW(val.list[i], var_nodes);
 			}

@@ -105,6 +105,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 	size_t lineLen = strlen(rpnln);
 	char* pInit = rpnln;
 
+
 	// get first token from the input
 	char* p = qtok(rpnln, &rpnln);
 
@@ -432,58 +433,62 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.push(trimStr(str));
 
 		} else if (strcmp(p, "split") == 0) {
-			if (mainStack.size() && mainStack.top().type == CalcValue::ARR) {
-				std::vector<CalcValue> arrcpy = mainStack.top().list;
-				mainStack.pop();
-				for (CalcValue elem : arrcpy) {
-					mainStack.push(elem);
-				}
-				continue;
-			}
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
-			}
 
-			// get delims
 			CONVERT_REFS(mainStack, var_nodes, showErrors);
-			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
-			}
-			if (!strlen(mainStack.top().string)) {
+			if (mainStack.size() && mainStack.top().type == CalcValue::ARR) { // split elems of list
+				// TODO: fix this
+				std::vector<CalcValue> tmp = mainStack.top().list;
+				for (CalcValue elem : mainStack.top().list)
+					mainStack.push(CalcValue(elem));
 				mainStack.pop();
-				// get str
-				CONVERT_REFS(mainStack, var_nodes, showErrors);
+				continue;
+
+			} else { // spliting a string
+
+				if (mainStack.size() < 2) {
+					PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
+				}
+
+				// get delims
 				if (mainStack.top().type != CalcValue::STR) {
 					PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
 				}
-				char str[strlen(mainStack.top().string)]; // no room for '\0'
-				strcpy(str, mainStack.top().string);
-				mainStack.pop();
+				if (!strlen(mainStack.top().string)) {
+					mainStack.pop();
+					// get str
+					CONVERT_REFS(mainStack, var_nodes, showErrors);
+					if (mainStack.top().type != CalcValue::STR) {
+						PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
+					}
+					char str[strlen(mainStack.top().string)]; // no room for '\0'
+					strcpy(str, mainStack.top().string);
+					mainStack.pop();
 
-				// push each character onto the stack
-				for (char ch : str) {
-					char chr[2] = { ch, '\0' };
-					mainStack.push(chr);
-				}
-			} else {
-				// copy delimiters
-				char delims[strlen(mainStack.top().string) + 1];
-				strcpy(delims, mainStack.top().string);
-				mainStack.pop();
+					// push each character onto the stack
+					for (char ch : str) {
+						char chr[2] = {ch, '\0'};
+						mainStack.push(chr);
+					}
+				} else {
+					// copy delimiters
+					char delims[strlen(mainStack.top().string) + 1];
+					strcpy(delims, mainStack.top().string);
+					mainStack.pop();
 
-				// get str
-				CONVERT_REFS(mainStack, var_nodes, showErrors);
-				if (!mainStack.top().isStr()) {
-					PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
-				}
-				char str[strlen(mainStack.top().string) + 1];
-				strcpy(str, mainStack.top().string);
-				mainStack.pop();
+					// get str
+					CONVERT_REFS(mainStack, var_nodes, showErrors);
+					if (!mainStack.top().isStr()) {
+						PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
+					}
+					char str[strlen(mainStack.top().string) + 1];
+					strcpy(str, mainStack.top().string);
+					mainStack.pop();
 
-				char* pch = strtok(str, delims);
-				while (pch) {
-					mainStack.push(pch);
-					pch = strtok(NULL, delims);
+					char *pch = strtok(str, delims);
+					while (pch) {
+						mainStack.push(pch);
+						pch = strtok(NULL, delims);
+					}
 				}
 			}
 		// replace substring
@@ -687,7 +692,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			std::cout <<std::endl;
 
 
-		} else if (strcmp(p, "printblk") == 0) {
+		} else if (strcmp(p, "print_blk") == 0) {
 			size_t len = 50;
 			char* str = (char*) malloc(len);
 			mainStack.top().block->toString(&str, &len);
@@ -871,41 +876,42 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			StrStack block;
 			while (!tmpStack.empty()) {
 				switch (tmpStack.top().type) {
-				case CalcValue::STR:
-					if (tmpStack.top().string) {
-						// escape double-quotes
-						char* tmp = str_replace(tmpStack.top().string, "\"", "\\\"");
+					case CalcValue::STR:
+						if (tmpStack.top().string) {
+							// escape double-quotes
+							char *tmp = str_replace(tmpStack.top().string, "\"", "\\\"");
 
-						// allocate enough space for the string
-						size_t len = strlen(tmp);
-						char str[len + 4 + 1];
+							// allocate enough space for the string
+							size_t len = strlen(tmp);
+							char str[len + 4 + 1];
 
-						// put string in quotes and end line
-						str[0] = '"';
-						strcpy(str + 1, tmp);
-						str[len + 1] = '"';
-						str[len + 2] = '\n';
-						str[len + 3] = 0;
+							// put string in quotes and end line
+							str[0] = '"';
+							strcpy(str + 1, tmp);
+							str[len + 1] = '"';
+							str[len + 2] = '\n';
+							str[len + 3] = 0;
+							block.push(str);
+
+							// str_replace has blind allocation
+							free(tmp);
+						}
+						break;
+
+					case CalcValue::BLK:
+						for (ssize_t i = tmpStack.top().block->stackDepth - 1; i >= 0; i--) {
+							block.push(tmpStack.top().block->at(i));
+						}
+						break;
+
+					case CalcValue::NUM:
+						char str[40];
+						snprintf(str, 39, "%*.*g\n", 18, 18, tmpStack.top().getNum());
 						block.push(str);
+						break;
 
-						// str_replace has blind allocation
-						free(tmp);
-					}
-					break;
-
-				case CalcValue::BLK:
-					for (ssize_t i = tmpStack.top().block->stackDepth - 1; i >= 0; i--) {
-						block.push(tmpStack.top().block->at(i));
-					}
-					break;
-
-				case CalcValue::NUM:
-					char str[40];
-					snprintf(str, 39, "%*.*g\n", 18, 18, tmpStack.top().getNum());
-					block.push(str);
-					break;
-
-				case CalcValue::REF: break;
+					case CalcValue::REF:
+						break;
 
 				}
 
@@ -913,6 +919,21 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 
 			mainStack.push(block);
+
+		// convert to list
+		} else if (strcmp(p, "list") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_REFS(mainStack, var_nodes, showErrors);
+
+			CalcValue tmp;
+			tmp.type = CalcValue::ARR;
+			while (!mainStack.empty()) {
+				tmp.list.push_back(mainStack.top());
+				mainStack.pop();
+			}
+			mainStack.push(CalcValue());
+			mainStack.top() = tmp;
+
 		// convert to number
 		} else if (strcmp(p, "num") == 0) {
 			ASSERT_NOT_EMPTY(p);
@@ -950,6 +971,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				mainStack.push(floor(val.getNum()));
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atoi(val.getStr()));
+			else {
+				PASS_ERROR("\aERROR: floor expected a number\n");
+			}
 
 		} else if (strcmp(p, "list_size") == 0) {
 			std::cout <<mainStack.top().list.size() <<std::endl;
@@ -983,24 +1007,21 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: `(` invalid list, possible missing `)`\n");
 			}
 			std::vector<std::string> elems = splitList(listBody);
-			//for (std::string elem : elems)
-			//	std::cout <<": " << elem <<std::endl;
 
 			std::stack<CalcValue> tmpStack;
+			std::vector<CalcValue> tmp;
 			std::vector<CalcValue> arr;
-			char* str = (char*) malloc(500);
-			char* str_cpy = str;
+			char *str, *str_head;
 			for (std::string elem : elems) {
-
-				str = (char*) realloc(str_cpy, elem.length() + 1);
+				str_head = str = new char[elem.size() + 1];
 				strcpy(str, elem.c_str());
-				char *err = processLine(tmpStack, var_nodes, showErrors, str, elseStatement, codeFeed);
-				free(str_cpy);
+				char* err = processLine(tmpStack, var_nodes, showErrors, str, elseStatement, codeFeed);
 				if (err) {
-					PASS_ERROR("\aERROR in block near `" << err << "`. Called here:\n");
+					PASS_ERROR("\aERROR in block near `" <<err <<"`. in list:\n");
 				}
 				arr.push_back(tmpStack.empty() ? CalcValue() : tmpStack.top());
 				emptyStack(tmpStack);
+				delete[] str_head;
 			}
 
 			mainStack.push(CalcValue(arr));
@@ -1366,6 +1387,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			else if (val.type == CalcValue::BLK) // string_stack
 				mainStack.push("executable array");
 
+			else if (val.type == CalcValue::ARR) // list
+				mainStack.push("list");
+
 		// system call (problem: this conflicts with the current strategy for handling if statements.....)
 		} else if (strcmp(p, "sys") == 0 || strcmp(p, "system") == 0) {
 
@@ -1548,6 +1572,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		p = qtok(rpnln, &rpnln);
 
 	}
+
 
 	return NULL;
 

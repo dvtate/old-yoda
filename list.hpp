@@ -54,7 +54,6 @@ namespace list {
 		codeLine = (char*) malloc(255);
 		size_t lineLen = 255;
 
-
 		while (!isEnd) {
 
 			if (getline(&codeLine, &lineLen, codeFeed) == -1)
@@ -78,6 +77,8 @@ namespace list {
 				*str = '\0';
 				arrBody += codeLine;
 				*str = ' ';
+				free(codeLine);
+				printf(str);
 				return arrBody;
 			}
 

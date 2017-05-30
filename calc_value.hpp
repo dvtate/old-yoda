@@ -117,10 +117,10 @@ public:
 	void setValue(const CalcValue& in){
 
 		// delete old value
-		if (type == STR || type == REF)
-			free(string);
-		else if (type == BLK)
-			delete block;
+		//if (type == STR || type == REF)
+		//	free(string);
+		//else if (type == BLK)
+		//	delete block;
 
 		// they will be the same type of data
 		type = in.type;
@@ -298,7 +298,6 @@ public:
 				return true;
 			else if ((type == CalcValue::STR || cv2.type == CalcValue::REF))
 				return strcmp(string, cv2.string) == 0;
-			/*
 			// this doesnt work...
 			else if (type == CalcValue::ARR) {
 				if (list.size() != cv2.list.size())
@@ -308,7 +307,7 @@ public:
 						return false;
 
 				return true;
-			}*/
+			}
 		}
 
 		return false;
