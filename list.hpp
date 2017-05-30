@@ -36,7 +36,6 @@ namespace list {
 
 	// note, str is modified and this is used in processLine()
 	std::string getList(char*& str, FILE* codeFeed){
-
 		char* codeLine = str;
 		uint16_t depth = 1; // shouldn't be 65000 dimensional array
 		std::string arrBody = "";
@@ -59,7 +58,7 @@ namespace list {
 			if (getline(&codeLine, &lineLen, codeFeed) == -1)
 				return "("; // this signals an error from process_line.hpp
 
-			/*
+			/*di
 			// remove trailing newline
 			size_t len = strlen(codeLine) - 1;
 			if (codeLine[len] == '\n')

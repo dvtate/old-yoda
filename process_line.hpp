@@ -437,10 +437,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CONVERT_REFS(mainStack, var_nodes, showErrors);
 			if (mainStack.size() && mainStack.top().type == CalcValue::ARR) { // split elems of list
 				// TODO: fix this
-				std::vector<CalcValue> tmp = mainStack.top().list;
-				for (CalcValue elem : mainStack.top().list)
-					mainStack.push(CalcValue(elem));
+				std::vector<CalcValue> tmp = *mainStack.top().list;
 				mainStack.pop();
+
+				for (CalcValue elem : tmp)
+					mainStack.push(CalcValue(elem));
+
 				continue;
 
 			} else { // spliting a string
@@ -928,7 +930,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CalcValue tmp;
 			tmp.type = CalcValue::ARR;
 			while (!mainStack.empty()) {
-				tmp.list.push_back(mainStack.top());
+				tmp.list->push_back(mainStack.top());
 				mainStack.pop();
 			}
 			mainStack.push(CalcValue());
@@ -976,20 +978,21 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 
 		} else if (strcmp(p, "list_size") == 0) {
-			std::cout <<mainStack.top().list.size() <<std::endl;
+			auto tmp = mainStack.top().list->size();
 			mainStack.pop();
+			mainStack.push((double) tmp);
 
 		// initialize a list
 		} else if (*p == '(') {
 
 			char* newLine;
 
-			if (lineLen - (p - pInit) > 1) { // ( more code....
+			if (lineLen - (p - pInit) > 1) { // { more code....
 				if (*++p == '\0')
 					p++;
 				newLine = NULL;
 
-			} else { // (\n
+			} else { // {\n
 				newLine = (char*) malloc(256);
 				size_t lineLen = 256;
 
@@ -1001,7 +1004,31 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				p = newLine;
 
 			}
+			/*
+			if (lineLen - (p - pInit) > 1) { // ( more code....
+				if (*++p == '\0')
+					p++;
+				while (*p) {
+					p++;
+				}
+				if (lineLen - (p - pInit) > 1) { // (code, more code
+					p++;
+				}
+				newLine = NULL;
 
+			} else { // (\n
+				newLine = (char*) malloc(256);
+				size_t lineLen = 256;
+
+				if (getline(&newLine, &lineLen, codeFeed) == -1) {
+					PASS_ERROR("\aERROR: `(` invalid list, possible missing `)`\n");
+				} else
+					line++;
+
+				p = newLine;
+
+			}
+			*/
 			std::string listBody = list::getList(p, codeFeed);
 			if (listBody == "(") {
 				PASS_ERROR("\aERROR: `(` invalid list, possible missing `)`\n");
@@ -1024,7 +1051,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				delete[] str_head;
 			}
 
-			mainStack.push(CalcValue(arr));
+			mainStack.push(arr);
 			free(newLine);
 
 		// initialize a strStack
@@ -1349,6 +1376,10 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 						std::cout << "[BLK] @ " << var << ": $" << var->name << " has "
 						          << var->val.block->stackDepth
 						          << ((var->val.block->stackDepth == 1) ? " line\n" : " lines\n");
+
+					else if (var->val.type == CalcValue::REF)
+						std::cout << "[REF] @ " << var << ": $" << var->name << " has "
+                                  << var->val.list->size() <<" elements\n";
 
 					var = var->next;
 				}

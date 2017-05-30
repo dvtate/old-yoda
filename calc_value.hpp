@@ -41,7 +41,7 @@ public:
 		double		number;
 		char*		string;
 		StrStack*	block;
-		std::vector<CalcValue> list;
+		std::vector<CalcValue>* list;
 	};
 
 	// Null object
@@ -75,7 +75,10 @@ public:
 		{ block = new StrStack(*codeBlock); }
 
 	CalcValue(const std::vector<CalcValue>& in_list):
-		type(ARR), list(in_list) { }
+		type(ARR)
+	{
+		list = new std::vector<CalcValue>();
+	}
 
 	CalcValue(const CalcValue& in){
 		// no need to delete anything as nothing is there yet
@@ -96,8 +99,12 @@ public:
 
 		} else if (type == BLK)
 			block = new StrStack(*in.block);
-		else if (type == ARR)
-			list = in.list;
+		else if (type == ARR) {
+			list->resize(in.list->size());
+			for (CalcValue elem : *in.list)
+				list->push_back(elem);
+
+		}
 
 		//printf("copying CV...\n");
 		//printf("copyied CV...\n");
@@ -105,22 +112,25 @@ public:
 
 	// lol
 	template<class T>
-	CalcValue& operator=(const T& val) {
+	CalcValue& operator=(const T val) {
 		setValue(val);
 		return *this;
 	}
 
-	CalcValue& operator=(const CalcValue& in) {
+	CalcValue& operator=(const CalcValue in) {
 		setValue(in);
 		return *this;
 	}
-	void setValue(const CalcValue& in){
+	void setValue(const CalcValue in){
 
 		// delete old value
-		//if (type == STR || type == REF)
-		//	free(string);
-		//else if (type == BLK)
-		//	delete block;
+		if (type == STR || type == REF)
+			free(string);
+		else if (type == BLK)
+			delete block;
+		else if (type == ARR)
+			delete list;
+
 
 		// they will be the same type of data
 		type = in.type;
@@ -148,6 +158,9 @@ public:
 			free(string); // free() accepts NULL pointers
 		else if (type == BLK)
 			delete block;
+		else if (type == ARR)
+			delete list;
+
 	}
 
 	void setValue(const char* const str){
@@ -157,6 +170,8 @@ public:
 			free(string); // free() accepts NULL pointers
 		else if (type == BLK)
 			delete block;
+		else if (type == ARR)
+			delete list;
 
 		string = (char*) malloc(strlen(str) + 1);
 
@@ -174,6 +189,9 @@ public:
 			free(string); // free() accepts NULL pointers
 		else if (type == BLK)
 			delete block;
+		else if (type == ARR)
+			delete list;
+
 
 		type = STR;
 		string = (char*) malloc(2);
@@ -188,6 +206,8 @@ public:
 			free(string); // free(NULL) gives no errors :)
 		else if (type == BLK)
 			delete block;
+		else if (type == ARR)
+			delete list;
 
 		type = NUM;
 		number = val;
@@ -199,10 +219,14 @@ public:
 			free(string); // free(NULL) gives no errors :)
 		else if (type == BLK)
 			delete block;
+		else if (type == ARR)
+			delete list;
 
 		type = ARR;
-		list = arr;
-
+		*list = arr;
+		list->resize(arr.size());
+		for (CalcValue elem : arr)
+			list->push_back(elem);
 	}
 
 	CalcValue& setRef(const char* const str){
@@ -210,6 +234,10 @@ public:
 		// memory leaks are pretty bad
 		if (type == STR || type == REF)
 			free(string); // free(NULL) gives no errors :)
+		else if (type == BLK)
+			delete block;
+		else if (type == ARR)
+			delete list;
 
 
 		string = (char*) malloc(strlen(str) + 1);
@@ -226,6 +254,10 @@ public:
 		// memory leaks are pretty bad
 		if (type == STR || type == REF)
 			free(string); // free(NULL) gives no errors :)
+		else if (type == BLK)
+			delete block;
+		else if (type == ARR)
+			delete list;
 
 
 		string = (char*) malloc(strlen(str) + 1);
@@ -243,6 +275,10 @@ public:
 
 		if (type == STR || type == REF)
 			free(string);
+		else if (type == BLK)
+			delete block;
+		else if (type == ARR)
+			delete list;
 
 		type = STR;
 		string = NULL;
@@ -300,10 +336,10 @@ public:
 				return strcmp(string, cv2.string) == 0;
 			// this doesnt work...
 			else if (type == CalcValue::ARR) {
-				if (list.size() != cv2.list.size())
+				if (list->size() != cv2.list->size())
 					return false;
-				for (size_t i = 0; i < list.size() - 1; i++)
-					if (!(list[i] == cv2.list[i]))
+				for (size_t i = 0; i < list->size() - 1; i++)
+					if (!((*list)[i] == (*cv2.list)[i]))
 						return false;
 
 				return true;
