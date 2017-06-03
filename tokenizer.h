@@ -141,33 +141,40 @@ char* qtok(char* str, char** next){
 
 std::vector<std::string> splitList(std::string& str) {
 	ssize_t pos = 0, past = 0;
-	uint16_t ldepth = 0;
-	uint16_t sdepth = 0;
-	bool quoted = false;
-	bool commented = false;
+	uint16_t ldepth = 0; // up to 65k dimensions
+	uint16_t sdepth = 0; // up to 65k layers of nested structures
+	bool quoted = false; // are we in a string?
+	bool commented = false; // is this commented?
 	std::vector<std::string> ret;
 
-	for (char ch : str) {
-		switch (ch) {
+	for (size_t i = 0; i < str.size(); i++) {
+
+		switch (str[i]) {
 			case '(':
-				ldepth++; break;
+				if (!commented) ldepth++;
+				break;
 			case ')':
-				ldepth--; break;
+				if (!commented) ldepth--;
+				break;
 			case '{':
-				sdepth++; break;
+				if (!commented) sdepth++;
+				break;
 			case '}':
-				sdepth--; break;
+				if (!commented) sdepth--;
+				break;
 			case '\"':
-				quoted = !quoted;
+				if (!commented)
+					if (!(quoted && str[i-1] == '\\')) // make sure quote isn't escaped
+						 quoted = !quoted;
 				break;
 			case '#':
-				commented = true;
+				if (!quoted) commented = true;
 				break;
 			case '\n':
 				commented = false;
 				break;
 			case ',':
-				if (ldepth <= 0  && sdepth <= 0 && !quoted && !commented) {
+				if ( !quoted && !commented && ldepth <= 0  && sdepth <= 0) {
 					ret.push_back(str.substr(past, pos - past));
 					past = pos + 1;
 				}

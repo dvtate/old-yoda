@@ -1050,8 +1050,17 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				emptyStack(tmpStack);
 				delete[] str_head;
 			}
+			for (CalcValue elem : arr) {
+				printCalcValueRAW(elem, var_nodes);
+				printf("\n");
+			}
 
-			mainStack.push(arr);
+			mainStack.push(CalcValue());
+			mainStack.top().type = CalcValue::ARR;
+			mainStack.top().list = new std::vector<CalcValue>();
+			for (auto& elem : arr)
+				mainStack.top().list->push_back(elem);
+
 			free(newLine);
 
 		// initialize a strStack

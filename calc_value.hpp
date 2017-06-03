@@ -74,10 +74,13 @@ public:
 	CalcValue(StrStack* codeBlock): type(BLK)
 		{ block = new StrStack(*codeBlock); }
 
-	CalcValue(const std::vector<CalcValue>& in_list):
+	CalcValue(const std::vector<CalcValue> in_list):
 		type(ARR)
 	{
 		list = new std::vector<CalcValue>();
+		for (CalcValue elem : in_list)
+			list->push_back(elem);
+
 	}
 
 	CalcValue(const CalcValue& in){
@@ -100,7 +103,6 @@ public:
 		} else if (type == BLK)
 			block = new StrStack(*in.block);
 		else if (type == ARR) {
-			list->resize(in.list->size());
 			for (CalcValue elem : *in.list)
 				list->push_back(elem);
 
@@ -148,8 +150,10 @@ public:
 
 		} else if (type == BLK)
 			block = new StrStack(*in.block);
-		else if (type == ARR)
-			list = in.list;
+		else if (type == ARR) {
+			for (CalcValue elem : *in.list)
+				list->push_back(elem);
+		}
 	}
 
 	// this sometimes causes a core dump (QwQ)
@@ -223,8 +227,6 @@ public:
 			delete list;
 
 		type = ARR;
-		*list = arr;
-		list->resize(arr.size());
 		for (CalcValue elem : arr)
 			list->push_back(elem);
 	}
