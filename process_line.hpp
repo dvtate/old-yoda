@@ -1402,36 +1402,44 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 		// useful for debugging
 		} else if (strcmp(p, "vars") == 0 || strcmp(p, "ls_vars") == 0) {
+			// for each scope
 			for (size_t i = 0; i < var_nodes.size(); i++) {
+
 				std::cout <<"Scope<" <<i <<"> ====\n";
 				UserVar *var = var_nodes[i].next;
-
+	
+				// for each variable in scope
 				while (var != NULL) {
 					if (var->val.type == CalcValue::NUM)
 						std::cout << "[NUM] @ " << var << ": $" << var->name << ' '
 						          << var->val.getNum() << " =\n";
-
+					// var is null (print null)
 					else if (var->val.type == CalcValue::STR && var->val.isNull())
 						std::cout << "[NIL] @ " << var << ": $" << var->name << ' '
 						          << "null =\n";
-
+					
+					// var is a string (print contents)
 					else if (var->val.type == CalcValue::STR)
 						std::cout << "[STR] @ " << var << ": $" << var->name << " \""
 						          << var->val.getStr() << "\" =\n";
 
+					// var is a reference (show what it points to)
 					else if (var->val.type == CalcValue::REF)
 						std::cout << "[REF] @ " << var << ": $" << var->name << " $"
 						          << var->val.getRef() << " =\n";
 
+					// var is a macro (give details)
 					else if (var->val.type == CalcValue::BLK)
 						std::cout << "[BLK] @ " << var << ": $" << var->name << " has "
 						          << var->val.block->stackDepth
 						          << ((var->val.block->stackDepth == 1) ? " line\n" : " lines\n");
-
-					else if (var->val.type == CalcValue::REF)
-						std::cout << "[REF] @ " << var << ": $" << var->name << " has "
-                                  << var->val.list->size() <<" elements\n";
-
+					
+					// variable is a list (print contents of list)
+					else if (var->val.type == CalcValue::ARR) {
+						std::cout << "[ARR] @ " << var <<": $" <<var->nane <<' ';
+						printCalcValueRAW(var->val);
+						std::cout <<" =\n";
+					}
 					var = var->next;
 				}
 
