@@ -78,7 +78,7 @@ inline void fresetANSI(FILE* file)
 inline void setTermEffect(const uint8_t eff = TERM_EFF_RESET)
 {
 	printf("\x1B[%dm", eff);
-	atexit(resetANSI);
+	atexit(resetANSI); // this is bad...
 }
 inline void fsetTermEffect(FILE* file, const uint8_t eff = TERM_EFF_RESET)
 {
