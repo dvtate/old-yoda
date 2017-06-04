@@ -32,8 +32,8 @@ public:
 	enum {  NUM,	// number/boolean
 			STR,	// string
 			REF,	// reference to a variable
-			ARR,	// vector
-			BLK		// Block of code (StrStack) (subroutine) (executable array)
+			BLK,	// Block of code (StrStack) (subroutine) (executable array)
+			ARR	    // vector
 	} type;
 
 	// contains the data
@@ -103,6 +103,7 @@ public:
 		} else if (type == BLK)
 			block = new StrStack(*in.block);
 		else if (type == ARR) {
+			list = new std::vector<CalcValue>();
 			for (CalcValue elem : *in.list)
 				list->push_back(elem);
 
@@ -151,6 +152,7 @@ public:
 		} else if (type == BLK)
 			block = new StrStack(*in.block);
 		else if (type == ARR) {
+			list = new std::vector<CalcValue>();
 			for (CalcValue elem : *in.list)
 				list->push_back(elem);
 		}

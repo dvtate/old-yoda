@@ -261,6 +261,7 @@ inline char* trimStr(char* string){
 
 }
 
+
 inline size_t linesToEnd(FILE* fil){
 	size_t numLines = 0;
 

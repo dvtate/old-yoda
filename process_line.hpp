@@ -985,35 +985,25 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		// initialize a list
 		} else if (*p == '(') {
 
-			char* newLine;
+			char* newLine = NULL, * p_cpy = ++p;
 
-			if (lineLen - (p - pInit) > 1) { // { more code....
-				if (*++p == '\0')
-					p++;
-				newLine = NULL;
-
-			} else { // {\n
-				newLine = (char*) malloc(256);
-				size_t lineLen = 256;
-
-				if (getline(&newLine, &lineLen, codeFeed) == -1) {
-					PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
-				} else
-					line++;
-
-				p = newLine;
-
+			while (*p_cpy) {
+				p_cpy++;
 			}
+			if (lineLen - (p_cpy - pInit) > 2) {
+				*p_cpy = ' ';
+			}
+
 			/*
 			if (lineLen - (p - pInit) > 1) { // ( more code....
 				if (*++p == '\0')
 					p++;
-				while (*p) {
-					p++;
-				}
-				if (lineLen - (p - pInit) > 1) { // (code, more code
-					p++;
-				}
+				//while (*p) {
+				//	p++;
+				//}
+				//if (lineLen - (p - pInit) > 1) { // (code, more code
+				//	p++;
+				//}
 				newLine = NULL;
 
 			} else { // (\n
@@ -1027,13 +1017,14 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				p = newLine;
 
-			}
-			*/
+			}*/
+
 			std::string listBody = list::getList(p, codeFeed);
 			if (listBody == "(") {
 				PASS_ERROR("\aERROR: `(` invalid list, possible missing `)`\n");
 			}
-			std::vector<std::string> elems = splitList(listBody);
+
+			std::vector<std::string> elems = list::split(listBody);
 
 			std::stack<CalcValue> tmpStack;
 			std::vector<CalcValue> tmp;
@@ -1050,27 +1041,46 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				emptyStack(tmpStack);
 				delete[] str_head;
 			}
-			for (CalcValue elem : arr) {
-				printCalcValueRAW(elem, var_nodes);
-				printf("\n");
-			}
 
-			mainStack.push(CalcValue());
-			mainStack.top().type = CalcValue::ARR;
-			mainStack.top().list = new std::vector<CalcValue>();
-			for (auto& elem : arr)
-				mainStack.top().list->push_back(elem);
+			mainStack.push(arr);
 
 			free(newLine);
 
-		// initialize a strStack
+			if (p && *p && strlen(p)) {
+				p = trimStr(p);
+				if (!strlen(p)) {
+					break;
+				}
+
+				//continue;
+			}
+			// initialize a strStack
 		} else if (*p == '{') {
 
-			char* newLine;
+			char* newLine = NULL, * tmp = ++p;
 
-			if (lineLen - (p - pInit) > 1) { // { more code....
-				if (*++p == '\0')
-					p++;
+			while (*tmp) {
+				tmp++;
+			}
+			if (lineLen - (tmp - pInit) > 2) {
+				*tmp = ' ';
+			}
+			//printf("tmp=\"%s\"\n", tmp);
+			//printf("p=\"%s\"\n", p);
+
+			/*if (lineLen - (p - pInit) > 2) { // { more code....
+				char* tmp = p;
+
+				while (*tmp)
+					tmp++;
+
+				if (lineLen > tmp - pInit) {
+					if (*tmp)
+						printf("tmp=\"%s\"\n", tmp);
+					else
+						*tmp = ' ';
+				}
+
 				newLine = NULL;
 
 			} else { // {\n
@@ -1084,14 +1094,14 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				p = newLine;
 
-			}
+			}*/
 			StrStack* execArr = strstk::getStrStack(p, codeFeed);
 
 			//free's mem allocated for line
 			free(newLine);
 
 			if (execArr) {
-				mainStack.push(*execArr);
+				mainStack.push(CalcValue(*execArr));
 				delete execArr;
 			} else {
 				PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
