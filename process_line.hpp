@@ -1437,7 +1437,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					// variable is a list (print contents of list)
 					else if (var->val.type == CalcValue::ARR) {
 						std::cout << "[ARR] @ " << var <<": $" <<var->nane <<' ';
-						printCalcValueRAW(var->val);
+						printCalcValueRAW(var->val, var_nodes);
 						std::cout <<" =\n";
 					}
 					var = var->next;
