@@ -123,7 +123,15 @@ bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes){
 
 	if (val.isNull())
 		std::cout <<"null";
-	else if (val.type == CalcValue::NUM)
+	//else if (val.type == CalcValue::BLK)
+	//	std::cout <<"{...}";
+	else if (val.type == CalcValue::BLK) {
+		size_t len = 50;
+		char* str = (char*) malloc(len);
+		val.block->toString(&str, &len);
+		printf("{%s}", str);
+		free(str);
+	} else if (val.type == CalcValue::NUM)
 		std::cout <<val.getNum();
 	else if (val.type == CalcValue::STR)
 		std::cout <<'\"' <<val.getStr() <<'\"';
@@ -151,10 +159,10 @@ bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes){
 		std::cout <<"(";
 		printCalcValue((*val.list)[0], var_nodes);
 		for (size_t i = 1; i < val.list->size(); i++) {
-			std::cout <<", ";
+			std::cout <<",";
 			printCalcValue((*val.list)[i], var_nodes);
 		}
-		std::cout <<")\n";
+		std::cout <<")";
 	}
 
 
@@ -170,7 +178,7 @@ bool printCalcValueRAW(CalcValue& val, std::vector<UserVar>& var_nodes){
 		size_t len = 50;
 		char* str = (char*) malloc(len);
 		val.block->toString(&str, &len);
-		printf("%s", str);
+		printf("{%s}", str);
 		free(str);
 	} else if (val.type == CalcValue::NUM)
 		std::cout <<val.getNum();
@@ -199,12 +207,12 @@ bool printCalcValueRAW(CalcValue& val, std::vector<UserVar>& var_nodes){
 	} else if (val.type == CalcValue::ARR) {
 		std::cout <<"(";
 
-		printCalcValueRAW((*val.list)[0], var_nodes);
+		printCalcValue((*val.list)[0], var_nodes);
 		for (size_t i = 1; i < val.list->size(); i++) {
-			std::cout <<", ";
-			printCalcValueRAW((*val.list)[i], var_nodes);
+			std::cout <<",";
+			printCalcValue((*val.list)[i], var_nodes);
 		}
-		std::cout <<")\n";
+		std::cout <<")";
 	}
 
 	return 0;

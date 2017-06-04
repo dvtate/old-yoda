@@ -835,7 +835,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: file_get_contents expected a string for the file name.\n\n");
 			}
 
-			FILE* output_file = fopen(mainStack.top().string, "w");
+			FILE *output_file = fopen(mainStack.top().string, "w");
 			mainStack.pop();
 
 			CONVERT_REFS(mainStack, var_nodes, showErrors);
@@ -848,6 +848,39 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			fwrite(mainStack.top().string, 1, strlen(mainStack.top().string) + 1, output_file);
 			mainStack.pop();
 			fclose(output_file);
+
+		// get the value at the specific index of an array
+		} else if (strcmp(p, "get") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: `get` expected a list and a numerical index\n\n");
+			}
+
+			CONVERT_REFS(mainStack, var_nodes, showErrors);
+
+			if (mainStack.top().type == CalcValue::NUM) {
+				size_t index = (size_t) round(abs(mainStack.top().getNum()));
+				mainStack.pop();
+				if (mainStack.top().type == CalcValue::ARR) {
+					CalcValue val = (*mainStack.top().list)[index];
+					mainStack.top() = val;
+				} else {
+					PASS_ERROR("\aERROR: `get` expected a list and a numerical index\n\n");
+				}
+			} else if (mainStack.top().type == CalcValue::ARR) {
+				std::vector<CalcValue> list = *mainStack.top().list;
+				mainStack.pop();
+				if (mainStack.top().type == CalcValue::NUM) {
+					CalcValue val = list[(size_t) round(abs(mainStack.top().getNum()))];
+					mainStack.top() = val;
+				} else {
+					PASS_ERROR("\aERROR: `get` expected a list and a numerical index\n\n");
+				}
+			} else {
+				PASS_ERROR("\aERROR: `get` expected a list and a numerical index\n\n");
+			}
+
+		// set a value in an array
+		} else if (strcmp(p, "set") == 0) {
 
 
 		// convert to string
@@ -927,14 +960,13 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_REFS(mainStack, var_nodes, showErrors);
 
-			CalcValue tmp;
-			tmp.type = CalcValue::ARR;
+
+			std::vector<CalcValue> tmp;
 			while (!mainStack.empty()) {
-				tmp.list->push_back(mainStack.top());
+				tmp.push_back(mainStack.top());
 				mainStack.pop();
 			}
-			mainStack.push(CalcValue());
-			mainStack.top() = tmp;
+			mainStack.push(tmp);
 
 		// convert to number
 		} else if (strcmp(p, "num") == 0) {

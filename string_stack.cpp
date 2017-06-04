@@ -144,6 +144,9 @@ namespace strstk {
 		if (!str)
 			return false;
 
+		bool quoted = false;
+
+
 		// base indentation
 		if (depth == 0)
 			return true;
@@ -151,16 +154,21 @@ namespace strstk {
 			return true;
 		if (*str == '{')
 			depth++;
+		else if (*str == '\"')
+			quoted = true;
 
 		// the line is commented out, or end of string
-		if (*str == '#' || !*str)
+		else if (*str == '#' || !*str)
 			return false;
 
 		while (depth && *(++str) != '#' && *str)
-			if (*str == '{')
+			if (!quoted && *str == '{')
 				depth++;
-			else if (*str == '}')
+			else if (!quoted && *str == '}')
 				depth--;
+			else if (*str == '\"')
+				if (!(quoted && *(str - 1) == '\\'))
+					quoted = !quoted;
 
 		return !depth;
 

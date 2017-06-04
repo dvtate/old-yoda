@@ -103,6 +103,7 @@ namespace list {
 		ssize_t pos = 0, past = 0;
 		uint16_t ldepth = 0; // up to 65k dimensions
 		uint16_t sdepth = 0; // up to 65k layers of nested structures
+		//uint16_t bdepth = 0; // up to 65k nested bracket layers
 		bool quoted = false; // are we in a string?
 		bool commented = false; // is this commented?
 		std::vector<std::string> ret;
@@ -126,7 +127,15 @@ namespace list {
 					if (!commented && !quoted)
 						sdepth--;
 					break;
-				case '\"':
+				/*case '[':
+					if (!commented && !quoted)
+						bdepth++;
+					break;
+				case ']':
+					if (!commented && !quoted)
+						bdepth--;
+					break;
+				*/case '\"':
 					if (!commented)
 						if (!(quoted && str[i-1] == '\\')) // make sure quote isn't escaped
 							quoted = !quoted;
@@ -154,6 +163,11 @@ namespace list {
 		return ret;
 
 	}
+
+
+//	std::string getIndex(char*& str, FILE* codeFeed){
+//
+//	}
 
 }
 
