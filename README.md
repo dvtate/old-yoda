@@ -3,7 +3,7 @@ A Yoda-Script (.ys) interpreter which is now turing complete! The language is dy
 
 # Build and Run [![Build Status](https://travis-ci.org/dvtate/yoda.svg?branch=master)](https://travis-ci.org/dvtate/yoda/)
 If you are a Windows user and don't know anything about C++ compilers, you can download this precompiled executable  <b>Warning</b>, I cross-compiled this on Linux, it hasn't been tested on a native installation<br/>
-http://dvtate.github.io/dls/yoda.exe [updated 2017.4.2]
+http://dvtate.github.io/dls/yoda.exe [updated 2017.6.4]
 - Compiling:
 `yoda $ g++ *.cpp -o yoda`
 - Running:
@@ -27,7 +27,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   + OOP (unless implemented by someone else ;) )
   + goto's (essentially impossible given my current design)
   
-# How to use (note- out of date)
+# How to use (note- may be out of date)
  - <b>Comments:</b>
    Anything after the `#` symbol will be ignored.
    ```
@@ -79,7 +79,7 @@ YodaScript is a stack-based language based on reverse polish notation.
  >>> $a print
  hello there
  ```
- - <b>Executable Arrays:</b>
+ - <b>Macros:</b>
   Depending on the context these are also called anonymous subroutines. They are containers of code and function like most other data, working with operators. You can run the code in one with the `@` operator.
   ```
   >>> $mySub {
@@ -142,7 +142,13 @@ YodaScript is a stack-based language based on reverse polish notation.
   } $gpa 4 >= if
   Woooooooooooow!
   ```
-  
+  - <b>Lists:</b>
+    lists hold multiple pieces of data in one container. They contain diverse types and are handled like any other data.
+    ```
+    >>> # use the get operator to get the value at an index of a list
+    >>> (1,"hello",{ "hi" print }) 1 get println
+    hello
+    ```
 # An incomplete list of built-in operators, functions, constants, etc.:
 * Constants:
   - `true` = 1
@@ -214,6 +220,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `is_defined`: returns whether or not the given variable is defined or not
   - `vars`, `ls_vars`: prints list of variables in all scopes plus debugging info
   - `typeof`: pushes string containing type of a value
+  
 * String operators:
   - `strlen`: returns the length of a given string
   - `strstr`: finds a sub-string in a string
@@ -238,6 +245,8 @@ YodaScript is a stack-based language based on reverse polish notation.
 
 * Macro Operators:
   - `@`, `eval`: runs the given macro or string as code (also accepts strings)
+* List Operators:
+  - `get`: pushes the value at the given index of the given list
   
 * Structure-Equivalent Operators:
   - `else`, `elseif`, `if`: conditional operators
