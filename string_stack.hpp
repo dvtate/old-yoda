@@ -26,20 +26,20 @@ public:
 
 
 	StrStack():
-			sizeFactor(0),
-			buffer((char**) malloc(256 * sizeof(char*))),
-			stackDepth(0),
-			stackHead(buffer)
+		sizeFactor(0),
+		buffer((char**) malloc(256 * sizeof(char*))),
+		stackDepth(0),
+		stackHead(buffer)
 	{
 		*buffer = NULL;
 	}
 
 	// copy constructor
 	StrStack(const StrStack& cpy):
-			sizeFactor(cpy.sizeFactor),
-			buffer((char**) malloc((1 << cpy.sizeFactor) * 256 * sizeof(char*))),
-			stackDepth(cpy.stackDepth),
-			stackHead(buffer)
+		sizeFactor(cpy.sizeFactor),
+		buffer((char**) malloc((1 << cpy.sizeFactor) * 256 * sizeof(char*))),
+		stackDepth(cpy.stackDepth),
+		stackHead(buffer)
 	{
 		*buffer = NULL;
 		char** sh = cpy.stackHead;
@@ -98,16 +98,16 @@ public:
 
 	/// the string at the top of the stack
 	char* top()
-	{ return stackDepth ? *(buffer - 1) : NULL; }
+		{ return stackDepth ? *(buffer - 1) : NULL; }
 
 	/// the number of strings being stored
 	size_t size()
-	{ return stackDepth; }
+		{ return stackDepth; }
 
 	// modify the top element
 	void changeTop(const char* str);
 	void top(const char* str)
-	{ return changeTop(str);}
+		{ return changeTop(str);}
 
 	/// the number of characters in all the strings stored in the stack
 	size_t totalLength(){

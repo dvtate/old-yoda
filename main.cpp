@@ -3,7 +3,7 @@
 #include <cstring>
 
 #ifdef _WIN32
-#include "fuck_windows.h"
+	#include "fuck_windows.h"
 #endif
 
 #include <cstdio>
@@ -45,44 +45,43 @@ int main(int argc, char** argv){
 	if (argc == 1) {
 
 		// set up a namespace for variables
-		UserVar first_node(NULL, " ", 0.0);
-		first_node.first = &first_node;
-
-		std::vector<UserVar> var_nodes;
-		var_nodes.push_back(first_node);
+		UserVar* first_node = new UserVar(NULL, " ", 0.0);
+		first_node->first = first_node;
 
 		bool elseStatement = false;
 
 		// the most important component to the language
 		std::stack<CalcValue> mainStack;
 
-		// process commands as they come in
 		for (;;)
-			runShell(var_nodes, showErrors, mainStack, elseStatement);
+			runShell(first_node, showErrors, mainStack, elseStatement);
+
+		delete first_node;
+		return 0;
 
 
 
-		// version info
+	// version info
 	} else if (strcmp(argv[1], "-V") == 0 || strcmp(argv[1], "--version")  == 0) {
 		printVersionInfo();
 
-		// help
+	// help
 	} else if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
 		std::cout <<"Usage: yoda [ option | file ] ...\nOptions:"
-				"   -h,\t--help\t: display's this help message (also --help)\n"
-				"   -V,\t--version\t: display's version information (also --version)\n\n";
+					"   -h,\t--help\t: display's this help message (also --help)\n"
+					"   -V,\t--version\t: display's version information (also --version)\n\n";
 
 		displayHelp();
 
-		// file
+	// file
 	} else {
 
 		runFile(argv[1], showErrors);
 
 		// windows sucks :P
-#ifdef _WIN32
-		std::cin.ignore();
-#endif
+		#ifdef _WIN32
+			std::cin.ignore();
+		#endif
 
 	}
 

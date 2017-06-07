@@ -20,33 +20,32 @@ public:
 	UserVar *first, *next;
 
 	UserVar(UserVar* firstn, const char* const identifier, double contents):
-			val(contents), first(firstn), next((UserVar*) NULL)
+		val(contents), first(firstn), next((UserVar*) NULL)
 	{
-		strncpy(name, identifier, USERVAR_NAME_MAXLENGTH - 1);
-		val.type = CalcValue::NUM;
+	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGTH - 1);
+	  	val.type = CalcValue::NUM;
 	}
 
 	UserVar(UserVar* firstn, const char* const identifier, const char* const contents):
-			val(contents), first(firstn), next((UserVar*) NULL)
+		val(contents), first(firstn), next((UserVar*) NULL)
 	{
-		strncpy(name, identifier, USERVAR_NAME_MAXLENGTH - 1);
-		val.type = CalcValue::NUM;
+	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGTH - 1);
+	  	val.type = CalcValue::NUM;
 	}
 
 	UserVar(UserVar* firstn, const char* const identifier, CalcValue contents):
-			first(firstn), next((UserVar*) NULL)
-	{
-		strncpy(name, identifier, USERVAR_NAME_MAXLENGTH);
+		first(firstn), next((UserVar*) NULL)
+  	{
+	  	strncpy(name, identifier, USERVAR_NAME_MAXLENGTH);
 		val.setValue(contents);
 	}
 
-
 	// geting the values
 	double getNumber()
-	{ return val.getNum(); }
+		{ return val.getNum(); }
 
 	char* getString()
-	{ return val.getStr(); }
+		{ return val.getStr(); }
 
 	// recursive method of accessing Values of CalcValue::REF type
 	CalcValue getValue(){
@@ -83,25 +82,25 @@ public:
 	}
 
 	CalcValue& getVal()
-	{ return val; }
+		{ return val; }
 
 
 	// changing the values
 
 	void setValue(const char* in)
 	{
-		CalcValue* value = getValPtr();
+	  	CalcValue* value = getValPtr();
 		value->setValue(in);
 	}
 
 	void setValue(const double in)
-	{ val.setValue(in); }
+		{ val.setValue(in); }
 
 	void setValue(const CalcValue in)
-	{ val.setValue(in); }
+		{ val.setValue(in); }
 
 	void setValue(UserVar* in)
-	{ val = CalcValue().setRef(in->name); }
+		{ val = CalcValue().setRef(in->name); }
 
 
 };
@@ -109,32 +108,29 @@ public:
 
 namespace vars {
 
-	// the last element on the linked list
-	extern UserVar* lastVar(UserVar* first);
+	// first node in the linked list of variables
+	extern UserVar* first_node;
+
+  	// the last element on the linked list
+  	extern UserVar* lastVar(UserVar* first);
 
 	// to be called after reset
-	extern void wipeAll(UserVar* first);
+	extern void wipeAll(UserVar*& first);
 
 	// to make a  new variable, or change it's value
 	//extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH], double value);
 	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH], CalcValue value);
-	extern void assignVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH], CalcValue value);
 
 	// to remove an individial variable
 	extern void removeVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
-	extern void removeVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
 
 	// returns a pointer to the variable
 	extern UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
-	extern UserVar* findVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
 
-		// has the variable been declared yet?
+	// has the variable been declared yet?
 	extern bool varExists(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
-	extern bool varExists(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
-
 
 	extern CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
-	extern CalcValue* valueAtVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
 }
 
 

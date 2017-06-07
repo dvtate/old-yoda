@@ -22,21 +22,16 @@
 // version info
 #include "lolcat_version.h"
 
-// lists
-#include "list.hpp"
-
-
-
 extern CalcValue ans;
 
 
 // error's if the stack is empty
 #define ASSERT_NOT_EMPTY(OPERATOR)\
-	if (mainStack.empty()) {\
-		if (showErrors)\
-			std::cerr <<"\aERROR: not enough data for `" <<OPERATOR <<"`.\n";\
-		return p;\
-	}
+			if (mainStack.empty()) {\
+				if (showErrors)\
+					std::cerr <<"\aERROR: not enough data for `" <<OPERATOR <<"`.\n";\
+				return p;\
+			}
 
 // closes with an error
 #define PASS_ERROR(MSG) \
@@ -46,9 +41,12 @@ extern CalcValue ans;
 
 
 // makes the top() value an actual Value as opposed to a reference
-#define CONVERT_REFS(MAINSTACK, VAR_NODES, SHOW_ERRORS)\
+#define CONVERT_REFS(MAINSTACK, FIRST_NODE, SHOW_ERRORS)\
 	if (MAINSTACK.top().type == CalcValue::REF) {\
-		CalcValue* val = MAINSTACK.top().valAtRef(VAR_NODES);\
+		CalcValue* val = MAINSTACK.top().valAtRef(FIRST_NODE);\
+\
+		while (val && val->type == CalcValue::REF)\
+			val = val->valAtRef(FIRST_NODE);\
 \
 		if (val != NULL)\
 			MAINSTACK.top().setValue(*val);\
@@ -61,50 +59,40 @@ extern CalcValue ans;
 
 // evals a block
 #define RUN_STR_STK(STRSTK, STACK) {\
-		/* put the statement in a string */\
-		size_t buff_size = 500;\
-		char* buff = (char*) malloc(buff_size);\
-		(STRSTK).toString(&buff, &buff_size);\
+				/* put the statement in a string */\
+				size_t buff_size = 500;\
+				char* buff = (char*) malloc(buff_size);\
+				(STRSTK).toString(&buff, &buff_size);\
 \
-		/* put the string in a temp file*/\
-		FILE* statement = tmpfile();\
-		fputs(buff, statement);\
-		rewind(statement);\
-		free(buff);\
+				/* put the string in a temp file*/\
+				FILE* statement = tmpfile();\
+				fputs(buff, statement);\
+				rewind(statement);\
+				free(buff);\
 \
-		/* add layer to scope*/\
-		UserVar first_node(NULL, " ", 0.0);\
-		first_node.first = &first_node;\
-		var_nodes.push_back(first_node);\
-\
-		/* run the temp file */\
-		if (runFile(statement, var_nodes, showErrors, (STACK), elseStatement)) {\
-			PASS_ERROR("\aERROR: @ (exec operator) failed\n");\
-		}\
-		fclose(statement);\
-\
-		/* variables go out of scope */\
-		UserVar* node = &var_nodes[var_nodes.size() - 1];\
-		vars::wipeAll(node);\
-		var_nodes.pop_back();\
-	}
+				/* run the temp file */\
+				if (runFile(statement, first_node, showErrors, (STACK), elseStatement)) {\
+					PASS_ERROR("\aERROR: @ (exec operator) failed\n");\
+				}\
+				fclose(statement);\
+}
 
 
-extern bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReporting,
-		  std::stack<CalcValue>& mainStack, bool& elseStatement
+extern bool runFile(FILE* prog_file, UserVar* first_node, bool& errorReporting,
+	      std::stack<CalcValue>& mainStack, bool& elseStatement
 );
+
 
 /// returns: location/source of error or NULL
 /// params: environment/operation variables
 /// this function runs the user's code, most essential part of the interpreter
-char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
+char* processLine(std::stack<CalcValue>& mainStack, UserVar* first_node,
 	bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed
 ){
 
 	// probably won't even use these 2 vars but its good to have them...
 	size_t lineLen = strlen(rpnln);
 	char* pInit = rpnln;
-
 
 	// get first token from the input
 	char* p = qtok(rpnln, &rpnln);
@@ -131,7 +119,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: Not enough data to satisfy operator `" <<p <<"`.\n");
 			}
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			if (mainStack.top().type != CalcValue::NUM) {
 				PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
@@ -139,7 +127,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			double b = getNextValue(mainStack).getNum();
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			if (mainStack.top().type != CalcValue::NUM) {
 				PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
@@ -195,22 +183,23 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 		} else if (*p == '+' && *(p + 1) == '\0') {
 
-			if (mainStack.size() < 2) {
+
+		  	if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: Not enough data to satisfy `+` operator." <<std::endl);
 			}
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue b = getNextValue(mainStack);
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue a = getNextValue(mainStack);
 
 
 			// handling null values
-			if (a.isEmpty() != b.isEmpty()) { // val + null
-				if (a.isEmpty())
-					mainStack.push(b);
-				else
-					mainStack.push(a);
+		  	if (a.isEmpty() != b.isEmpty()) { // val + null
+		  		if (a.isEmpty())
+		  			mainStack.push(b);
+		  		else
+		  			mainStack.push(a);
 
 				// get next token
 				p = qtok(rpnln, &rpnln);
@@ -227,7 +216,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			}
 
-			// branching out all 4 permutations of string and num
+		  	// branching out all 4 permutations of string and num
 			if (a.type == CalcValue::STR) {
 				if (b.type == CalcValue::STR) {
 					// allocate enough memory for both strings and a null terminator
@@ -290,81 +279,81 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		//trig functions
 		else if (strcmp(p, "sin") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(sin(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "cos") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(cos(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "tan") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(tan(getNextValue(mainStack).getNum()));
 
 		// inverse trig functions
 		} else if (strcmp(p, "asin") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(asin(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "acos") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(acos(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "atan") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(atan(getNextValue(mainStack).getNum()));
 
 		// hyperbolic trig functions
 		} else if (strcmp(p, "sinh") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(sinh(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "cosh") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(cosh(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "tanh") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(tanh(getNextValue(mainStack).getNum()));
 
 
 		// inverse hyperbolic trig functions
 		} else if (strcmp(p, "asinh") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(asinh(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "acosh") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(acosh(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "atanh") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(atanh(getNextValue(mainStack).getNum()));
 
 		// more unary math functions
 		} else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(log10(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "ln") == 0) { // natural log
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(log(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0) { // square root
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(sqrt(getNextValue(mainStack).getNum()));
 		} else if (strcmp(p, "abs") == 0) { // absolute value
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			mainStack.push(std::abs(getNextValue(mainStack).getNum()));
 
 		// find length of a string
 		} else if (strcmp(p, "strlen") == 0) {
- 			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type == CalcValue::STR)
 				mainStack.top().setValue((double)strlen(mainStack.top().string));
 			else {
@@ -376,7 +365,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: strstr expected 2 strings, a haystack and a needle to find\n");
 			}
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::STR) {
 				PASS_ERROR("\aERROR: strstr expected 2 strings, a haystack and a needle to find\n");
 			}
@@ -385,7 +374,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			strcpy(needle, mainStack.top().string);
 			mainStack.pop();
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::STR) {
 				PASS_ERROR("\aERROR: strstr expected 2 strings, a haystack and a needle to find\n");
 			}
@@ -400,7 +389,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
 			}
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::STR) {
 				PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
 			}
@@ -409,7 +398,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			strcpy(needle, mainStack.top().string);
 			mainStack.pop();
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::STR) {
 				PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
 			}
@@ -422,7 +411,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 		} else if (strcmp(p, "trim") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::STR) {
 				PASS_ERROR("\aERROR: trim expected a string\n");
 			}
@@ -433,64 +422,50 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.push(trimStr(str));
 
 		} else if (strcmp(p, "split") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
+			}
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
-			if (mainStack.size() && mainStack.top().type == CalcValue::ARR) { // split elems of list
-				// TODO: fix this
-				std::vector<CalcValue> tmp = *mainStack.top().list;
+			// get delims
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR) {
+				PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
+			}
+			if (!strlen(mainStack.top().string)) {
 				mainStack.pop();
-
-				for (CalcValue elem : tmp)
-					mainStack.push(CalcValue(elem));
-
-				continue;
-
-			} else { // spliting a string
-
-				if (mainStack.size() < 2) {
-					PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
-				}
-
-				// get delims
+				// get str
+				CONVERT_REFS(mainStack, first_node, showErrors);
 				if (mainStack.top().type != CalcValue::STR) {
 					PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
 				}
-				if (!strlen(mainStack.top().string)) {
-					mainStack.pop();
-					// get str
-					CONVERT_REFS(mainStack, var_nodes, showErrors);
-					if (mainStack.top().type != CalcValue::STR) {
-						PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
-					}
-					char str[strlen(mainStack.top().string)]; // no room for '\0'
-					strcpy(str, mainStack.top().string);
-					mainStack.pop();
+				char str[strlen(mainStack.top().string)]; // no room for '\0'
+				strcpy(str, mainStack.top().string);
+				mainStack.pop();
 
-					// push each character onto the stack
-					for (char ch : str) {
-						char chr[2] = {ch, '\0'};
-						mainStack.push(chr);
-					}
-				} else {
-					// copy delimiters
-					char delims[strlen(mainStack.top().string) + 1];
-					strcpy(delims, mainStack.top().string);
-					mainStack.pop();
+				// push each character onto the stack
+				for (char ch : str) {
+					char chr[2] = { ch, '\0' };
+					mainStack.push(chr);
+				}
+			} else {
+				// copy delimiters
+				char delims[strlen(mainStack.top().string) + 1];
+				strcpy(delims, mainStack.top().string);
+				mainStack.pop();
 
-					// get str
-					CONVERT_REFS(mainStack, var_nodes, showErrors);
-					if (!mainStack.top().isStr()) {
-						PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
-					}
-					char str[strlen(mainStack.top().string) + 1];
-					strcpy(str, mainStack.top().string);
-					mainStack.pop();
+				// get str
+				CONVERT_REFS(mainStack, first_node, showErrors);
+				if (mainStack.top().type != CalcValue::STR) {
+					PASS_ERROR("\aERROR: split expected 2 strings, a base-string and delimiters\n");
+				}
+				char str[strlen(mainStack.top().string) + 1];
+				strcpy(str, mainStack.top().string);
+				mainStack.pop();
 
-					char *pch = strtok(str, delims);
-					while (pch) {
-						mainStack.push(pch);
-						pch = strtok(NULL, delims);
-					}
+				char* pch = strtok(str, delims);
+				while (pch) {
+					mainStack.push(pch);
+					pch = strtok(NULL, delims);
 				}
 			}
 		// replace substring
@@ -499,133 +474,30 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
 			}
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
-			if (mainStack.top().type != CalcValue::STR) {
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR){
 				PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
 			}
 			char with[strlen(mainStack.top().string) + 1];
 			strcpy(with, mainStack.top().string);
 			mainStack.pop();
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
-			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr\n");
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			if (mainStack.top().type != CalcValue::STR){
+				PASS_ERROR("\aERROR: str_replace expected 3 strings: base_string, old_substr, new_substr");
 			}
 			char repl[strlen(mainStack.top().string) + 1];
 			strcpy(repl, mainStack.top().string);
 			mainStack.pop();
 
-			char *tmp = str_replace(mainStack.top().string, repl, with);
+			char* tmp = str_replace(mainStack.top().string, repl, with);
 			mainStack.push(tmp);
 			free(tmp);
 
-		} else if (strcmp(p, "char_at") == 0) {
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: char_at expected a string and a numerical index\n");
-			}
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
-
-			if (mainStack.top().type == CalcValue::STR && mainStack.top().string) {
-				char tmp[strlen(mainStack.top().string)];
-				strcpy(tmp, mainStack.top().string);
-				mainStack.pop();
-
-				CONVERT_REFS(mainStack, var_nodes, showErrors);
-				if (mainStack.top().type != CalcValue::NUM) {
-					PASS_ERROR("\aERROR: char_at expected a string and a numerical index\n");
-				}
-
-				int i = mainStack.top().number;
-
-				if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
-					PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
-				}
-				mainStack.pop();
-
-				char chr[2];
-
-				// negative index starts from back
-				chr[0] = tmp[i >= 0 ? i : strlen(tmp) + i];
-				chr[1] = '\0';
-				mainStack.push(chr);
-
-			} else if (mainStack.top().type == CalcValue::NUM) {
-
-				int i = mainStack.top().number;
-				mainStack.pop();
-				CONVERT_REFS(mainStack, var_nodes, showErrors);
-
-				if (mainStack.top().type != CalcValue::STR) {
-					PASS_ERROR("\aERROR: char_at expected a string and a numerical index\n");
-				}
-
-				char chr[2];
-				if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
-					PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
-				}
-				chr[0] = mainStack.top().string[i >= 0 ? i : strlen(mainStack.top().string) + i];
-				mainStack.pop();
-				mainStack.push(chr);
-
-			}
-
-		// delete a char from a string at an index
-		} else if (strcmp(p, "del_char") == 0) {
-
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: del_char expected a string and a numerical index\n");
-			}
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
-
-			if (mainStack.top().type == CalcValue::STR && mainStack.top().string) {
-
-				// copy top string
-				char tmp[strlen(mainStack.top().string)];
-				strcpy(tmp, mainStack.top().string);
-				mainStack.pop();
-
-				// get index
-				CONVERT_REFS(mainStack, var_nodes, showErrors);
-				if (mainStack.top().type != CalcValue::NUM) {
-					PASS_ERROR("\aERROR: del_char expected a string and a numerical index\n");
-				}
-				int i = (int) mainStack.top().number;
-				mainStack.pop();
-
-				// assert index in range
-				if (abs(i) > strlen(tmp) || i == strlen(tmp)) {
-					PASS_ERROR("\aERROR: del_char: index `" << i << "` out of bounds\n");
-				}
-
-				// delete char at index
-				deleteChar(i >= 0 ? tmp + i  : tmp + strlen(tmp) + i);
-				mainStack.push(tmp);
-
-
-			} else if (mainStack.top().type == CalcValue::NUM) {
-				// get index
-				int i = (int) mainStack.top().number;
-				mainStack.pop();
-
-				// check range of index
-				if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
-					PASS_ERROR("\aERROR: del_char: index `" << i << "` out of bounds\n");
-				}
-
-				// verify string
-				CONVERT_REFS(mainStack, var_nodes, showErrors);
-				if (mainStack.top().type != CalcValue::STR) {
-					PASS_ERROR("\aERROR: del_char expected a string and a numerical index");
-				}
-
-				char* str = mainStack.top().string;
-				deleteChar(i >= 0 ? i + str : str + strlen(str) + i);
-
-			}
 
 		// line-comments
 		} else if (*p == '#')
-			break; // ignore rest of line
+			break;
 
 		// pi
 		else if (strcmp(p, "pi") == 0)
@@ -649,14 +521,14 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: range expected 2 numbers, a start and end\n");
 			}
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::NUM) {
 				PASS_ERROR("\aERROR: range expected 2 numbers, a start and end\n");
 			}
 			int end = (int) mainStack.top().getNum();
 			mainStack.pop();
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::NUM) {
 				PASS_ERROR("\aERROR: range expected 2 numbers, a start and end\n");
 			}
@@ -676,7 +548,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if (strcmp(p, "print") == 0) {
 			ASSERT_NOT_EMPTY(p);
 
-			if (printCalcValueRAW(mainStack.top(), var_nodes))
+			if (printCalcValueRAW(mainStack.top(), first_node))
 				return p;
 
 
@@ -686,7 +558,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if (strcmp(p, "println") == 0) {
 			ASSERT_NOT_EMPTY(p);
 
-			if (printCalcValueRAW(mainStack.top(), var_nodes))
+			if (printCalcValueRAW(mainStack.top(), first_node))
 				return p;
 
 			mainStack.pop();
@@ -694,7 +566,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			std::cout <<std::endl;
 
 
-		} else if (strcmp(p, "print_blk") == 0) {
+		} else if (strcmp(p, "printblk") == 0) {
 			size_t len = 50;
 			char* str = (char*) malloc(len);
 			mainStack.top().block->toString(&str, &len);
@@ -706,8 +578,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: not enough data for function `print_color`. (takes 2 arguments)\n\n");
 			}
-
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
 			CalcValue val = getNextValue(mainStack);
 			if (!val.isStr()) {
 				PASS_ERROR("\aERROR: print_color expected a string containing a valid HTML color\n\n");
@@ -715,9 +585,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			setFgColor(val.string);
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
 			CalcValue msg = getNextValue(mainStack);
-			if (printCalcValueRAW(msg, var_nodes)) {
+			if (printCalcValueRAW(msg, first_node)) {
 				setFgColor();
 				return p;
 			}
@@ -726,10 +595,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 		// changes the terminal background color for text
 		} else if (strcmp(p, "setBgColor") == 0) {
-
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
-			if (mainStack.top().type != CalcValue::STR) {
+			if (!mainStack.top().isStr()) {
+				mainStack.pop();
 				PASS_ERROR("\aERROR: setBgColor expected a string containing a valid HTML color.\n\n");
 			}
 
@@ -739,8 +607,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		// changes the terminal foreground color for text
 		} else if (strcmp(p, "setFgColor") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
-			if (mainStack.top().type != CalcValue::STR) {
+			if (!mainStack.top().isStr()) {
+				mainStack.pop();
 				PASS_ERROR("\aERROR: setFgColor expected a string containing a valid HTML color.\n\n");
 			}
 
@@ -782,7 +650,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			ASSERT_NOT_EMPTY(p);
 
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			// didn't recieve an string...
 			if (!mainStack.top().isStr()) {
@@ -828,68 +696,35 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: file_put_contents expected 2 strings contents and file name\n\n");
 			}
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			// takes a string for the filename
 			if (!mainStack.top().isStr()) {
 				PASS_ERROR("\aERROR: file_get_contents expected a string for the file name.\n\n");
 			}
 
-			FILE *output_file = fopen(mainStack.top().string, "w");
+			FILE* output_file = fopen(mainStack.top().string, "w");
 			mainStack.pop();
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			// takes a string for the contents
 			if (!mainStack.top().isStr()) {
 				PASS_ERROR("\aERROR: file_get_contents expected a string for the contents to write.\n\n");
 			}
 
-			fwrite(mainStack.top().string, 1, strlen(mainStack.top().string) + 1, output_file);
+   			fwrite(mainStack.top().string, 1, strlen(mainStack.top().string) + 1, output_file);
 			mainStack.pop();
 			fclose(output_file);
-
-		// get the value at the specific index of an array
-		} else if (strcmp(p, "get") == 0) {
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `get` expected a list and a numerical index\n\n");
-			}
-
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
-
-			if (mainStack.top().type == CalcValue::NUM) {
-				size_t index = (size_t) round(abs(mainStack.top().getNum()));
-				mainStack.pop();
-				if (mainStack.top().type == CalcValue::ARR) {
-					CalcValue val = (*mainStack.top().list)[index];
-					mainStack.top() = val;
-				} else {
-					PASS_ERROR("\aERROR: `get` expected a list and a numerical index\n\n");
-				}
-			} else if (mainStack.top().type == CalcValue::ARR) {
-				std::vector<CalcValue> list = *mainStack.top().list;
-				mainStack.pop();
-				if (mainStack.top().type == CalcValue::NUM) {
-					CalcValue val = list[(size_t) round(abs(mainStack.top().getNum()))];
-					mainStack.top() = val;
-				} else {
-					PASS_ERROR("\aERROR: `get` expected a list and a numerical index\n\n");
-				}
-			} else {
-				PASS_ERROR("\aERROR: `get` expected a list and a numerical index\n\n");
-			}
-
-		// set a value in an array
-		} else if (strcmp(p, "set") == 0) {
 
 
 		// convert to string
 		} else if (strcmp(p, "str") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
-			if (val.type == CalcValue::STR)
+		  	if (val.type == CalcValue::STR)
 				mainStack.push(val.getStr());
 			else if (val.type == CalcValue::NUM) {
 				char str[27];
@@ -911,42 +746,41 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			StrStack block;
 			while (!tmpStack.empty()) {
 				switch (tmpStack.top().type) {
-					case CalcValue::STR:
-						if (tmpStack.top().string) {
-							// escape double-quotes
-							char *tmp = str_replace(tmpStack.top().string, "\"", "\\\"");
+				case CalcValue::STR:
+					if (tmpStack.top().string) {
+						// escape double-quotes
+						char* tmp = str_replace(tmpStack.top().string, "\"", "\\\"");
 
-							// allocate enough space for the string
-							size_t len = strlen(tmp);
-							char str[len + 4 + 1];
+						// allocate enough space for the string
+						int len = strlen(tmp);
+						char str[len + 4 + 1];
 
-							// put string in quotes and end line
-							str[0] = '"';
-							strcpy(str + 1, tmp);
-							str[len + 1] = '"';
-							str[len + 2] = '\n';
-							str[len + 3] = 0;
-							block.push(str);
-
-							// str_replace has blind allocation
-							free(tmp);
-						}
-						break;
-
-					case CalcValue::BLK:
-						for (ssize_t i = tmpStack.top().block->stackDepth - 1; i >= 0; i--) {
-							block.push(tmpStack.top().block->at(i));
-						}
-						break;
-
-					case CalcValue::NUM:
-						char str[40];
-						snprintf(str, 39, "%*.*g\n", 18, 18, tmpStack.top().getNum());
+						// put string in quotes and end line
+						str[0] = '"';
+						strcpy(str + 1, tmp);
+						str[len + 1] = '"';
+						str[len + 2] = '\n';
+						str[len + 3] = 0;
 						block.push(str);
-						break;
 
-					case CalcValue::REF:
-						break;
+						// str_replace has blind allocation
+						free(tmp);
+					}
+					break;
+
+				case CalcValue::BLK:
+					for (ssize_t i = tmpStack.top().block->stackDepth - 1; i >= 0; i--) {
+						block.push(tmpStack.top().block->at(i));
+					}
+					break;
+
+				case CalcValue::NUM:
+					char str[40];
+					snprintf(str, 39, "%*.*g\n", 18, 18, tmpStack.top().getNum());
+					block.push(str);
+					break;
+
+				case CalcValue::REF: break;
 
 				}
 
@@ -954,29 +788,15 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 
 			mainStack.push(block);
-
-		// convert to list
-		} else if (strcmp(p, "list") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
-
-
-			std::vector<CalcValue> tmp;
-			while (!mainStack.empty()) {
-				tmp.push_back(mainStack.top());
-				mainStack.pop();
-			}
-			mainStack.push(tmp);
-
 		// convert to number
 		} else if (strcmp(p, "num") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
 			if (val.isEmpty())
-				mainStack.push(0.0);
-			else if (val.type == CalcValue::NUM)
+			 	mainStack.push(0.0);
+		  	else if (val.type == CalcValue::NUM)
 				mainStack.push(val.getNum());
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atof(val.getStr()));
@@ -984,135 +804,36 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		// convert to an integer
 		} else if (strcmp(p, "int") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
 			if (val.isEmpty())
-				mainStack.push(0.0);
-			else if (val.type == CalcValue::NUM)
+			 	mainStack.push(0.0);
+		  	else if (val.type == CalcValue::NUM)
 				mainStack.push(round(val.getNum()));
 			else if (val.type == CalcValue::STR)
 				mainStack.push( round( atof( val.getStr() ) ) );
 
 		} else if (strcmp(p, "floor") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			CalcValue val = getNextValue(mainStack);
 
 			if (val.isEmpty())
-				mainStack.push(0.0);
-			else if (val.type == CalcValue::NUM)
+			 	mainStack.push(0.0);
+		  	else if (val.type == CalcValue::NUM)
 				mainStack.push(floor(val.getNum()));
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atoi(val.getStr()));
-			else {
-				PASS_ERROR("\aERROR: floor expected a number\n");
-			}
 
-		} else if (strcmp(p, "list_size") == 0) {
-			auto tmp = mainStack.top().list->size();
-			mainStack.pop();
-			mainStack.push((double) tmp);
-
-		// initialize a list
-		} else if (*p == '(') {
-
-			char* newLine = NULL, * p_cpy = ++p;
-
-			while (*p_cpy) {
-				p_cpy++;
-			}
-			if (lineLen - (p_cpy - pInit) > 2) {
-				*p_cpy = ' ';
-			}
-
-			/*
-			if (lineLen - (p - pInit) > 1) { // ( more code....
-				if (*++p == '\0')
-					p++;
-				//while (*p) {
-				//	p++;
-				//}
-				//if (lineLen - (p - pInit) > 1) { // (code, more code
-				//	p++;
-				//}
-				newLine = NULL;
-
-			} else { // (\n
-				newLine = (char*) malloc(256);
-				size_t lineLen = 256;
-
-				if (getline(&newLine, &lineLen, codeFeed) == -1) {
-					PASS_ERROR("\aERROR: `(` invalid list, possible missing `)`\n");
-				} else
-					line++;
-
-				p = newLine;
-
-			}*/
-
-			std::string listBody = list::getList(p, codeFeed);
-			if (listBody == "(") {
-				PASS_ERROR("\aERROR: `(` invalid list, possible missing `)`\n");
-			}
-
-			std::vector<std::string> elems = list::split(listBody);
-
-			std::stack<CalcValue> tmpStack;
-			std::vector<CalcValue> tmp;
-			std::vector<CalcValue> arr;
-			char *str, *str_head;
-			for (std::string elem : elems) {
-				str_head = str = new char[elem.size() + 1];
-				strcpy(str, elem.c_str());
-				char* err = processLine(tmpStack, var_nodes, showErrors, str, elseStatement, codeFeed);
-				if (err) {
-					PASS_ERROR("\aERROR in block near `" <<err <<"`. in list:\n");
-				}
-				arr.push_back(tmpStack.empty() ? CalcValue() : tmpStack.top());
-				emptyStack(tmpStack);
-				delete[] str_head;
-			}
-
-			mainStack.push(arr);
-
-			free(newLine);
-
-			if (p && *p && strlen(p)) {
-				p = trimStr(p);
-				if (!strlen(p)) {
-					break;
-				}
-
-				//continue;
-			}
-			// initialize a strStack
+		// initialize a strStack
 		} else if (*p == '{') {
 
-			char* newLine = NULL, * tmp = ++p;
+			char* newLine;
 
-			while (*tmp) {
-				tmp++;
-			}
-			if (lineLen - (tmp - pInit) > 2) {
-				*tmp = ' ';
-			}
-			//printf("tmp=\"%s\"\n", tmp);
-			//printf("p=\"%s\"\n", p);
-
-			/*if (lineLen - (p - pInit) > 2) { // { more code....
-				char* tmp = p;
-
-				while (*tmp)
-					tmp++;
-
-				if (lineLen > tmp - pInit) {
-					if (*tmp)
-						printf("tmp=\"%s\"\n", tmp);
-					else
-						*tmp = ' ';
-				}
-
+			if (lineLen - (p - pInit) > 1) { // { more code....
+				if (*++p == '\0')
+					p++;
 				newLine = NULL;
 
 			} else { // {\n
@@ -1126,14 +847,14 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				p = newLine;
 
-			}*/
+			}
 			StrStack* execArr = strstk::getStrStack(p, codeFeed);
 
 			//free's mem allocated for line
 			free(newLine);
 
 			if (execArr) {
-				mainStack.push(CalcValue(*execArr));
+				mainStack.push(*execArr);
 				delete execArr;
 			} else {
 				PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
@@ -1145,7 +866,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			rpnln = p; // this is a memory leak..
 			//free(p);
 		} else if (*p == '}') {
-			printCalcValueRAW(mainStack.top(), var_nodes);
+			printCalcValueRAW(mainStack.top(), first_node);
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
 
 
@@ -1153,7 +874,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if ((*p == '@' && *(p + 1) == '\0') || strcmp(p, "eval") == 0) {
 			ASSERT_NOT_EMPTY(p);
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
+
 			CalcValue top = CalcValue(mainStack.top());
 			mainStack.pop();
 
@@ -1161,7 +883,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				RUN_STR_STK(*top.block, mainStack);
 
 			} else if (top.type == CalcValue::STR) {
-				char* err = processLine(mainStack, var_nodes, showErrors, top.string, elseStatement, codeFeed);
+				char* err = processLine(mainStack, first_node, showErrors, top.string, elseStatement, codeFeed);
 				if (err) {
 					PASS_ERROR("\aERROR in block near `" <<err <<"`. Called here:\n");
 				}
@@ -1171,17 +893,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 		// conditionals::else
 		} else if (strcmp(p, "else") == 0) {
-			/// sets else flag true so we know that we need to deal with it later
 			ASSERT_NOT_EMPTY(p);
-			//CONVERT_REFS(mainStack, var_nodes, showErrors);
+			//CONVERT_REFS(mainStack, first_node, showErrors);
 			elseStatement = true;
 
-		// conditionals::elseif
+		// conditionals::elseif (dysfunctional)
 		} else if (strcmp(p, "elseif") == 0) {
-			/// works by combining else and elseif statement into a single else
-			/// statement with an if-else system inside
-			/// multi-statment if elseif statments will have multiple layers
-
 			if (mainStack.size() < 2 || (elseStatement && mainStack.size() < 3)) {
 				PASS_ERROR("\aERROR: elseif expected a condition and a block of code (takes 2 arguments)\n" <<std::endl);
 			}
@@ -1192,7 +909,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			bool condition = mainStack.top().getNum() != 0;
 			mainStack.pop();
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			if (elseStatement) {
 				if (mainStack.top().type != CalcValue::BLK) {
@@ -1201,7 +918,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				StrStack elseifBlock = *mainStack.top().block;
 				mainStack.pop();
 
-				CONVERT_REFS(mainStack, var_nodes, showErrors);
+				CONVERT_REFS(mainStack, first_node, showErrors);
 
 				if (mainStack.top().type != CalcValue::BLK) {
 					PASS_ERROR("\aERROR: `else` needs anonymous subroutines to function");
@@ -1272,10 +989,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					} // else, it's a value that should stay at the top of the stack
 				} // else, don't do anything as there isn't an else clause
 
-		// errs if stack top is false
 		} else if (strcmp(p, "assert") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (!mainStack.top().getNum()) {
 				PASS_ERROR("\aERROR: assertion test failed\n");
 			}
@@ -1287,11 +1003,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: repeat loop needs a number of times to execute and a block.\n");
 			}
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
-			size_t timesToRepeat = (size_t) abs(mainStack.top().getNum());
+			CONVERT_REFS(mainStack, first_node, showErrors);
+			size_t timesToRepeat = abs(mainStack.top().getNum());
 			mainStack.pop();
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			StrStack block;
 			if (mainStack.top().type == CalcValue::BLK)
 				block = (*mainStack.top().block);
@@ -1303,14 +1019,13 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			for (; timesToRepeat > 0; timesToRepeat--) {
 				RUN_STR_STK(block, mainStack);
 			}
-
 		// while loop
 		} else if (strcmp(p, "while") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: while loop needs two blocks - a condition and a process.\n");
 			}
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::BLK) {
 				PASS_ERROR("\aERROR: while: condition must be a block/subroutine\n");
 			}
@@ -1341,29 +1056,25 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 
 			// if it hasn't been assigned yet..
-			/*UserVar* var = vars::findVar(var_nodes, mainStack.top().string); // container variable
+			UserVar* var = vars::findVar(first_node, mainStack.top().string); // container variable
 			if (var == NULL) {
 				var = new UserVar(first_node, mainStack.top().string, CalcValue());
 				vars::lastVar(first_node)->next = var;
-			}*/
-
-			vars::assignVar(&var_nodes[var_nodes.size() - 1], mainStack.top().string, CalcValue());
-			UserVar* var = vars::findVar(var_nodes, mainStack.top().string);
+			}
 
 			// get list
 			mainStack.pop();
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::BLK) {
 				PASS_ERROR("\aERROR: malformed for-each statement \n correct format: `{ process } { list } $var for-each`\n" <<std::endl);
 			}
-
 			std::stack<CalcValue> tmpStack;
 			RUN_STR_STK(*mainStack.top().block, tmpStack);
 
 
 			// get process
 			mainStack.pop();
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::BLK) {
 				PASS_ERROR("\aERROR: malformed for-each statement \n correct format: `{ process } { list } $var for-each`\n" <<std::endl);
 			}
@@ -1378,7 +1089,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
 			|| !strcmp(p, "exit") || !strcmp(p, "quit")
-		)
+	  	)
 			exit(EXIT_SUCCESS); // exit the program
 
 		// show help
@@ -1396,71 +1107,55 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		// essentially restarts the program (don't display help)
 		} else if (strcmp(p, "reset") == 0 ) { //
 			ans = 0.0;
-			emptyStack(mainStack);
-			for (UserVar node : var_nodes)
-				vars::wipeAll(&node);
+		  	emptyStack(mainStack);
+			vars::wipeAll(first_node);
 
 		// useful for debugging
 		} else if (strcmp(p, "vars") == 0 || strcmp(p, "ls_vars") == 0) {
-			// for each scope
-			for (size_t i = 0; i < var_nodes.size(); i++) {
+			UserVar* var = first_node->next;
 
-				std::cout <<"Scope<" <<i <<"> ====\n";
-				UserVar *var = var_nodes[i].next;
-	
-				// for each variable in scope
-				while (var != NULL) {
-					if (var->val.type == CalcValue::NUM)
-						std::cout << "[NUM] @ " << var << ": $" << var->name << ' '
-						          << var->val.getNum() << " =\n";
-					// var is null (print null)
-					else if (var->val.type == CalcValue::STR && var->val.isNull())
-						std::cout << "[NIL] @ " << var << ": $" << var->name << ' '
-						          << "null =\n";
-					
-					// var is a string (print contents)
-					else if (var->val.type == CalcValue::STR)
-						std::cout << "[STR] @ " << var << ": $" << var->name << " \""
-						          << var->val.getStr() << "\" =\n";
+			while (var != NULL) {
+				if (var->val.type == CalcValue::NUM)
+					std::cout <<"[NUM] @ " <<var <<": $" <<var->name <<' '
+							  <<var->val.getNum() <<" =\n";
 
-					// var is a reference (show what it points to)
-					else if (var->val.type == CalcValue::REF)
-						std::cout << "[REF] @ " << var << ": $" << var->name << " $"
-						          << var->val.getRef() << " =\n";
+				else if (var->val.type == CalcValue::STR && var->val.isNull())
+					std::cout <<"[NIL] @ " <<var <<": $" <<var->name <<' '
+							  <<"null =\n";
 
-					// var is a macro (give details)
-					else if (var->val.type == CalcValue::BLK)
-						std::cout << "[BLK] @ " << var << ": $" << var->name << " has "
-						          << var->val.block->stackDepth
-						          << ((var->val.block->stackDepth == 1) ? " line\n" : " lines\n");
-					
-					// variable is a list (print contents of list)
-					else if (var->val.type == CalcValue::ARR) {
-						std::cout << "[ARR] @ " << var <<": $" <<var->name <<' ';
-						printCalcValueRAW(var->val, var_nodes);
-						std::cout <<" =\n";
-					}
-					var = var->next;
-				}
+				else if (var->val.type == CalcValue::STR)
+					std::cout <<"[STR] @ " <<var <<": $" <<var->name <<" \""
+							  <<var->val.getStr() <<"\" =\n";
 
+				else if (var->val.type == CalcValue::REF)
+					std::cout <<"[REF] @ " <<var <<": $" <<var->name <<" $"
+							  <<var->val.getRef() <<" =\n";
+
+				else if (var->val.type == CalcValue::BLK)
+					std::cout <<"[BLK] @ " <<var <<": $" <<var->name <<" has "
+							  <<var->val.block->stackDepth
+							  <<((var->val.block->stackDepth == 1) ? " line\n" : " lines\n");
+
+				var = var->next;
 			}
 
 		// print the contents of the stack
 		} else if (strcmp(p, "stack") == 0)
-			commands::debugStack(mainStack, var_nodes);
+			commands::debugStack(mainStack, first_node);
 
 		// typeof function
 		else if (strcmp(p, "typeof") == 0) {
 			ASSERT_NOT_EMPTY(p);
 
-			if (mainStack.top().type == CalcValue::REF) {
-				UserVar* var = vars::findVar(var_nodes, mainStack.top().string);
+		 	if (mainStack.top().type == CalcValue::REF) {
+				UserVar* var = vars::findVar(first_node, mainStack.top().string);
 				if (var)
-					mainStack.top().setValue(var->val);
+			  		mainStack.top().setValue(var->val);
+
 			}
 
 			CalcValue val = mainStack.top();
-			mainStack.pop();
+		  	mainStack.pop();
 
 			if (val.isNull()) // NULL string pointer
 				mainStack.push("NULL_VAL");
@@ -1477,14 +1172,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			else if (val.type == CalcValue::BLK) // string_stack
 				mainStack.push("executable array");
 
-			else if (val.type == CalcValue::ARR) // list
-				mainStack.push("list");
-
 		// system call (problem: this conflicts with the current strategy for handling if statements.....)
 		} else if (strcmp(p, "sys") == 0 || strcmp(p, "system") == 0) {
 
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 
 			if (mainStack.top().isStr())
 				system(mainStack.top().getStr()); // gets run in BASH/CMD
@@ -1493,6 +1185,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: cannot make a system call with a number...\n" <<std::endl);
 			}
 			mainStack.pop();
+
 
 		// assignment operator
 		} else if (*p == '=' && *(p + 1) == '\0') { // variable assignment
@@ -1505,32 +1198,31 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					  lhs = getNextValue(mainStack);
 
 			if (lhs.type == CalcValue::REF) {
-				UserVar* var = vars::findVar(var_nodes, lhs.string);
+				UserVar* var = vars::findVar(first_node, lhs.string);
 
 				while (var && var->val.type == CalcValue::REF)
-					var = vars::findVar(var_nodes, var->val.string);
+					var = vars::findVar(first_node, var->val.string);
 
 				if (var == NULL) {
-					var = new UserVar(&var_nodes[var_nodes.size() - 1], lhs.string, rhs);
+					var = new UserVar(first_node, lhs.string, rhs);
 					var->val.type = rhs.type;
-					vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
-					//vars::assignVar(var_nodes, lhs.string, rhs);
+					vars::lastVar(first_node)->next = var;
+
 				// changing the variable's value
 				} else
 					var->setValue(rhs);
 
 
 			} else if (rhs.type == CalcValue::REF) {
-				UserVar* var = vars::findVar(var_nodes, rhs.string);
+				UserVar* var = vars::findVar(first_node, rhs.string);
 
 				while (var && var->val.type == CalcValue::REF)
-					var = vars::findVar(var_nodes, var->val.string);
+					var = vars::findVar(first_node, var->val.string);
 
 				if (var == NULL) {
-					var = new UserVar(&var_nodes[var_nodes.size() - 1], rhs.string, lhs);
+					var = new UserVar(first_node, rhs.string, lhs);
 					var->val.type = lhs.type;
-					vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
-					//vars::assignVar(var_nodes, rhs.string, lhs);
+					vars::lastVar(first_node)->next = var;
 
 				// changing the variable's value
 				} else
@@ -1541,20 +1233,21 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: inappropriate use of assignment operator. (no variable given)\n" <<std::endl);
 			}
 
+
 		} else if (strcmp(p, "is_defined") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			if (mainStack.top().type != CalcValue::REF) {
 				PASS_ERROR("\aERROR: is_defined expected a reference\n");
 			}
 
-			mainStack.push(vars::varExists(var_nodes, getNextValue(mainStack).string));
+			mainStack.push(vars::varExists(first_node, getNextValue(mainStack).string));
 
 		} else if (*p == '~' && *(p + 1) == '\0') {
 			if (mainStack.empty()){
 				PASS_ERROR("\aERROR: not enough data for copy operator (`~`)\n");
 			}
 
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 
 		// error reporting can get annoying on final programs
 		} else if (strcmp(p, "errors-off") == 0)
@@ -1571,7 +1264,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (mainStack.top().type != CalcValue::REF) {
 				PASS_ERROR("\aERROR: delete expected a variable/reference to delete\n");
 			}
-			vars::removeVar(vars::findVar(var_nodes, mainStack.top().string)->first, mainStack.top().string);
+			vars::removeVar(first_node, mainStack.top().string);
 			mainStack.pop();
 		}
 
@@ -1601,6 +1294,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.push(val1);
 			mainStack.push(val2);
 
+
 		// duplicate the top of the stack
 		} else if (strcmp(p, "dup") == 0) {
 			ASSERT_NOT_EMPTY(p);
@@ -1608,10 +1302,10 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 		// duplicate the top elements a set number of times
 		} else if (strcmp(p, "dupx") == 0 || strcmp(p, "dupn") == 0) {
-			if (mainStack.size() < 2) {
+		  	if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: Not enough data to satisfy `" <<p <<"` operator." <<std::endl);
 			}
-			CONVERT_REFS(mainStack, var_nodes, showErrors);
+			CONVERT_REFS(mainStack, first_node, showErrors);
 			if (mainStack.top().type != CalcValue::NUM) {
 				PASS_ERROR("\aERROR: operator `" <<p <<"` expected a number\n");
 			}
@@ -1663,10 +1357,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 	}
 
-
 	return NULL;
 
 }
+
+
+
 
 
 #endif

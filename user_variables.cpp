@@ -11,18 +11,18 @@
 
 namespace vars {
 
-	// return the last variable on the list
-	UserVar *lastVar(UserVar *first) {
+
+	UserVar* lastVar(UserVar* first){
 		while (first->next != NULL)
 			first = first->next;
 
 		return first;
 	}
 
-	// delete all variables
-	void wipeAll(UserVar* first) {
 
-		UserVar *var1, *var2;
+	void wipeAll(UserVar*& first){
+
+		UserVar* var1, * var2;
 
 		var1 = first->next;
 
@@ -43,28 +43,23 @@ namespace vars {
 
 	}
 
-	// add a variable to the linked list
-	void assignVar(UserVar* first, char* name, CalcValue value) {
+	void assignVar(UserVar* first, char* name, CalcValue value){
 
-		UserVar *var = findVar(first, name);
+		UserVar* var = findVar(first, name);
 
 		// making a new variable
 		if (var == NULL) {
 			var = new UserVar(first, name, value);
 			lastVar(first)->next = var;
 
-			// changing the variable's value
+		// changing the variable's value
 		} else
 			var->setValue(value);
 
 	}
 
-	inline void assignVar(std::vector<UserVar>& vars, char* name, CalcValue value) {
-		return assignVar(&vars[vars.size() - 1], name, value);
-	}
-
-	// remove a variable from the linked list
-	void removeVar(UserVar* first, const char* name) {
+	// this is broken...
+	void removeVar(UserVar* first, const char* name){
 		if (!name || !first)
 			return;
 
@@ -73,7 +68,7 @@ namespace vars {
 			if (strcmp(first->next->name, name) == 0) {
 
 				// get object address so it doesn't become unaccessable
-				UserVar *toBeDeleted = first->next;
+				UserVar* toBeDeleted = first->next;
 
 				// replace link
 				first->next = first->next->next;
@@ -89,13 +84,7 @@ namespace vars {
 		}
 	}
 
-	inline void removeVar(std::vector<UserVar> &vars, char *name) {
-		removeVar(vars::findVar(vars, name)->first, name);
-	}
-
-
-	// returns pointer to given variable
-	UserVar *findVar(UserVar *first, char *name) {
+	UserVar* findVar(UserVar* first, char* name){
 
 		if (!name || !first)
 			return NULL;
@@ -112,20 +101,11 @@ namespace vars {
 				first = first->next;
 
 
-		return (UserVar *) NULL;
-	}
-
-	UserVar *findVar(std::vector<UserVar> &vars, char *name) {
-		UserVar *ret = NULL;
-		for (int i = vars.size() - 1; i >= 0 && !ret; i--)
-			ret = findVar(&vars[i], name);
-
-		return ret;
+		return (UserVar*) NULL;
 	}
 
 
-	// returns whether variable is in list or not
-	bool varExists(UserVar *first, char *name) {
+	bool varExists(UserVar* first, char* name){
 
 		first = first->next;
 
@@ -138,44 +118,21 @@ namespace vars {
 		return false;
 	}
 
-	bool varExists(std::vector<UserVar> &vars, char *name) {
-		bool ret = false;
-		for (int i = vars.size() - 1; i >= 0 && !ret; i--)
-			ret = varExists(&vars[i], name);
-
-		return ret;
-
-	}
-
-
 	// de-references the variable's
-	CalcValue *valueAtVar(UserVar *first, char name[USERVAR_NAME_MAXLENGTH]) {
-		UserVar *var = findVar(first, name);
+	CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]){
+		UserVar* var = findVar(first, name);
 
 		if (var) {
-			CalcValue *val = &var->val;
-			if (val->type == CalcValue::REF)
+			CalcValue* val = &var->val;
+			if (val->type == CalcValue::REF) {
 				return valueAtVar(first, val->string);
-			else
+
+			} else
 				return val;
 		} else
 			return NULL;
 
 	}
-
-	CalcValue *valueAtVar(std::vector<UserVar> &vars, char name[USERVAR_NAME_MAXLENGTH]) {
-		UserVar *var = findVar(vars, name);
-
-		if (var) {
-			CalcValue *val = &var->val;
-			if (val->type == CalcValue::REF)
-				return valueAtVar(vars, val->string);
-			else
-				return val;
-		} else
-			return NULL;
-
-	}
-
 
 }
+
