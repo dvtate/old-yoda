@@ -5,18 +5,34 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <vector>
 
 #include "string_stack.hpp"
 
+
 #define USERVAR_NAME_MAXLENGTH 20
+
 // to be defined later
 class CalcValue;
 class UserVar;
+
 namespace vars {
 	extern CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
-	extern UserVar* findVar(UserVar* first, char* name);
+	extern CalcValue* valueAtVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
+	extern UserVar* findVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
+	extern UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
 }
 
+
+// this will be used for list indexes
+// I want numbers to by default be converted into CalcValue::NUM and not indexes
+// making a separate index class ensures that I won't break anything
+class index_t {
+public:
+	ssize_t index;
+	index_t(const ssize_t& in):
+			index(in){ }
+};
 
 /// a temporary value to hold user data in
 class CalcValue {
@@ -24,25 +40,28 @@ class CalcValue {
 public:
 
 	// which type is represented by the data union
-	enum { NUM,	// number/boolean
-		   STR,	// string
-		   REF,	// reference to a variable
-		   //ARR,	// linked-list
-		   BLK	// Block of code (StrStack) (subroutine) (executable array)
-		 } type;
+	enum {  NUM,	// number/boolean
+			STR,	// string
+			REF,	// reference to a variable
+			BLK,	// Block of code (StrStack) (subroutine) (executable array)
+			ARR,    // vector
+			INX,    // index of an array, type made for
+	} type;
 
 	// contains the data
 	union {
 		double		number;
 		char*		string;
 		StrStack*	block;
+		std::vector<CalcValue>* list;
+		ssize_t     index;
 	};
 
-  	// Null object
+	// Null object
 	CalcValue(): type(STR), string(NULL) {}
 
 
-  	CalcValue (double val):	type(NUM) {
+	CalcValue (double val):	type(NUM) {
 		number = val;
 		type = NUM;
 	}
@@ -52,12 +71,12 @@ public:
 
 		if (str) {
 			// allocate memory for the string
-		  	string = (char*) malloc(strlen(str) + 1);
+			string = (char*) malloc(strlen(str) + 1);
 
 			// write the string to the buffer
 			strcpy(string, str);
 
-		// declaring a NULL_CALCVAL_OBJECT
+			// declaring a NULL_CALCVAL_OBJECT
 		} else
 			string = NULL;
 	}
@@ -68,6 +87,19 @@ public:
 	CalcValue(StrStack* codeBlock): type(BLK)
 		{ block = new StrStack(*codeBlock); }
 
+	CalcValue(const std::vector<CalcValue> in_list):
+		type(ARR)
+	{
+		list = new std::vector<CalcValue>();
+		for (CalcValue elem : in_list)
+			list->push_back(elem);
+
+	}
+
+	CalcValue(const index_t in_index):
+			type(INX), index(in_index.index)
+	{}
+
 	CalcValue(const CalcValue& in){
 		// no need to delete anything as nothing is there yet
 
@@ -76,17 +108,23 @@ public:
 
 		// copy in the value
 		if (type == NUM)
-		  	number = in.number;
+			number = in.number;
 		else if (type == STR || type == REF) {
 
 			if (in.string) {
-			  	string = (char*) malloc(strlen(in.string) + 1);
+				string = (char*) malloc(strlen(in.string) + 1);
 				strcpy(string, in.string);
 			} else
 				string = NULL;
 
 		} else if (type == BLK)
 			block = new StrStack(*in.block);
+		else if (type == ARR) {
+			list = new std::vector<CalcValue>();
+			for (CalcValue elem : *in.list)
+				list->push_back(elem);
+		} else if (type == INX)
+			index = in.index;
 
 		//printf("copying CV...\n");
 		//printf("copyied CV...\n");
@@ -94,53 +132,61 @@ public:
 
 	// lol
 	template<class T>
-	CalcValue& operator=(const T& val) {
+	CalcValue& operator=(const T val) {
 		setValue(val);
 		return *this;
 	}
 
-	void setValue(const CalcValue& in){
+	CalcValue& operator=(const CalcValue in) {
+		setValue(in);
+		return *this;
+	}
+	void setValue(const CalcValue in){
 
 		// delete old value
-		if (type == STR || type == REF)
-		  	free(string);
-		else if (type == BLK)
-			delete block;
-
+		clear();
 		// they will be the same type of data
 		type = in.type;
 
 		// copy in the value
 		if (type == NUM)
-		  	number = in.number;
+			number = in.number;
 		else if (type == STR || type == REF) {
 
 			if (in.string) {
-			  	string = (char*) malloc(strlen(in.string) + 1);
+				string = (char*) malloc(strlen(in.string) + 1);
 				strcpy(string, in.string);
 			} else
 				string = NULL;
 
 		} else if (type == BLK)
 			block = new StrStack(*in.block);
+		else if (type == ARR) {
+			list = new std::vector<CalcValue>();
+			for (CalcValue elem : *in.list)
+				list->push_back(elem);
+		} else if (type == INX)
+			index = in.index;
 
 	}
 
 	// this sometimes causes a core dump (QwQ)
 	~CalcValue(){
-		if (type == STR || type == REF)
-			free(string); // free() accepts NULL pointers
-		else if (type == BLK)
-			delete block;
+		clear();
 	}
 
-	void setValue(const char* const str){
-
-		// memory leaks are pretty bad
+	// delete current value
+	void clear() {
 		if (type == STR || type == REF)
 			free(string); // free() accepts NULL pointers
 		else if (type == BLK)
 			delete block;
+		else if (type == ARR)
+			delete list;
+	}
+	void setValue(const char* const str){
+
+		clear();
 
 		string = (char*) malloc(strlen(str) + 1);
 
@@ -153,11 +199,7 @@ public:
 
 	void setValue(const char ch){
 
-		// memory leaks are pretty bad
-		if (type == STR || type == REF)
-			free(string); // free() accepts NULL pointers
-		else if (type == BLK)
-			delete block;
+		clear();
 
 		type = STR;
 		string = (char*) malloc(2);
@@ -167,22 +209,35 @@ public:
 	}
 	void setValue(double val){
 
-		// delete old value
-		if (type == STR || type == REF)
-			free(string); // free(NULL) gives no errors :)
-		else if (type == BLK)
-			delete block;
+		clear();
 
 		type = NUM;
 		number = val;
 	}
 
+	void setValue(const std::vector<CalcValue>& arr) {
+		// delete old value
+		if (type == STR || type == REF)
+			free(string); // free(NULL) gives no errors :)
+		else if (type == BLK)
+			delete block;
+		else if (type == ARR)
+			delete list;
+
+		type = ARR;
+		for (CalcValue elem : arr)
+			list->push_back(elem);
+	}
 
 	CalcValue& setRef(const char* const str){
 
 		// memory leaks are pretty bad
 		if (type == STR || type == REF)
 			free(string); // free(NULL) gives no errors :)
+		else if (type == BLK)
+			delete block;
+		else if (type == ARR)
+			delete list;
 
 
 		string = (char*) malloc(strlen(str) + 1);
@@ -194,11 +249,9 @@ public:
 
 		return *this;
 	}
-	CalcValue& setStr(const char* const str){
-		// memory leaks are pretty bad
-		if (type == STR || type == REF)
-			free(string); // free(NULL) gives no errors :)
 
+	CalcValue& setStr(const char* const str){
+		clear();
 
 		string = (char*) malloc(strlen(str) + 1);
 
@@ -213,8 +266,7 @@ public:
 
 	void setNull(){
 
-		if (type == STR || type == REF)
-			free(string);
+		clear();
 
 		type = STR;
 		string = NULL;
@@ -232,17 +284,17 @@ public:
 	}
 
 	char* getStr(){
-	  	if (type == STR)
+		if (type == STR)
 			return string;
-	  	else
-		  	return NULL;
+		else
+			return NULL;
 	}
 
 	char* getRef(){
-	  	if (type == REF)
+		if (type == REF)
 			return string;
-	  	else
-		  	return NULL;
+		else
+			return NULL;
 	}
 
 	CalcValue* valAtRef(UserVar* first){
@@ -252,20 +304,40 @@ public:
 			return NULL;
 	}
 
-	bool operator==(const CalcValue& val2){
+	CalcValue* valAtRef(std::vector<UserVar>& vars){
+		if (type == REF)
+			return vars::valueAtVar(vars, string);
+		else
+			return NULL;
+	}
+
+
+	bool operator==(const CalcValue& cv2) {
 
 		// same type
-		if (type == val2.type) {
+		if (type == cv2.type) {
 
 			// same value
-			if (type == NUM && number == val2.number)
+			if (type == CalcValue::NUM && number == cv2.number)
 				return true;
-			else if ((type == STR || type == REF) && strcmp(string, val2.string) == 0)
-				return true;
+			else if ((type == CalcValue::STR || cv2.type == CalcValue::REF))
+				return strcmp(string, cv2.string) == 0;
+			// this doesnt work...
+			else if (type == CalcValue::ARR) {
+				if (list->size() != cv2.list->size())
+					return false;
+				for (size_t i = 0; i < list->size() - 1; i++)
+					if (!((*list)[i] == (*cv2.list)[i]))
+						return false;
 
+				return true;
+			} else if (type == INX) {
+				return (index == cv2.index);
+			}
 		}
 
-	  	return false;
+		return false;
+
 
 	}
 
@@ -284,8 +356,23 @@ public:
 		{ return type == NUM; }
 	bool isBlk()
 		{ return type == BLK; }
+	bool isArr()
+		{ return type == ARR; }
+
+
+
+
+	// list modifiers
+	CalcValue* getListElem(const std::vector<ssize_t>& index) {
+
+		for (ssize_t i : index) {
+
+		}
+	}
+
 
 };
+
 
 
 #define NULL_CALCVAL_OBJECT CalcValue((char*) NULL)
