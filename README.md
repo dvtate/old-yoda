@@ -149,6 +149,15 @@ YodaScript is a stack-based language based on reverse polish notation.
     >>> (1,"hello",{ "hi" print }) 1 get println
     hello
     ```
+# Supported Types/Literals:
+* Strings: `"literal enclosed in quotes"` : text
+* Numbers: `1 1.0 inf 1e-4`: numerical values
+* Null: `null`: a placeholder for a lack of a value
+* Reference: `$var`: a reference to another piece of data (or another reference)
+* Macro/Block/Stack: `{ }`: a container of code/values which can be run (similar to functions)
+* List: `("comma-separated","values",)`: an organized container of values (no value = null)
+* Index (Intermediate type): `5 ]`: these are a part of the lazy-evaluation of list indicies.
+
 # An incomplete list of built-in operators, functions, constants, etc.:
 * Constants:
   - `true` = 1
@@ -226,7 +235,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `strstr`: finds a sub-string in a string
   - `stristr`: case-insensitive strstr
   - `trim`: trims whitespace from start and end of the stringsubroutine
-  - `split`: splits a string using given delimiters
+  - `split`: splits a string using given delimiters (also splits list)
   - `str_replace`: replaces all occurances of a substring with another substring
 
 * I/O:
@@ -245,9 +254,11 @@ YodaScript is a stack-based language based on reverse polish notation.
 
 * Macro Operators:
   - `@`, `eval`: runs the given macro or string as code (also accepts strings)
+  
 * List Operators:
   - `get`: pushes the value at the given index of the given list
-  
+  - `split`: pushes all the elements of a list onto the stack
+  - `n ]`: index for given list, evaluates to that element in the list (behavior similar to reference type)
 * Structure-Equivalent Operators:
   - `else`, `elseif`, `if`: conditional operators
   - `repeat`, `while`, `for-each`: looping operators
