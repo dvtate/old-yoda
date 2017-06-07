@@ -217,28 +217,18 @@ public:
 
 	void setValue(const std::vector<CalcValue>& arr) {
 		// delete old value
-		if (type == STR || type == REF)
-			free(string); // free(NULL) gives no errors :)
-		else if (type == BLK)
-			delete block;
-		else if (type == ARR)
-			delete list;
+		clear();
 
 		type = ARR;
-		for (CalcValue elem : arr)
+		list = new std::vector<CalcValue>();
+		for (const CalcValue elem : arr)
 			list->push_back(elem);
 	}
 
 	CalcValue& setRef(const char* const str){
 
 		// memory leaks are pretty bad
-		if (type == STR || type == REF)
-			free(string); // free(NULL) gives no errors :)
-		else if (type == BLK)
-			delete block;
-		else if (type == ARR)
-			delete list;
-
+		clear();
 
 		string = (char*) malloc(strlen(str) + 1);
 
@@ -362,23 +352,30 @@ public:
 
 
 
-	// list modifiers
+	// list accessor
 	CalcValue* getListElem(const std::vector<ssize_t>& elem_index) {
+		if (type != ARR)
+			return NULL;
 
 		CalcValue* ret = this;
-		for (ssize_t i : elem_index) {
-			ret = &ret->list->at(i);
 
+		for (ssize_t i : elem_index) {
+			if (ret->list->size() <= i || ret->list->size() < abs(i)) {
+				return NULL;
+			}
+			ret = i < 0 ?
+			      &ret->list->at(ret->list->size() + i) :
+			      &ret->list->at(i);
 		}
+
 		return ret;
 	}
-
+	// list modifier
 	bool assignElem(const std::vector<ssize_t>& elem_index, const CalcValue& val) {
 
-		CalcValue* mod = this;
-		for (ssize_t i : elem_index) {
-			mod = &mod->list->at(i);
-		}
+		CalcValue* mod = getListElem(elem_index);
+		if (!mod)
+			return false;
 
 		mod->setValue(val);
 
