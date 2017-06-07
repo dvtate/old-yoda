@@ -47,7 +47,7 @@ extern CalcValue ans;
 #define GET_LIST_INDEX(MAINSTACK, VAR_NODES, ASSIGN_TO)\
 	if (MAINSTACK.top().type == CalcValue::INX) {\
 		while (!MAINSTACK.empty() && mainStack.top().type == CalcValue::INX) {\
-			ASSIGN_TO.push_back(MAINSTACK.top().getNum());\
+			ASSIGN_TO.push_back(MAINSTACK.top().index);\
 			MAINSTACK.pop();\
 		}\
 		if (MAINSTACK.empty()) {\
@@ -126,7 +126,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 	// decipher token
 	while (p != NULL && *p != '\0') {
 
-		printf("p=\"%s\"\n",p);
+		//printf("p=\"%s\"\n",p);
 
 		// char is a binary operator
 		if (((*p == '-' || *p == '*' || *p == '/' || *p == '%'
@@ -898,34 +898,58 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (mainStack.top().type != CalcValue::NUM) {
 				PASS_ERROR("\aERROR: non-numerical index\n");
 			}
-			printf("indx = %f \n", mainStack.top().number);
 			CalcValue tmp;
 			tmp.type = CalcValue::INX;
 			tmp.index = (ssize_t) mainStack.top().getNum();
 			mainStack.pop();
 			mainStack.push(tmp);
-			printf("test");
-			if (mainStack.top().type != CalcValue::INX) {
-				printf("FUCKKKKKKK\n");
-			} else {
-				std::cout <<"indx = " <<mainStack.top().index <<std::endl;
-			}
 
 		} else if (strcmp(p, "assign") == 0) {
 
 			if (mainStack.top().type == CalcValue::INX) {
 
+				std::vector<ssize_t> index;
+				GET_LIST_INDEX(mainStack, var_nodes, index);
+
+				CalcValue list = mainStack.top();
+				mainStack.pop();
+
+				if (list.type == CalcValue::REF) {
+					CalcValue* tmp = list.valAtRef(var_nodes);
+					if (!tmp) {
+						PASS_ERROR("\aERROR: $"<< mainStack.top().string <<" not defined or accessable.\n");
+					}
+					tmp->assignElem(index, mainStack.top());
+				} else {
+					PASS_ERROR("\aERROR: invalid use of list assignment");
+				}
+
 			} else {
 				CalcValue val = mainStack.top();
 				mainStack.pop();
 
+				//std::cout <<"indx len: " <<index.size();
+
 				std::vector<ssize_t> index;
 				GET_LIST_INDEX(mainStack, var_nodes, index);
-				std::cout <<"indx len: " <<index.size();
-				if (mainStack.top().type == CalcValue::ARR) {
-					printf("FUCK YEAHHHH");
+				printf("in=%d\n",index[0]);
+
+				if (mainStack.empty()) {
+					PASS_ERROR("\aERROR: index without array");
+				}
+				if (mainStack.top().type == CalcValue::REF) {
+					CalcValue* tmp = mainStack.top().valAtRef(var_nodes);
+					if (!tmp) {
+						PASS_ERROR("\aERROR: $"<< mainStack.top().string <<" not defined or accessable.\n");
+					}
+					tmp->assignElem(index, val);
+				} else {
+					PASS_ERROR("\aERROR: invalid use of list assignment");
 				}
 			}
+
+			mainStack.pop();
+
 
 			// convert to string
 		} else if (strcmp(p, "str") == 0) {
@@ -1122,8 +1146,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			free(newLine);
 
+			//printf("lst_p = \"%s\"\n", p);
 			if (p && *p && strlen(p)) {
-				p = trimStr(p);
 				if (!strlen(p)) {
 					break;
 				}
@@ -1432,11 +1456,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			// clear screen
 		} else if (strcmp(p, "clear") == 0 || strcmp(p, "cls") == 0) {
-#ifdef _WIN32
-			system("cls");
-#else
-			system("clear");
-#endif
+			#ifdef _WIN32
+				system("cls");
+			#else
+				system("clear");
+			#endif
 
 			// essentially restarts the program (don't display help)
 		} else if (strcmp(p, "reset") == 0 ) { //
@@ -1687,7 +1711,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			// reference
 		else if (*p == '$' && *(p + 1) != '\0') // user must use '$' prefix to access the variables
-
 			mainStack.push(CalcValue().setRef(p + 1)); // beautiful hack, eh?
 			// let's try and figure out what this could be...
 		else {

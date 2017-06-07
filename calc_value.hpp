@@ -363,11 +363,26 @@ public:
 
 
 	// list modifiers
-	CalcValue* getListElem(const std::vector<ssize_t>& index) {
+	CalcValue* getListElem(const std::vector<ssize_t>& elem_index) {
 
-		for (ssize_t i : index) {
+		CalcValue* ret = this;
+		for (ssize_t i : elem_index) {
+			ret = &ret->list->at(i);
 
 		}
+		return ret;
+	}
+
+	bool assignElem(const std::vector<ssize_t>& elem_index, const CalcValue& val) {
+
+		CalcValue* mod = this;
+		for (ssize_t i : elem_index) {
+			mod = &mod->list->at(i);
+		}
+
+		mod->setValue(val);
+
+		return true;
 	}
 
 
