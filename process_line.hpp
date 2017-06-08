@@ -990,7 +990,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			if (mainStack.top().type == CalcValue::REF) {
 				CalcValue* tmp = mainStack.top().valAtRef(var_nodes);
-				std::cout<<tmp;
 
 				if (!tmp) {
 					goto push_into_arr;
@@ -1803,15 +1802,34 @@ push_into_arr:
 		// delete a variable
 		else if (strcmp(p, "delete") == 0) {
 			ASSERT_NOT_EMPTY(p);
-			CONVERT_INDEX(mainStack, var_nodes);
-			if (mainStack.top().type != CalcValue::REF) {
-				PASS_ERROR("\aERROR: delete expected a variable/reference to delete\n");
+			// deleting an element of a list
+			if (mainStack.top().type == CalcValue::INX) {
+				std::vector<ssize_t> indx;
+				GET_LIST_INDEX(mainStack, var_nodes, indx);
+				if (mainStack.top().type == CalcValue::ARR) {
+					mainStack.top().deleteListElem(indx);
+				} else if (mainStack.top().type == CalcValue::REF) {
+					CalcValue* cv = mainStack.top().valAtRef(var_nodes);
+					if (!cv) {
+						PASS_ERROR("\aERROR: broken reference to $" <<mainStack.top().string <<"\n");
+					}
+					if (cv->type != CalcValue::ARR) {
+						PASS_ERROR("\aERROR: index without list\n");
+					}
+					cv->deleteListElem(indx);
+					mainStack.pop();
+				}
+
+			// deleting a variable
+			} else if (mainStack.top().type == CalcValue::REF) {
+				vars::removeVar(vars::findVar(var_nodes, mainStack.top().string)->first, mainStack.top().string);
+				mainStack.pop();
+			} else {
+				PASS_ERROR("\aERROR: delete expected a variable/reference or a list index to delete\n");
 			}
-			vars::removeVar(vars::findVar(var_nodes, mainStack.top().string)->first, mainStack.top().string);
-			mainStack.pop();
-		}
-		// clear the stack
-		else if  (strcmp(p, "...") == 0)
+
+			// clear the stack
+		}else if  (strcmp(p, "...") == 0)
 			emptyStack(mainStack);
 
 		// pop the top of the stack

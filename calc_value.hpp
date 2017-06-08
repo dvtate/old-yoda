@@ -382,7 +382,26 @@ public:
 		return true;
 	}
 
+	bool deleteListElem(const std::vector<ssize_t>& elem_index) {
+		if (type != ARR)
+			return false;
 
+		CalcValue* ret = this;
+		for (uint16_t i = 0; i < elem_index.size() - 1; i++) {
+			if (ret->list->size() <= elem_index[i] || ret->list->size() < abs(elem_index[i])) {
+				return false;
+			}
+			ret = i < 0 ?
+			      &ret->list->at(ret->list->size() + elem_index[i]) :
+			      &ret->list->at(elem_index[i]);
+		}
+		if (!ret || !ret->list)
+			return false;
+
+		ret->list->erase(ret->list->begin() + elem_index[elem_index.size() - 1]);
+		return true;
+
+	}
 };
 
 
