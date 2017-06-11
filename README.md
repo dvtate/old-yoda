@@ -5,28 +5,32 @@ A Yoda-Script (.ys) interpreter which is now turing complete! The language is dy
 If you are a Windows user and don't know anything about C++ compilers, you can download this precompiled executable  <b>Warning</b>, I cross-compiled this on Linux, it hasn't been tested on a native installation<br/>
 http://dvtate.github.io/dls/yoda.exe [updated 2017.6.4]
 - Compiling:
-`yoda $ g++ *.cpp -o yoda`
+`yoda $ make`
 - Running:
 `yoda $ ./yoda`
 - Installing:
-`yoda $ sudo mv yoda /usr/bin/yoda` <br/>
+`yoda $ sudo make install`
+- Uninstalling:
+`yoda $ sudo make uninstall`
+
 After installing, you can run yoda as you would any other program from the terminal.
+
 # About YodaScript
 YodaScript is a stack-based language based on reverse polish notation.
 - Features coming soon (fast-track):
   + lists (std::vector<CalcValue>)
-  
+
 - Some features which I plan on implementing (totem-poll):
   + **proper** functions and subroutines (not macros)
   + associative arrays (dictionaries)
   + proper string manipulation funcitons and such
   + regular expressions
   + concurrency (multi-threaded/async) (maybe with std::thread)
-  
+
 - Some features I do not plan on implementing:
   + OOP (unless implemented by someone else ;) )
   + goto's (essentially impossible given my current design)
-  
+
 # How to use (note- may be out of date)
  - <b>Comments:</b>
    Anything after the `#` symbol will be ignored.
@@ -34,25 +38,25 @@ YodaScript is a stack-based language based on reverse polish notation.
    >>> 32 # this is a comment
    32
    ```
-   
+
  - <b>Binary operators:</b>
   Place the operator after it's two operands.
    ```
-   >>> 1 2 +    # 1 + 2 
+   >>> 1 2 +    # 1 + 2
    3
    >>> 2 5 **   # 2 ^ (5)
    32
    ```
-   
+
  - <b>Unary operators:</b>
   place the unary operator/funciton behind it's parameter
   ```
   >>> 100 log   # log10(100)
   2
-  >>> 0.5 sin   # sine of 0.5 radians 
+  >>> 0.5 sin   # sine of 0.5 radians
   0.479426
   ```
-  
+
  - <b>Combining operators:</b>
   One of postfix notation's main strengths is that it eliminates the need for parenthases. Simply combine operators in a way that would lead to them being performed sequentially.
   ```
@@ -68,7 +72,7 @@ YodaScript is a stack-based language based on reverse polish notation.
 ```
   Variables are references to data, variables can reference eachother. Changing the value of a reference changes the value  of it's referenced variable.  If you want to make a deep copy, use the copy operator (`~`). Also, note: this language uses dynamic scope resolution and variables are deleted as they go out of scope. If 2 variables in different scopes have the same name, the one in the more specific scope will be used.
 ```
->>> $a 8 =    # now $a is a reference to the number 8 
+>>> $a 8 =    # now $a is a reference to the number 8
 >>> $b $a =   # now $b is a reference to $a and $a is a reference to the number 8
 >>> $b $a ~ = # now they are both references to the number 8
 ```
@@ -91,7 +95,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   >>> $a print # note, variables declared within the macro are deleted wen they go out of scope
   ERROR: broken reference to `$a`.
   ```
-  
+
  - <b>Loops:</b>
   Loops can be used to repeat the code a number of times. This language has several types of loops built in.
   - <b>Repeat Loops:</b>
@@ -114,7 +118,7 @@ YodaScript is a stack-based language based on reverse polish notation.
    count is 3
    count is 4
    ```
-  - <b>for-each Loops:</b> 
+  - <b>for-each Loops:</b>
    assigns a variable to each element in an execuatable array
    ```
    1>>> {
@@ -128,14 +132,14 @@ YodaScript is a stack-based language based on reverse polish notation.
   >>> "Enter GPA: " print $gpa input int =
   Enter GPA: 4
   >>> #this first method is syntactic sugar and slower than the second
-  >>> { "You can do better than that." println } else 
-  { "That's good enough for me." println } $gpa 3 >= elseif 
+  >>> { "You can do better than that." println } else
+  { "That's good enough for me." println } $gpa 3 >= elseif
   { "Woooooooooooow!" println } $gpa 4 >= if
   Woooooooooooow!
-  
+
   >>> # this method has better performance but gets ugly quick
   >>> {
-      { "You can do better than that." println } else 
+      { "You can do better than that." println } else
       { "That's good enough for me." println } $gpa 3 >= if
   } else {
       "Woooooooooooow!" println
@@ -165,7 +169,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `null`: passes null object
   - `pi`: pushes approximation of pi
   - `ans`: only available in shell; Pushes value at top of stack
-  
+
 * Mathematical operators:
   - `+`: add (also concatenates when one or more of the arguments is a string)
   - `-`: subtract
@@ -181,13 +185,13 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `asin`, `acos`, `atan`: inverse trigonometric funcitons (radians)
   - `sinh`, `cosh`, `tanh`: hyperbolic trigonometric functions (radians)
   - `asinh`, `acosh`, `atanh`: inverse hyperbolic trigonometric functions (radians)
-  
+
 * Logical operators: (0 is false everything else is true)
   - `&&`: logical-and
   - `||`: logical-or
   - `!`: logical-not
   - `!=`: logical-XOR
- 
+
 * Compairison operators:
   - `==`, `?=`: equals-to
   - `!=`: not equals-to
@@ -195,14 +199,14 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `<`: less than
   - `>=`: greater than or equal to
   - `<=`: less than or equal to
-  
+
 * Bitwise operators:
   - `|`: bitwise-or
   - `&`: bitwise-and
   - `^`: bitwise-XOR
   - `<<`: bitshift left
   - `>>`: bitshift right
- 
+
 * Stack/flow operators: these are useful in carrying values to their destination in the correct order
   - `...`: empty stack
   - `;`: pop top of stack
@@ -213,7 +217,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `stklen`: returns the size of the stack
   - `reverse_stack`: reverses the order of stack
   - `range`: puts a range of numbers onto the stack
-  
+
 * Types:
   - `str`: converts to string
   - `num`: converts to a number
@@ -222,14 +226,14 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `stk`: puts values on stack into a list
   - `floor`: static casts to an int
   - `~`: copy operator, replaces a reference with the basic value it points to
-  
+
 * Variables/References
   - `=`: assignment operator
   - `delete`: deletes a variable/reference
   - `is_defined`: returns whether or not the given variable is defined or not
   - `vars`, `ls_vars`: prints list of variables in all scopes plus debugging info
   - `typeof`: pushes string containing type of a value
-  
+
 * String operators:
   - `strlen`: returns the length of a given string
   - `strstr`: finds a sub-string in a string
@@ -254,7 +258,7 @@ YodaScript is a stack-based language based on reverse polish notation.
 
 * Macro Operators:
   - `@`, `eval`: runs the given macro or string as code (also accepts strings)
-  
+
 * List Operators:
   - `get`: pushes the value at the given index of the given list
   - `split`: pushes all the elements of a list onto the stack
