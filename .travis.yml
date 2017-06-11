@@ -5,6 +5,8 @@ compiler:
   - gcc
   - clang
   
+# can't use standard Makefile because travis uses outdated
+# versions of gcc..
 script: g++ *.cpp -Wall -Wextra --std=c++0x
 
 notifications:
