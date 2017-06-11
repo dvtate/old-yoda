@@ -17,19 +17,42 @@ After installing, you can run yoda as you would any other program from the termi
 
 # About YodaScript
 YodaScript is a stack-based language based on reverse polish notation.
-- Features coming soon (fast-track):
-  + lists (std::vector<CalcValue>)
-
-- Some features which I plan on implementing (totem-poll):
-  + **proper** functions and subroutines (not macros)
+- Features:
+  + Lists (and all methods from std::vector are included)
+  + Macros (better than executable arrays in postscript)
+  + conditionals (using else-ifelse-if statements)
+  + loops (`while`, `repeat`, `for-each`)
+  + variables/references
+  + dynamically typed, dynamically scoped
+  + ANSI terminal color functions (soon to be an external library) 
+  
+- Some features which I plan on implementing (top to bottom):
+  + first-class functions (and perhapse an adaptive stack to accomodate them)
+  + extending the language using C++ (using .so's and perhapse remote repos)
+  + concurrency (if possible) (perhaps w/ std::thread)
   + associative arrays (dictionaries)
-  + proper string manipulation funcitons and such
-  + regular expressions
-  + concurrency (multi-threaded/async) (maybe with std::thread)
+  + proper string manipulation funcitons and regular expressions (possibly ext. lib)
+  
 
-- Some features I do not plan on implementing:
-  + OOP (unless implemented by someone else ;) )
-  + goto's (essentially impossible given my current design)
+- Some features I do not plan on implementing (yet):
+  + OOP: for now I will stick to a traditional programming approach, but later I plan
+    on adding OOP (perhapse with syntax `<args> :method$object`). The most difficult
+    part of this will be adding custom types. I would probably follow JavaScript's model
+    for this.
+  + goto's: Although I believe gotos have well defined roles (at least in compiled languages),
+    in YodaScript line numbers function more as a way to organize code for the user and the
+    interpreter only keeps track of line numbers to assist in debugging. In addition, making
+    unconditional jumps from one location in the code to another raises concern over scope.
+    The interpreter has no way of knowing if the location it's jumping to has a different scope.
+    
+# Supported Types/Literals:
+* Strings: `"literal enclosed in quotes"` : text
+* Numbers: `1 1.0 inf 1e-4`: numerical values
+* Null: `null`: a placeholder for a lack of a value
+* Reference: `$var`: a reference to another piece of data (or another reference)
+* Macro/Block/Stack: `{ }`: a container of code/values which can be run (similar to functions)
+* List: `("comma-separated","values",)`: an organized container of values (no value = null)
+* Index (Intermediate type): `5 ]`: these are a part of the lazy-evaluation of list indicies.
 
 # How to use (note- may be out of date)
  - <b>Comments:</b>
@@ -153,14 +176,6 @@ YodaScript is a stack-based language based on reverse polish notation.
     >>> (1,"hello",{ "hi" print }) 1 get println
     hello
     ```
-# Supported Types/Literals:
-* Strings: `"literal enclosed in quotes"` : text
-* Numbers: `1 1.0 inf 1e-4`: numerical values
-* Null: `null`: a placeholder for a lack of a value
-* Reference: `$var`: a reference to another piece of data (or another reference)
-* Macro/Block/Stack: `{ }`: a container of code/values which can be run (similar to functions)
-* List: `("comma-separated","values",)`: an organized container of values (no value = null)
-* Index (Intermediate type): `5 ]`: these are a part of the lazy-evaluation of list indicies.
 
 # An incomplete list of built-in operators, functions, constants, etc.:
 * Constants:
