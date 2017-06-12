@@ -174,8 +174,6 @@ bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes){
 		std::cout <<")";
 	}
 
-
-
 	return 0;
 }
 

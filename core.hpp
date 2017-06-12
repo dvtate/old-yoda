@@ -185,9 +185,6 @@ bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReport
 }
 
 
-// a NULL CalcValue
-CalcValue ans;
-
 void runShell(std::vector<UserVar>& var_nodes, bool& errorReporting,
 			  std::stack<CalcValue>& mainStack, bool& elseStatement
 ){
@@ -218,14 +215,9 @@ void runShell(std::vector<UserVar>& var_nodes, bool& errorReporting,
 
 	// this fails...
 	if (!mainStack.empty()) {
-		ans = mainStack.top();
-		if (!printCalcValue(ans, var_nodes))
+		if (!printCalcValue(mainStack.top(), var_nodes))
 			std::cout <<'\n';
 	}
-
-	// this allows the ans keyword to function
-	if (!mainStack.empty())
-		ans = mainStack.top();
 
 	std::cout <<std::endl;
 
@@ -242,8 +234,6 @@ void runStringStack(StrStack& code, bool& errorReporting){
 	first_node.first = &first_node;
 	std::vector<UserVar> var_nodes;
 	var_nodes.push_back(first_node);
-
-	static CalcValue ans(0.0); // here `0` could be a pointer
 
 	bool elseStatement = false;
 
@@ -312,7 +302,6 @@ bool runStringStack(
 	bool elseStatement = false;
 	char	*rpnln_head;
 
-	//static CalcValue ans(0.0); // here `0` could be a pointer
 
 
 	// used for line numbers in errors (plus previosly mentioned kludge)

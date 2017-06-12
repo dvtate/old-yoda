@@ -27,8 +27,7 @@
 
 
 
-extern CalcValue ans;
-
+extern char* progName;
 
 // error's if the stack is empty
 #define ASSERT_NOT_EMPTY(OPERATOR)\
@@ -706,10 +705,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		else if (strcmp(p, "false") == 0)
 			mainStack.push(0.0);
 
-			// previous answer
-		else if (strcmp(p, "ans") == 0) // p == "ans"
-			mainStack.push(ans);
-
 		else if (strcmp(p, "range") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: range expected 2 numbers, a start and end\n");
@@ -1185,13 +1180,14 @@ push_into_arr:
 		} else if (*p == '(') {
 
 			char *newLine = NULL, *p_cpy = ++p;
-
+			printf("p=\"%s\"\n",p);
 			while (*p_cpy) {
 				p_cpy++;
 			}
 			if (lineLen - (p_cpy - pInit) > 2) {
 				*p_cpy = ' ';
 			}
+			printf("p_cpy=\"%s\"\n",p_cpy);
 
 			/*
 			if (lineLen - (p - pInit) > 1) { // ( more code....
@@ -1598,7 +1594,6 @@ push_into_arr:
 
 		// essentially restarts the program (don't display help)
 		} else if (strcmp(p, "reset") == 0 ) { //
-			ans = 0.0;
 			emptyStack(mainStack);
 			for (UserVar node : var_nodes)
 				vars::wipeAll(&node);
@@ -1652,7 +1647,9 @@ push_into_arr:
 		} else if (strcmp(p, "stack") == 0)
 			commands::debugStack(mainStack, var_nodes);
 
-			// typeof function
+		else if (strcmp(p, "__file") == 0)
+			mainStack.push(progName);
+		// typeof function
 		else if (strcmp(p, "typeof") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
