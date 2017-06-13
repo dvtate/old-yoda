@@ -6,11 +6,8 @@
 #include "fuck_windows.h"
 #endif
 
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
-#include <inttypes.h>
-
+#include <signal.h>
 
 #include "string_stack.hpp"
 
@@ -28,12 +25,20 @@ unsigned int line = 1;
 
 #include "core.hpp"
 
-#include "process_line.hpp"
-
-#include "lolcat_version.h"
 
 char* metaName;
+extern char* progName;
 
+
+void handle_sigint_file(int);
+void handle_sigint_shell(int);
+
+struct {
+	std::vector<UserVar>* nodes;
+	bool* elseStat;
+	bool* showErrors;
+	std::stack<CalcValue>* ms;
+} shell_vars;
 
 int main(int argc, char** argv){
 
@@ -57,6 +62,16 @@ int main(int argc, char** argv){
 		// the most important component to the language
 		std::stack<CalcValue> mainStack;
 
+
+
+		shell_vars.nodes = & var_nodes;
+		shell_vars.elseStat = &elseStatement;
+		shell_vars.showErrors = &showErrors;
+		shell_vars.ms = &mainStack;
+
+		// this handles Ctrl+C
+		signal(SIGINT, handle_sigint_shell);
+
 		// process commands as they come in
 		for (;;)
 			runShell(var_nodes, showErrors, mainStack, elseStatement);
@@ -77,8 +92,10 @@ int main(int argc, char** argv){
 
 		// file
 	} else {
-
+		// this handles Ctrl+C
+		signal(SIGINT, handle_sigint_file);
 		runFile(argv[1], showErrors);
+
 
 		// windows sucks :P
 #ifdef _WIN32
@@ -86,5 +103,15 @@ int main(int argc, char** argv){
 #endif
 
 	}
+}
 
+
+
+void handle_sigint_file(int code){
+
+}
+
+void handle_sigint_shell(int code){
+	printf("\r");
+	//runShell(*shell_vars.nodes, *shell_vars.showErrors, *shell_vars.ms, *shell_vars.elseStat);
 }

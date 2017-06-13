@@ -303,6 +303,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					mainStack.push(a.getNum() + b.getNum());
 			}
 		} else if (strcmp(p, "==") == 0) {
+			if (mainStack.size() < 2) {
+			}
 			mainStack.push((getNextValue(mainStack) == getNextValue(mainStack)));
 
 			// not equal to

@@ -195,20 +195,20 @@ void runShell(std::vector<UserVar>& var_nodes, bool& errorReporting,
 	size_t lineLen = 256;
 
 	if (getline(&rpnln, &lineLen, stdin) == -1) {
-		std::cerr <<"\aERROR: Input failed... email toast27@gmail.com if this persists\n\n";
+		//std::cerr <<"\aERROR: Input failed... email toast27@gmail.com if this persists\n\n";
+		std::cout <<"\nGood-bye!\n";
+		exit(EXIT_SUCCESS);
 		return;
 	}
 
 	// I need a copy of it to call free() on later.
 	char* rpnln_head = rpnln;
 
-
 	// process the line
 	bool errors = processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, stdin);
 
 	if (errors)
 		emptyStack(mainStack);
-
 
 	// prevent memory leaks...
 	free(rpnln_head);
