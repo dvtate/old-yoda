@@ -304,20 +304,43 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 		} else if (strcmp(p, "==") == 0) {
 			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: `" <<p <<"` expected 2 values to compare\n");
 			}
-			mainStack.push((getNextValue(mainStack) == getNextValue(mainStack)));
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+			CalcValue a = mainStack.top();
+			mainStack.pop();
+
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+			mainStack.top().setValue(CalcValue(mainStack.top() == a));
 
 			// not equal to
-		} else if (strcmp(p, "!=") == 0)
-			mainStack.push(!(getNextValue(mainStack) == getNextValue(mainStack)));
+		} else if (strcmp(p, "!=") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: `" <<p <<"` expected 2 values to compare\n");
+			}
+
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+			CalcValue a = mainStack.top();
+			mainStack.pop();
+
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+			mainStack.top() = !(mainStack.top() == a);
 
 			// logical not operator
-		else if (*p == '!' && *(p + 1) == '\0')
+		} else if (*p == '!' && *(p + 1) == '\0') {
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+
 			mainStack.push((getNextValue(mainStack).getNum() == 0));
 
 
 			//trig functions
-		else if (strcmp(p, "sin") == 0) {
+		} else if (strcmp(p, "sin") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);

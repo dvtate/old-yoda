@@ -57,6 +57,22 @@ public:
 		ssize_t     index;
 	};
 
+
+	// this sometimes causes a core dump (QwQ)
+	~CalcValue(){
+		clear();
+	}
+
+	// delete current value
+	void clear() {
+		if (type == STR || type == REF)
+			free(string); // free() accepts NULL pointers
+		else if (type == BLK)
+			delete block;
+		else if (type == ARR)
+			delete list;
+	}
+
 	// Null object
 	CalcValue(): type(STR), string(NULL) {}
 
@@ -126,11 +142,9 @@ public:
 		} else if (type == INX)
 			index = in.index;
 
-		//printf("copying CV...\n");
-		//printf("copyied CV...\n");
 	}
 
-	// lol
+	// C++ is awesome
 	template<class T>
 	CalcValue& operator=(const T val) {
 		setValue(val);
@@ -170,20 +184,6 @@ public:
 
 	}
 
-	// this sometimes causes a core dump (QwQ)
-	~CalcValue(){
-		clear();
-	}
-
-	// delete current value
-	void clear() {
-		if (type == STR || type == REF)
-			free(string); // free() accepts NULL pointers
-		else if (type == BLK)
-			delete block;
-		else if (type == ARR)
-			delete list;
-	}
 	void setValue(const char* const str){
 
 		clear();
@@ -215,7 +215,7 @@ public:
 		number = val;
 	}
 
-	void setValue(const std::vector<CalcValue>& arr) {
+	void setValue(const std::vector<CalcValue>& arr){
 		// delete old value
 		clear();
 
@@ -224,6 +224,12 @@ public:
 		for (const CalcValue elem : arr)
 			list->push_back(elem);
 	}
+
+	void setValue(const bool in)
+		{ setValue(in ? 1.0 : 0.0); }
+
+
+
 
 	CalcValue& setRef(const char* const str){
 
@@ -239,30 +245,6 @@ public:
 
 		return *this;
 	}
-
-	CalcValue& setStr(const char* const str){
-		clear();
-
-		string = (char*) malloc(strlen(str) + 1);
-
-		// write the string to the buffer
-		strcpy(string, str);
-
-		type = STR;
-
-		return *this;
-
-	}
-
-	void setNull(){
-
-		clear();
-
-		type = STR;
-		string = NULL;
-
-	}
-
 
 	double getNum(){
 		if (type == NUM)
@@ -348,7 +330,6 @@ public:
 		{ return type == BLK; }
 	bool isArr()
 		{ return type == ARR; }
-
 
 
 

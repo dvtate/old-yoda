@@ -33,12 +33,14 @@ extern char* progName;
 void handle_sigint_file(int);
 void handle_sigint_shell(int);
 
+/*
 struct {
 	std::vector<UserVar>* nodes;
 	bool* elseStat;
 	bool* showErrors;
 	std::stack<CalcValue>* ms;
 } shell_vars;
+*/
 
 int main(int argc, char** argv){
 
@@ -62,12 +64,12 @@ int main(int argc, char** argv){
 		// the most important component to the language
 		std::stack<CalcValue> mainStack;
 
-
-
+		/*
 		shell_vars.nodes = & var_nodes;
 		shell_vars.elseStat = &elseStatement;
 		shell_vars.showErrors = &showErrors;
 		shell_vars.ms = &mainStack;
+		*/
 
 		// this handles Ctrl+C
 		signal(SIGINT, handle_sigint_shell);
@@ -106,9 +108,16 @@ int main(int argc, char** argv){
 }
 
 
-
 void handle_sigint_file(int code){
+	printf("In file: %s On line: %d\n", progName, --line);
 
+	char* ln = getLineFromFile(progName, line);
+	if (ln)
+		color_fprintf(stderr, 255, 0, 0, ln);
+	else
+		printf("\aERROR: getLineFromFile failed\n");
+
+	exit(EXIT_SUCCESS);
 }
 
 void handle_sigint_shell(int code){
