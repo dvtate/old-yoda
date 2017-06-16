@@ -25,25 +25,18 @@ YodaScript is a stack-based language based on reverse polish notation.
   + variables/references
   + dynamically typed, dynamically scoped
   + ANSI terminal color functions (soon to be an external library) 
+  + lambdas (first-class functions) through the lambda keyword
   
 - Some features which I plan on implementing (top to bottom):
-  + first-class functions (and perhapse an adaptive stack to accomodate them)
+  + OOP (using an intermediate scoping type similar to the INX type)
   + extending the language using C++ (using .so's and perhapse remote repos)
   + concurrency (if possible) (perhaps w/ std::thread)
-  + associative arrays (dictionaries)
+  + dictionaries
   + proper string manipulation funcitons and regular expressions (possibly ext. lib)
   
 
 - Some features I do not plan on implementing (yet):
-  + OOP: for now I will stick to a traditional programming approach, but later I plan
-    on adding OOP (perhapse with syntax `<args> :method$object`). The most difficult
-    part of this will be adding custom types. I would probably follow JavaScript's model
-    for this.
-  + goto's: Although I believe gotos have well defined roles (at least in compiled languages),
-    in YodaScript line numbers function more as a way to organize code for the user and the
-    interpreter only keeps track of line numbers to assist in debugging. In addition, making
-    unconditional jumps from one location in the code to another raises concern over scope.
-    The interpreter has no way of knowing if the location it's jumping to has a different scope.
+  + goto's: Although I both support and use goto's in C/C++, it would be difficult to make gotos (with lables) work in YodaScript.
     
 # Supported Types/Literals:
 * Strings: `"literal enclosed in quotes"` : text
@@ -53,6 +46,7 @@ YodaScript is a stack-based language based on reverse polish notation.
 * Macro/Block/Stack: `{ }`: a container of code/values which can be run (similar to functions)
 * List: `("comma-separated","values",)`: an organized container of values (no value = null)
 * Index (Intermediate type): `5 ]`: these are a part of the lazy-evaluation of list indicies.
+* Lambdas: `{ } ($param1,$param2) lambda`: lambdas are first class functions and can be treated as normal data
 
 # How to use (note- may be out of date)
  - <b>Comments:</b>
@@ -169,13 +163,27 @@ YodaScript is a stack-based language based on reverse polish notation.
   } $gpa 4 >= if
   Woooooooooooow!
   ```
-  - <b>Lists:</b>
-    lists hold multiple pieces of data in one container. They contain diverse types and are handled like any other data.
-    ```
-    >>> # use the get operator to get the value at an index of a list
-    >>> (1,"hello",{ "hi" print }) 1 get println
-    hello
-    ```
+ - <b>Lists:</b>
+  lists hold multiple pieces of data in one container. They contain diverse types and are handled like any other data.
+  ```
+  >>> # use the get operator to get the value at an index of a list
+  >>> (1,"hello",{ "hi" print }) 1 get println
+  hello
+  ```
+ - <b>Lambdas:</b>
+  Lambdas are equivalent to functions in javascript.
+  ```
+  >>> { $a print } ($a) lambda $fxn =
+  >>> ("hello") $fxn @ # calling the lambda
+  hello
+  >>> # parameters are optional
+  >>> # return pushes the last value and ends the lambda
+  >>> { 5 return } () lambda @ print
+  5
+  >>> # break stops the lambda and pushes the entire stack
+  >>> { 4 5 break } () lambda @ + print
+  9 
+```
 
 # An incomplete list of built-in operators, functions, constants, etc.:
 * Constants:
@@ -231,15 +239,15 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `assert`: makes an error if top of stack is false
   - `stklen`: returns the size of the stack
   - `reverse_stack`: reverses the order of stack
-  - `range`: puts a range of numbers onto the stack
+  - `range`: returns a list containing a range of numbers between the two given
 
 * Types:
   - `str`: converts to string
   - `num`: converts to a number
   - `int`: converts to a integer (rounding)
+  - `floor`: static casts to an int (truncation)
   - `list`: puts values on stack into a list
-  - `stk`: puts values on stack into a list
-  - `floor`: static casts to an int
+  - `lambda`: make a lambda (creation not conversion)
   - `~`: copy operator, replaces a reference with the basic value it points to
 
 * Variables/References
@@ -271,13 +279,17 @@ YodaScript is a stack-based language based on reverse polish notation.
 * File operators:
   -  `file_get_contents`, `file_put_contents`: convert between files and strings
 
-* Macro Operators:
+* Lambda and Macro Operators:
   - `@`, `eval`: runs the given macro or string as code (also accepts strings)
-
+  - `return`: pushes the top value to the stack and exits the call
+  - `break`: keeps the stack and exits the call
+  
 * List Operators:
   - `get`: pushes the value at the given index of the given list
   - `split`: pushes all the elements of a list onto the stack
   - `n ]`: index for given list, evaluates to that element in the list (behavior similar to reference type)
+  - `push_back`: pushes a value onto the end of a list, or creates a list containing the original and added value
+  
 * Structure-Equivalent Operators:
   - `else`, `elseif`, `if`: conditional operators
   - `repeat`, `while`, `for-each`: looping operators
@@ -288,10 +300,11 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `reset`: deletes all variables, stack, etc. (essentially restarts interpreter)
   - `errors-on`, `errors-off`: toggle error messages (on by default)
   - `syscall`: calls `system()` on the given string. (for running system shell commands)
+  - `__file`: returns the name of the main file being run
 
 
-# Related Repos
-  When I develop the interpreter I like to develop different portions separately and then add them to my code-base once I've rigorously tested them. If you want to contribute to a particular sub-system, I'd reccomend editing these repos instead of this one.
+# Related Repos & Gists
+  When I develop the interpreter I like to develop different portions separately and then add them to my code-base once I've rigorously tested them. If you want to contribute to a particular sub-system, I'd reccomend editing these repos instead of this one. Eventually these will primarily be external libararies
   - https://github.com/dvtate/stack-demo
   - https://github.com/dvtate/terminal-colors
-  - various other programs in https://gist.github.com/dvtate
+  - various other test-programs in https://gist.github.com/dvtate
