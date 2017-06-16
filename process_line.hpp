@@ -1205,14 +1205,14 @@ push_into_arr:
 		} else if (*p == '(') {
 
 			char *newLine = NULL, *p_cpy = ++p;
-			printf("p=\"%s\"\n",p);
+			//printf("p=\"%s\"\n",p);
 			while (*p_cpy) {
 				p_cpy++;
 			}
 			if (lineLen - (p_cpy - pInit) > 2) {
 				*p_cpy = ' ';
 			}
-			printf("p_cpy=\"%s\"\n",p_cpy);
+			//printf("p_cpy=\"%s\"\n",p_cpy);
 
 			/*
 			if (lineLen - (p - pInit) > 1) { // ( more code....
@@ -1337,6 +1337,42 @@ push_into_arr:
 			printCalcValueRAW(mainStack.top(), var_nodes);
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
 
+		// making a lambda/anonymous function
+		} else if (strcmp(p, "lambda") == 0) {
+			if (mainStack.size() < 2 || (elseStatement && mainStack.size() < 3)) {
+				PASS_ERROR("\aERROR: lambda expected a body and a list of parameters\n" <<std::endl);
+			}
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+			if (mainStack.top().type != CalcValue::ARR) {
+				PASS_ERROR("\aERROR: lambda expected a body and a list of parameters\n" <<std::endl);
+			}
+			Lambda lam;
+
+			lam.params.reserve(mainStack.top().list->size());
+
+			for (CalcValue val : *mainStack.top().list) {
+				if (val.type != CalcValue::REF && !val.isNull()) {
+					PASS_ERROR("\aERROR: invalid parameter. function parameters can only be defined as references\n");
+				}
+
+				lam.params.push_back(val.isNull() ? "" : val.string);
+			}
+
+			mainStack.pop();
+
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+
+			if (mainStack.top().type != CalcValue::BLK) {
+				PASS_ERROR("\aERROR: lambda expected a body and a list of parameters\n" <<std::endl);
+			}
+
+			lam.src = *mainStack.top().block;
+
+			mainStack.pop();
+
+			mainStack.push(lam);
 
 			// eval operator
 		} else if ((*p == '@' && *(p + 1) == '\0') || strcmp(p, "eval") == 0) {
@@ -1349,6 +1385,77 @@ push_into_arr:
 
 			if (top.type == CalcValue::BLK) {
 				RUN_STR_STK(*top.block, mainStack);
+			} else if (top.type == CalcValue::LAM) {
+				//ASSERT_NOT_EMPTY(p);
+				if (!mainStack.empty()) {
+					CONVERT_INDEX(mainStack, var_nodes);
+					CONVERT_REFS(mainStack, var_nodes);
+				}
+				bool hasArgs = top.lambda->params[0] != "";
+				if (mainStack.empty() && hasArgs && mainStack.top().type != CalcValue::ARR ) {
+					PASS_ERROR("\aERROR: the given lambda expected arguments\n");
+				}
+				// wrong number of args
+				if (hasArgs && mainStack.top().list->size() != top.lambda->params.size()) {
+					PASS_ERROR("\aERROR: lambda expected " <<top.lambda->params.size() <<"arguments, "\
+							   <<mainStack.top().list->size() <<" provided\n");
+				}
+
+				// put the statement in a string
+				size_t buff_size = 500;
+				char* buff = (char*) malloc(buff_size);
+				top.lambda->src.toString(&buff, &buff_size);
+
+				// put the string in a temp file
+				FILE* statement = tmpfile();
+				fputs(buff, statement);
+				rewind(statement);
+				free(buff);
+
+				// add layer to scope
+				UserVar first_node(NULL, " ", 0.0);\
+				first_node.first = &first_node;
+				var_nodes.push_back(first_node);
+
+				if (hasArgs) {
+					for (uint16_t i = 0; i < mainStack.top().list->size(); i++) {
+						//vars::assignVar(var_nodes, top.lambda->params[i].c_str(), mainStack.top().list->at(i)); y u no work :/ ?
+
+						UserVar *var = new UserVar(&first_node,
+						                           top.lambda->params[i].c_str(),
+						                           mainStack.top().list->at(i));
+						//var->val.type = lhs.type;
+						vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
+					}
+					mainStack.pop();
+				}
+				std::stack<CalcValue> fxnStack;
+				//run the temp file
+				if (runFile(statement, var_nodes, showErrors, fxnStack, elseStatement)) {
+					PASS_ERROR("\aERROR: @ (exec operator) failed\n");
+				}
+				fclose(statement);
+
+				/* variables go out of scope */
+				UserVar* node = &var_nodes[var_nodes.size() - 1];
+				vars::wipeAll(node);
+				var_nodes.pop_back();
+
+
+				std::stack<CalcValue> tmpStack;
+				while (!fxnStack.empty()) {
+					if (fxnStack.top().type == CalcValue::INX) {
+						CONVERT_INDEX(fxnStack, var_nodes);
+					}
+					tmpStack.push(fxnStack.top());
+					fxnStack.pop();
+				}
+
+				while (!tmpStack.empty()) {
+					mainStack.push(tmpStack.top());
+					tmpStack.pop();
+				}
+
 
 			} else if (top.type == CalcValue::STR) {
 				char* err = processLine(mainStack, var_nodes, showErrors, top.string, elseStatement, codeFeed);
@@ -1605,8 +1712,16 @@ push_into_arr:
 				)
 			exit(EXIT_SUCCESS); // exit the program
 
+		else if (strcmp(p, "break") == 0)
+			return (char*) lambda_finish;
+		else if (strcmp(p, "return") == 0) {
+			CalcValue top = mainStack.top();
+			emptyStack(mainStack);
+			mainStack.push(top);
+			return (char*) lambda_finish;
+
 		// show help
-		else if (strcmp(p, "help") == 0) {
+		} else if (strcmp(p, "help") == 0) {
 			displayHelp();
 
 		// clear screen
@@ -1705,6 +1820,9 @@ push_into_arr:
 
 			else if (val.type == CalcValue::ARR) // list
 				mainStack.push("list");
+
+			else if (val.type == CalcValue::LAM) // lambda
+				mainStack.push("lambda");
 
 			// system call (problem: this conflicts with the current strategy for handling if statements.....)
 		} else if (strcmp(p, "sys") == 0 || strcmp(p, "system") == 0) {

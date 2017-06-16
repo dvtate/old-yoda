@@ -21,6 +21,11 @@
 
 #include "string_stack.hpp"
 
+// will be the error code given when a function return successfully
+// this content is set so that if they use it out of context they are still told so
+const char* lambda_finish = "\aERROR: use of `return` or `break` out of context :/";
+
+
 #include "process_line.hpp"
 
 // don't we all love pretty colors :)))
@@ -82,15 +87,16 @@ void runFile(char* programFile, bool& errorReporting){
 
 			return; // EOF
 		}
+		// I need a copy of it to call free() on later.
 		rpnln_head = rpnln;
 
-		// I need a copy of it to call free() on later.
 		char *errorToken = NULL;
 		// process the line
 		if ((errorToken =
 					 processLine(mainStack, var_nodes,errorReporting, rpnln, elseStatement, program))
 			&& errorReporting
 				) {
+
 
 			// file name and
 			setTermEffect(TERM_EFF_BOLD);
@@ -152,6 +158,9 @@ bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReport
 			&& errorReporting
 				) {
 
+			if (errorToken == lambda_finish)
+				goto cleanup_end;
+
 			// file name and
 			setTermEffect(TERM_EFF_BOLD);
 			std::cerr <<progName <<":" <<line - linesToEnd(prog_file)
@@ -170,6 +179,8 @@ bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReport
 
 			color_fputs(stderr, "^\n", 255, 0, 0);
 */
+
+
 			// prevent memory leaks...
 			free(rpnln_head);
 			return true;
@@ -178,6 +189,7 @@ bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReport
 		rpnln = rpnln_head = NULL;
 	}
 
+cleanup_end:
 	// prevent memory leaks...
 	free(rpnln_head);
 	return false;

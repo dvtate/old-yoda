@@ -44,7 +44,7 @@ namespace vars {
 	}
 
 	// add a variable to the linked list
-	void assignVar(UserVar* first, char* name, CalcValue value) {
+	void assignVar(UserVar* first, const char* name, CalcValue value) {
 
 		UserVar *var = findVar(first, name);
 
@@ -59,7 +59,7 @@ namespace vars {
 
 	}
 
-	inline void assignVar(std::vector<UserVar>& vars, char* name, CalcValue value) {
+	inline void assignVar(std::vector<UserVar>& vars, const char* name, CalcValue value) {
 		return assignVar(&vars[vars.size() - 1], name, value);
 	}
 
@@ -89,13 +89,13 @@ namespace vars {
 		}
 	}
 
-	inline void removeVar(std::vector<UserVar> &vars, char *name) {
+	inline void removeVar(std::vector<UserVar> &vars, const char *name) {
 		removeVar(vars::findVar(vars, name)->first, name);
 	}
 
 
 	// returns pointer to given variable
-	UserVar *findVar(UserVar *first, char *name) {
+	UserVar *findVar(UserVar *first, const char *name) {
 
 		if (!name || !first)
 			return NULL;
@@ -115,7 +115,7 @@ namespace vars {
 		return (UserVar *) NULL;
 	}
 
-	UserVar *findVar(std::vector<UserVar> &vars, char *name) {
+	UserVar *findVar(std::vector<UserVar> &vars, const char *name) {
 		UserVar *ret = NULL;
 		for (int i = vars.size() - 1; i >= 0 && !ret; i--)
 			ret = findVar(&vars[i], name);
@@ -125,7 +125,7 @@ namespace vars {
 
 
 	// returns whether variable is in list or not
-	bool varExists(UserVar *first, char *name) {
+	bool varExists(UserVar *first, const char *name) {
 
 		first = first->next;
 
@@ -138,7 +138,7 @@ namespace vars {
 		return false;
 	}
 
-	bool varExists(std::vector<UserVar> &vars, char *name) {
+	bool varExists(std::vector<UserVar> &vars, const char *name) {
 		bool ret = false;
 		for (int i = vars.size() - 1; i >= 0 && !ret; i--)
 			ret = varExists(&vars[i], name);
@@ -149,7 +149,7 @@ namespace vars {
 
 
 	// de-references the variable's
-	CalcValue *valueAtVar(UserVar *first, char name[USERVAR_NAME_MAXLENGTH]) {
+	CalcValue *valueAtVar(UserVar *first, const char name[USERVAR_NAME_MAXLENGTH]) {
 		UserVar *var = findVar(first, name);
 
 		if (var) {
@@ -163,7 +163,7 @@ namespace vars {
 
 	}
 
-	CalcValue *valueAtVar(std::vector<UserVar> &vars, char name[USERVAR_NAME_MAXLENGTH]) {
+	CalcValue *valueAtVar(std::vector<UserVar> &vars, const char name[USERVAR_NAME_MAXLENGTH]) {
 		UserVar *var = findVar(vars, name);
 
 		if (var) {

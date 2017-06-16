@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "string_stack.hpp"
-
+#include "lambda.hpp"
 
 #define USERVAR_NAME_MAXLENGTH 20
 
@@ -17,10 +17,10 @@ class CalcValue;
 class UserVar;
 
 namespace vars {
-	extern CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
-	extern CalcValue* valueAtVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
-	extern UserVar* findVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
-	extern UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
+	extern CalcValue* valueAtVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
+	extern CalcValue* valueAtVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]);
+	extern UserVar* findVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]);
+	extern UserVar* findVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
 }
 
 
@@ -46,6 +46,7 @@ public:
 			BLK,	// Block of code (StrStack) (subroutine) (executable array)
 			ARR,    // vector
 			INX,    // index of an array, type made for
+			LAM     // lambda
 	} type;
 
 	// contains the data
@@ -55,6 +56,7 @@ public:
 		StrStack*	block;
 		std::vector<CalcValue>* list;
 		ssize_t     index;
+		Lambda*     lambda;
 	};
 
 
@@ -71,6 +73,8 @@ public:
 			delete block;
 		else if (type == ARR)
 			delete list;
+		else if (type == LAM)
+			delete lambda;
 	}
 
 	// Null object
@@ -116,6 +120,12 @@ public:
 			type(INX), index(in_index.index)
 	{}
 
+	CalcValue(const Lambda& lam) {
+		type = LAM;
+		lambda = new Lambda(lam);
+	}
+
+
 	CalcValue(const CalcValue& in){
 		// no need to delete anything as nothing is there yet
 
@@ -137,10 +147,12 @@ public:
 			block = new StrStack(*in.block);
 		else if (type == ARR) {
 			list = new std::vector<CalcValue>();
-			for (CalcValue elem : *in.list)
+			for (const CalcValue elem : *in.list)
 				list->push_back(elem);
 		} else if (type == INX)
 			index = in.index;
+		else if (type == LAM)
+			lambda = new Lambda(*in.lambda);
 
 	}
 
@@ -181,6 +193,9 @@ public:
 				list->push_back(elem);
 		} else if (type == INX)
 			index = in.index;
+		else if (type == LAM)
+			lambda = new Lambda(*in.lambda);
+
 
 	}
 
@@ -229,6 +244,13 @@ public:
 		{ setValue(in ? 1.0 : 0.0); }
 
 
+	void setValue(const Lambda& lam) {
+		// delete old value
+		clear();
+
+		type == LAM;
+		lambda = new Lambda(lam);
+	}
 
 
 	CalcValue& setRef(const char* const str){

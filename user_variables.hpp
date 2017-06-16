@@ -34,10 +34,9 @@ public:
 	}
 
 	UserVar(UserVar* firstn, const char* const identifier, CalcValue contents):
-			first(firstn), next((UserVar*) NULL)
+			first(firstn), next((UserVar*) NULL), val(contents)
 	{
 		strncpy(name, identifier, USERVAR_NAME_MAXLENGTH);
-		val.setValue(contents);
 	}
 
 
@@ -117,24 +116,24 @@ namespace vars {
 
 	// to make a  new variable, or change it's value
 	//extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH], double value);
-	extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH], CalcValue value);
-	extern void assignVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH], CalcValue value);
+	extern void assignVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH], CalcValue value);
+	extern void assignVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH], CalcValue value);
 
 	// to remove an individial variable
 	extern void removeVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
-	extern void removeVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
+	extern void removeVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]);
 
 	// returns a pointer to the variable
-	extern UserVar* findVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
-	extern UserVar* findVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
+	extern UserVar* findVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
+	extern UserVar* findVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]);
 
 		// has the variable been declared yet?
-	extern bool varExists(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
-	extern bool varExists(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
+	extern bool varExists(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
+	extern bool varExists(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]);
 
 
-	extern CalcValue* valueAtVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH]);
-	extern CalcValue* valueAtVar(std::vector<UserVar>& vars, char name[USERVAR_NAME_MAXLENGTH]);
+	extern CalcValue* valueAtVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
+	extern CalcValue* valueAtVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]);
 }
 
 
