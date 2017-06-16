@@ -546,11 +546,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					mainStack.pop();
 
 					// push each character onto the stack
+					std::vector<CalcValue> list;
 					for (char ch : str) {
 						char chr[2] = {ch, '\0'};
-						mainStack.push(chr);
+						list.push_back(chr);
 					}
-
+					mainStack.push(list);
 				// split by delimiter
 				} else {
 					// copy delimiters
@@ -568,11 +569,13 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					strcpy(str, mainStack.top().string);
 					mainStack.pop();
 
+					std::vector<CalcValue> list;
 					char *pch = strtok(str, delims);
 					while (pch) {
-						mainStack.push(pch);
+						list.push_back(pch);
 						pch = strtok(NULL, delims);
 					}
+					mainStack.push(list);
 				}
 			}
 			// replace substring
@@ -712,17 +715,15 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			}
 
-			// line-comments
+		// line-comments
 		} else if (*p == '#')
 			break; // ignore rest of line
 
-			// pi
+		// literals
 		else if (strcmp(p, "pi") == 0)
 			mainStack.push(M_PI); // defined in math.h
-			// e
 		else if (*p == 'e' && *(p + 1) == '\0')
 			mainStack.push(M_E); // defined in math.h
-			// literals
 		else if (strcmp(p, "null") == 0)
 			mainStack.push(CalcValue());
 		else if (strcmp(p, "true") == 0)
@@ -730,6 +731,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		else if (strcmp(p, "false") == 0)
 			mainStack.push(0.0);
 
+		// generates a list with a range of numbers from * to *
 		else if (strcmp(p, "range") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: range expected 2 numbers, a start and end\n");
@@ -750,13 +752,17 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			int start = (int) mainStack.top().getNum();
 			mainStack.pop();
 
-			if (start > end)
+			std::vector<CalcValue> list;
+			if (start > end) {
 				for (; start > end; start--)
-					mainStack.push(start);
-			else if (start < end)
+					list.push_back((double) start);
+				mainStack.push(list);
+			} else if (start < end) {
 				for (; start < end; start++)
-					mainStack.push(start);
-			else mainStack.push(start);
+					list.push_back((double) start);
+				mainStack.push(list);
+			} else mainStack.push(start);
+
 
 
 			// print to terminal
@@ -849,13 +855,14 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 		} else if (strcmp(p, "reset_color") == 0)
 			resetANSI();
-
 		else if (strcmp(p, "resetFgColor") == 0)
 			setFgColor();
 		else if (strcmp(p, "resetBgColor") == 0)
 			setBgColor();
 
-			// user input
+
+
+		// user input
 		else if (strcmp(p, "input") == 0 || strcmp(p, "getline") == 0) {
 			char* input = (char*) malloc(256);
 			size_t lineLen = 256;
@@ -871,12 +878,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			free(input);
 
-			// get a single character from stdin
+		// get a single character from stdin
 		} else if (strcmp(p, "getchar") == 0) {
 			char input[2] = { (char) getc(stdin), '\0' };
 			mainStack.push(input);
 
-			// load the contents of a file into a string
+		// load the contents of a file into a string
 		} else if (strcmp(p, "file_get_contents") == 0) {
 
 			ASSERT_NOT_EMPTY(p);
@@ -921,7 +928,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 
 
-			// load the contents of a string to a file
+		// load the contents of a string into a file
 		} else if (strcmp(p, "file_put_contents") == 0) {
 			// takes a string and a filename
 			if (mainStack.size() < 2) {
@@ -951,7 +958,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.pop();
 			fclose(output_file);
 
-			// get the value at the specific index of an array
+		// get the value at the specific index of an array
 		} else if (strcmp(p, "get") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: `get` expected a list and a numerical index\n\n");
@@ -1063,7 +1070,7 @@ push_into_arr:
 				mainStack.top().list->push_back(val);
 			}
 
-			// convert to string
+		// convert to string
 		} else if (strcmp(p, "str") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -1080,64 +1087,7 @@ push_into_arr:
 				// c++ solutions don't always work as desired :P
 				//mainStack.push(std::to_string(val.getNum()).c_str());
 			}
-		// this puts into a macro
-		} else if (strcmp(p, "stk") == 0) { // TODO: change me
-
-			std::stack<CalcValue> tmpStack;
-
-			while (!mainStack.empty()) {
-				tmpStack.push(mainStack.top());
-				mainStack.pop();
-			}
-
-			StrStack block;
-			while (!tmpStack.empty()) {
-				switch (tmpStack.top().type) {
-					case CalcValue::STR:
-						if (tmpStack.top().string) {
-							// escape double-quotes
-							char *tmp = str_replace(tmpStack.top().string, "\"", "\\\"");
-
-							// allocate enough space for the string
-							size_t len = strlen(tmp);
-							char str[len + 4 + 1];
-
-							// put string in quotes and end line
-							str[0] = '"';
-							strcpy(str + 1, tmp);
-							str[len + 1] = '"';
-							str[len + 2] = '\n';
-							str[len + 3] = 0;
-							block.push(str);
-
-							// str_replace has blind allocation
-							free(tmp);
-						}
-						break;
-
-					case CalcValue::BLK:
-						for (ssize_t i = tmpStack.top().block->stackDepth - 1; i >= 0; i--) {
-							block.push(tmpStack.top().block->at(i));
-						}
-						break;
-
-					case CalcValue::NUM:
-						char str[40];
-						snprintf(str, 39, "%*.*g\n", 18, 18, tmpStack.top().getNum());
-						block.push(str);
-						break;
-
-					case CalcValue::REF:
-						break;
-
-				}
-
-				tmpStack.pop();
-			}
-
-			mainStack.push(block);
-
-			// convert to list
+		// convert to list
 		} else if (strcmp(p, "list") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -1152,7 +1102,7 @@ push_into_arr:
 			}
 			mainStack.push(tmp);
 
-			// convert to number
+		// convert to number
 		} else if (strcmp(p, "num") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -1166,7 +1116,7 @@ push_into_arr:
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atof(val.getStr()));
 
-			// convert to an integer
+		// convert to an integer
 		} else if (strcmp(p, "int") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -1180,6 +1130,7 @@ push_into_arr:
 			else if (val.type == CalcValue::STR)
 				mainStack.push( round( atof( val.getStr() ) ) );
 
+		// truncate number
 		} else if (strcmp(p, "floor") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -1196,12 +1147,17 @@ push_into_arr:
 				PASS_ERROR("\aERROR: floor expected a number\n");
 			}
 
+		// returns size of list at top of stak
 		} else if (strcmp(p, "list_size") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+
 			auto tmp = mainStack.top().list->size();
 			mainStack.pop();
 			mainStack.push((double) tmp);
 
-			// initialize a list
+		// initialize a list
 		} else if (*p == '(') {
 
 			char *newLine = NULL, *p_cpy = ++p;
@@ -1333,8 +1289,9 @@ push_into_arr:
 
 			rpnln = p; // this is a memory leak..
 			//free(p);
+
+		// ummm hopefully the user actually fucked up and it's not my fault...
 		} else if (*p == '}') {
-			printCalcValueRAW(mainStack.top(), var_nodes);
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
 
 		// making a lambda/anonymous function
@@ -1374,7 +1331,7 @@ push_into_arr:
 
 			mainStack.push(lam);
 
-			// eval operator
+		// eval operator
 		} else if ((*p == '@' && *(p + 1) == '\0') || strcmp(p, "eval") == 0) {
 			ASSERT_NOT_EMPTY(p);
 
@@ -1466,7 +1423,7 @@ push_into_arr:
 				PASS_ERROR("\aERROR: @ (execution operator) only accepts strings and executable arrays\n");
 			}
 
-			// conditionals::else
+		// conditionals::else
 		} else if (strcmp(p, "else") == 0) {
 			/// sets else flag true so we know that we need to deal with it later
 			ASSERT_NOT_EMPTY(p);
@@ -1474,7 +1431,7 @@ push_into_arr:
 			//CONVERT_REFS(mainStack, var_nodes);
 			elseStatement = true;
 
-			// conditionals::elseif
+		// conditionals::elseif
 		} else if (strcmp(p, "elseif") == 0) {
 			/// works by combining else and elseif statement into a single else
 			/// statement with an if-else system inside
@@ -1524,7 +1481,7 @@ push_into_arr:
 			}
 
 
-			// comditionals::if
+		// comditionals::if
 		} else if (strcmp(p, "if") == 0) {
 			// verify we have enough data for the operator
 			if (elseStatement && mainStack.size() < 3) {
@@ -1572,7 +1529,7 @@ push_into_arr:
 				} // else, it's a value that should stay at the top of the stack
 			} // else, don't do anything as there isn't an else clause
 
-			// errs if stack top is false
+		// errs if stack top is false
 		} else if (strcmp(p, "assert") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -1582,7 +1539,7 @@ push_into_arr:
 			}
 			mainStack.pop();
 
-			// runs the same block of code a given number of times
+		// runs the same block of code a given number of times
 		} else if (strcmp(p, "repeat") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: repeat loop needs a number of times to execute and a block.\n");
@@ -1607,7 +1564,7 @@ push_into_arr:
 				RUN_STR_STK(block, mainStack);
 			}
 
-			// while loop
+		// while loop
 		} else if (strcmp(p, "while") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: while loop needs two blocks - a condition and a process.\n");
@@ -1638,7 +1595,8 @@ push_into_arr:
 					mainStack.push(top);
 			}
 
-		} else if (strcmp(p, "for-each") == 0) {
+		// iterate through a list or a macro
+		} else if (strcmp(p, "for-each") == 0 || strcmp(p, "foreach") == 0) {
 			// we have at least 3 things... the first is a reference
 			if (mainStack.size() < 3 || mainStack.top().type != CalcValue::REF) {
 				PASS_ERROR("\aERROR: malformed for-each statement \n correct format: `{ process } { list } $var for-each`\n" <<std::endl);
@@ -1650,6 +1608,7 @@ push_into_arr:
 				var = new UserVar(first_node, mainStack.top().string, CalcValue());
 				vars::lastVar(first_node)->next = var;
 			}*/
+
 
 			vars::assignVar(&var_nodes[var_nodes.size() - 1], mainStack.top().string, CalcValue());
 			UserVar* var = vars::findVar(var_nodes, mainStack.top().string);
@@ -1668,7 +1627,6 @@ push_into_arr:
 				std::stack<CalcValue> tmpStack;
 				RUN_STR_STK(*mainStack.top().block, tmpStack);
 				mainStack.pop();
-
 
 				// get process
 				CONVERT_INDEX(mainStack, var_nodes);
@@ -1712,8 +1670,11 @@ push_into_arr:
 				)
 			exit(EXIT_SUCCESS); // exit the program
 
+		// exit the lambda and leave all the values currently on the stack
 		else if (strcmp(p, "break") == 0)
 			return (char*) lambda_finish;
+
+		// exit the lambda and only leave the top on the stack
 		else if (strcmp(p, "return") == 0) {
 			CalcValue top = mainStack.top();
 			emptyStack(mainStack);
@@ -1778,6 +1739,18 @@ push_into_arr:
 						printCalcValueRAW(var->val, var_nodes);
 						std::cout <<" =\n";
 					}
+
+					else if (var->val.type == CalcValue::LAM) {
+						std::cout << "[LAM] @ " <<var <<": (";
+						bool hasParams = var->val.lambda->params[0] != "";
+						if (hasParams) {
+							std::cout <<"$" <<var->val.lambda->params[0];
+							for (uint16_t i = 1; i < var->val.lambda->params.size(); i++) {
+								std::cout <<",$" <<var->val.lambda->params[i];
+							}
+						}
+						std::cout <<") $"<< var->name <<std::endl;
+					}
 					var = var->next;
 				}
 
@@ -1787,8 +1760,10 @@ push_into_arr:
 		} else if (strcmp(p, "stack") == 0)
 			commands::debugStack(mainStack, var_nodes);
 
+		// prints the name of the main file being run
 		else if (strcmp(p, "__file") == 0)
 			mainStack.push(progName);
+
 		// typeof function
 		else if (strcmp(p, "typeof") == 0) {
 			ASSERT_NOT_EMPTY(p);
@@ -1824,7 +1799,7 @@ push_into_arr:
 			else if (val.type == CalcValue::LAM) // lambda
 				mainStack.push("lambda");
 
-			// system call (problem: this conflicts with the current strategy for handling if statements.....)
+		// system call (problem: this conflicts with the current strategy for handling if statements.....)
 		} else if (strcmp(p, "sys") == 0 || strcmp(p, "system") == 0) {
 
 			ASSERT_NOT_EMPTY(p);
@@ -1839,7 +1814,7 @@ push_into_arr:
 			}
 			mainStack.pop();
 
-			// assignment operator
+		// assignment operator
 		} else if (*p == '=' && *(p + 1) == '\0') { // variable assignment
 
 			if (mainStack.size() < 2) {
@@ -1861,7 +1836,7 @@ push_into_arr:
 
 				if (var == NULL) {
 					var = new UserVar(&var_nodes[var_nodes.size() - 1], lhs.string, rhs);
-					var->val.type = rhs.type;
+					//var->val.type = rhs.type;
 					vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
 					//vars::assignVar(var_nodes, lhs.string, rhs);
 					// changing the variable's value
@@ -1895,7 +1870,7 @@ push_into_arr:
 
 				if (var == NULL) {
 					var = new UserVar(&var_nodes[var_nodes.size() - 1], rhs.string, lhs);
-					var->val.type = lhs.type;
+					//var->val.type = lhs.type;
 					vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
 					//vars::assignVar(var_nodes, rhs.string, lhs);
 
@@ -2025,6 +2000,7 @@ push_into_arr:
 			while (copies-- > 1)
 				mainStack.push(mainStack.top());
 
+		// reverses the order of the stack
 		} else if (strcmp(p, "reverse_stack") == 0) {
 			std::stack<CalcValue> tmpStack;
 
@@ -2038,18 +2014,19 @@ push_into_arr:
 
 			mainStack = tmpStack;
 
-			// retarded users...
+		// retarded users...
 		} else if (*p == '\'') {
 			PASS_ERROR("\aERROR: strings are enclosed in double-quotes (\")\n");
 
-			// user has given a string :D
+		// user has given a string :D
 		} else if (*p == '\"')
 			mainStack.push(p + 1);
 
-			// reference
+		// reference
 		else if (*p == '$' && *(p + 1) != '\0') // user must use '$' prefix to access the variables
-			mainStack.push(CalcValue().setRef(p + 1)); // beautiful hack, eh?
-			// let's try and figure out what this could be...
+			mainStack.push(CalcValue().setRef(p + 1)); // simplest line in this file?
+
+		// let's try and figure out what this could be...
 		else {
 			// parse input
 			double number = atof(p);
@@ -2067,7 +2044,6 @@ push_into_arr:
 		p = qtok(rpnln, &rpnln);
 
 	}
-
 
 	return NULL;
 

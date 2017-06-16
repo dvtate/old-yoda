@@ -1,13 +1,10 @@
-//
-// Created by tate on 15-06-17.
-//
-
 #ifndef YODA_LAMBDA_HPP
 #define YODA_LAMBDA_HPP
 
 #include <string>
 #include "string_stack.hpp"
 
+// this really should just be a struct defined somewhere else...
 class Lambda {
 public:
 	StrStack src;
@@ -19,10 +16,7 @@ public:
 
 	//~Lambda(){};
 
-
-
 };
-
 
 
 #endif //YODA_LAMBDA_HPP
