@@ -40,7 +40,7 @@ extern char* progName;
 // closes with an error
 #define PASS_ERROR(MSG) \
 	if (showErrors)	\
-		std::cerr <<MSG;\
+		std::cerr <<'(' <<__LINE__ <<") " <<MSG;\
 	return p;
 
 #define GET_LIST_INDEX(MAINSTACK, VAR_NODES, ASSIGN_TO)\
@@ -120,6 +120,7 @@ extern bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& erro
 /// returns: location/source of error or NULL
 /// params: environment/operation variables
 /// this function runs the user's code, most essential part of the interpreter
+/// go ahead and hate on the fact its over 200 lines long... but it works tho :)
 char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
                   bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed
 ){
@@ -768,7 +769,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			// print to terminal
 		} else if (strcmp(p, "print") == 0) {
 			ASSERT_NOT_EMPTY(p);
-
 			CONVERT_INDEX(mainStack, var_nodes);
 			if (printCalcValueRAW(mainStack.top(), var_nodes))
 				return p;
@@ -778,9 +778,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			// print and end with a newline
 		} else if (strcmp(p, "println") == 0) {
-			CONVERT_INDEX(mainStack, var_nodes);
 			ASSERT_NOT_EMPTY(p);
-
 			CONVERT_INDEX(mainStack, var_nodes);
 			if (printCalcValueRAW(mainStack.top(), var_nodes))
 				return p;
@@ -1160,15 +1158,15 @@ push_into_arr:
 		// initialize a list
 		} else if (*p == '(') {
 
-			char *newLine = NULL, *p_cpy = ++p;
 			//printf("p=\"%s\"\n",p);
-			while (*p_cpy) {
-				p_cpy++;
+			char* newLine = NULL, * p_tmp = ++p;
+
+			while (*p_tmp) {
+				p_tmp++;
 			}
-			if (lineLen - (p_cpy - pInit) > 2) {
-				*p_cpy = ' ';
+			if (lineLen - (p_tmp - pInit) > 2) {
+				*p_tmp = ' ';
 			}
-			//printf("p_cpy=\"%s\"\n",p_cpy);
 
 			/*
 			if (lineLen - (p - pInit) > 1) { // ( more code....
@@ -1196,11 +1194,17 @@ push_into_arr:
 			}*/
 
 			std::string listBody = list::getList(p, codeFeed);
+			///std::cout <<"listbody=\"" <<listBody <<"\"\n";
 			if (listBody == "(") {
 				PASS_ERROR("\aERROR: `(` invalid list, possible missing `)`\n");
 			}
 
 			std::vector<std::string> elems = list::split(listBody);
+
+			/*
+			for (int i = 0; i < elems.size(); i++) {
+				std::cout <<'[' <<i <<"] : \"" <<elems[i] <<"\"\n";
+			}*/
 
 			std::stack<CalcValue> tmpStack;
 			std::vector<CalcValue> tmp;
@@ -1211,7 +1215,7 @@ push_into_arr:
 				strcpy(str, elem.c_str());
 				char *err = processLine(tmpStack, var_nodes, showErrors, str, elseStatement, codeFeed);
 				if (err) {
-					PASS_ERROR("\aERROR in block near `" << err << "`. in list:\n");
+					PASS_ERROR("\aERROR in element near `" << err << "`. in list:\n");
 				}
 				arr.push_back(tmpStack.empty() ? CalcValue() : tmpStack.top());
 				emptyStack(tmpStack);
@@ -1223,13 +1227,25 @@ push_into_arr:
 			free(newLine);
 
 			//printf("lst_p = \"%s\"\n", p);
+
+			// commands and stuff immediately following the literal
+			/*
 			if (p && *p && strlen(p)) {
 				if (!strlen(p)) {
 					break;
 				}
+				p_tmp = p;
+				while (*p_tmp && isspace(*p_tmp))
+					p_tmp++;
+				if (lineLen - (p_tmp - pInit) <= 2)
+					break;
 
-				//continue;
+				rpnln = p;
+
 			}
+			*/
+
+			rpnln = p;
 
 		// initialize a strStack
 		} else if (*p == '{') {
@@ -2041,6 +2057,7 @@ push_into_arr:
 		}
 
 		// get next token
+
 		p = qtok(rpnln, &rpnln);
 
 	}

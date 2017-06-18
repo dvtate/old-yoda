@@ -83,7 +83,9 @@ void runFile(char* programFile, bool& errorReporting){
 
 		if (getline(&rpnln, &lineLen, program) == -1) {
 			// prevent memory leaks...
-			fclose(program);
+			//fclose(program); not needed as the file gets closed automatically
+			// I'd rather have some minor leak like this which cant cause issues
+			// than a segfault that everyone can see...
 
 			return; // EOF
 		}
