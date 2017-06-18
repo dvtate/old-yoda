@@ -1,9 +1,8 @@
-# create executable array containing all lines of file
-"lorem_ipsum.txt" file_get_contents "\n" split stk $lines =
 
-# for each line...
 {
-	"«" $line "» has " + + print 		# print line
-	$line strlen 1 + " chars" + println 	# print length of line
+        "«" $line "» has " + + print            # print line
+        $line strlen 1 + " chars" + println     # print length of line
 
-} $lines $line for-each
+# for each line $line in the file "lorem_ipsum.txt" ...
+} "lorem_ipsum.txt" file_get_contents "\n" split $line foreach
+
