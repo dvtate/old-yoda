@@ -808,12 +808,13 @@ inline void printVersionInfo(){
 
 	// if you want features, use a real OS (ie- Linux)
 	printf("\x1B[1m" YODA_LANG_VERSION "\x1B[0m\n");
+	printf("Compiled: %s\n", __DATE__);
 
 	// Windows 10 is the only windows OS to support ANSI color codes...
-	#ifndef _WIN32
-		printf("%s", ver_inf_txt);
+#ifndef _WIN32
+	printf("%s", ver_inf_txt);
 
-	#endif
+#endif
 
 
 }
