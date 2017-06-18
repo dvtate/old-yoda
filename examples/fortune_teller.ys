@@ -1,6 +1,6 @@
 # this program adds 10 to the user input
-# it is the easier to read one as it uses
-# variables, however, it isn't optimized
+# although this program could be optimized by using the stack instead of variables,
+# that would make the code more difficult to read. 
 
 
 "I am a fortune teller, however I need some information to identify you in order to procede" println
@@ -13,6 +13,7 @@ $name input str =
 "My records show there is more than one " $name + ". So, how old are you? " + print
 $age input num =
 
-"Well " $name + ", I can assure you that in 10 years you will be " $age 10 + + "." + println
+"Well " $name + ", I can assure you that in 10 years you will be " + $age 10 + + "." + println
+
 
 
