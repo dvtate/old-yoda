@@ -1,4 +1,5 @@
-# macros are similar to inline functions
+# macros modify the scope and substitute code
+# in most cases it's better to use lambdas
 {
 	# kindof a parameter...
 	num $param =
