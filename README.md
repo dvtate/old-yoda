@@ -27,6 +27,9 @@ YodaScript is a stack-based language based on reverse polish notation.
   + ANSI terminal color functions (soon to be an external library) 
   + lambdas (first-class functions) through the lambda keyword
   
+- Features currenctly under development:
+  + optional parameters and va_args
+  
 - Some features which I plan on implementing (top to bottom):
   + OOP (using an intermediate scoping type similar to the INX type)
   + extending the language using C++ (using .so's and perhapse remote repos)
