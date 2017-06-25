@@ -248,7 +248,7 @@ public:
 		// delete old value
 		clear();
 
-		type == LAM;
+		type = LAM;
 		lambda = new Lambda(lam);
 	}
 
