@@ -8,7 +8,7 @@ SOURCES := \
 .PHONY: all clean install uninstall
 
 all:
-	$(CPP) $(SOURCES) -o yoda
+	$(CPP) $(SOURCES) -o yoda -g
 
 clean:
 	rm yoda
