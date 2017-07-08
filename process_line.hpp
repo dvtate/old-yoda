@@ -16,6 +16,7 @@
 // user defined variables
 #include "user_variables.hpp"
 
+
 // some useful functions
 #include "utils.hpp"
 
@@ -107,8 +108,7 @@ extern char* progName;
 		fclose(statement);\
 \
 		/* variables go out of scope */\
-		UserVar* node = &var_nodes[var_nodes.size() - 1];\
-		vars::wipeAll(node);\
+		vars::wipeAll(&first_node);\
 		var_nodes.pop_back();\
 	}
 
@@ -1324,12 +1324,57 @@ push_into_arr:
 
 			lam.params.reserve(mainStack.top().list->size());
 
+			bool wasNull = false;
 			for (CalcValue val : *mainStack.top().list) {
-				if (val.type != CalcValue::REF && !val.isNull()) {
-					PASS_ERROR("\aERROR: invalid parameter. function parameters can only be defined as references\n");
-				}
+				// normal parameter
+				if (val.type == CalcValue::REF)
+					lam.params.push_back(val.isNull() ? "" : val.string);
+				else if (val.isNull())
+					if (mainStack.top().list->size() != 1) {
+						PASS_ERROR("\aERROR: null parameter");
+					} else {
+						break;
+					}
 
-				lam.params.push_back(val.isNull() ? "" : val.string);
+				else if (val.type == CalcValue::ARR) {
+					// va_args
+					if (val.list->size() == 1) {
+						if (val.list->at(0).type != CalcValue::REF) {
+							PASS_ERROR("\aERROR: lambda: invalid parameter: list containing only a variable means va_args, \
+									list containing a variable and a macro handles optional parameters\n");
+						}
+						std::string v = " ";
+						lam.params.push_back(v + val.list->at(0).string); // " a"
+
+					// optional parameter
+					} else if (val.list->size() == 2) {
+						if (val.list->at(0).type != CalcValue::REF || val.list->at(0).type != CalcValue::BLK) {
+							PASS_ERROR("\aERROR: lambda: invalid parameter: list containing only a variable means va_args, \
+									list containing a variable and a macro handles optional parameters\n");
+						}
+
+						std::string space = " ";
+
+						size_t sze = 100;
+						char* s_tmp = (char*) malloc(sze);
+						val.list->at(1).block->toString(&s_tmp, &sze);
+						lam.params.push_back(space + val.list->at(0).string + space + s_tmp); // " a a 5 ="
+						free(s_tmp);
+
+					} else {
+						PASS_ERROR("\aERROR: lambda: invalid parameter: list containing only a variable means va_args, \
+									list containing a variable and a macro handles optional parameters\n");
+					}
+				} else {
+					PASS_ERROR("\aERROR: lambda: invalid parameter: list containing only a variable means va_args, \
+									list containing a variable and a macro handles optional parameters\n");
+				}
+			}
+
+			int paramErr = lam.validParams();
+			if (paramErr >= 0) {
+				PASS_ERROR("\aERROR: lambda: parameter: invalid or misplaced parameter number " <<paramErr + 1\
+				           <<". special parameters must be at the end\n")
 			}
 
 			mainStack.pop();
@@ -1358,12 +1403,19 @@ push_into_arr:
 
 			if (top.type == CalcValue::BLK) {
 				RUN_STR_STK(*top.block, mainStack);
-			} else if (top.type == CalcValue::LAM) {
+			} else if (top.type == CalcValue::STR) {
+				char* err = processLine(mainStack, var_nodes, showErrors, top.string, elseStatement, codeFeed);
+				if (err) {
+					PASS_ERROR("\aERROR in block near `" <<err <<"`. Called here:\n");
+				}
+			}  else if (top.type == CalcValue::LAM) {
+
 				//ASSERT_NOT_EMPTY(p);
 				if (!mainStack.empty()) {
 					CONVERT_INDEX(mainStack, var_nodes);
 					CONVERT_REFS(mainStack, var_nodes);
 				}
+				/*
 				bool hasArgs = top.lambda->params[0] != "";
 				if (mainStack.empty() && hasArgs && mainStack.top().type != CalcValue::ARR ) {
 					PASS_ERROR("\aERROR: the given lambda expected arguments\n");
@@ -1372,7 +1424,136 @@ push_into_arr:
 				if (hasArgs && mainStack.top().list->size() != top.lambda->params.size()) {
 					PASS_ERROR("\aERROR: lambda expected " <<top.lambda->params.size() <<"arguments, "\
 							   <<mainStack.top().list->size() <<" provided\n");
+				}*/
+
+				std::vector<int16_t> paramBindings = top.lambda->bindArgs(mainStack.top().list->size());
+				std::cout <<"params=";
+				for (std::string& i : top.lambda->params)
+					std::cout <<i <<",";
+				std::cout <<"\n";
+
+				std::cout <<"parambindings=";
+				for (int16_t i : paramBindings)
+					std::cout <<i <<", ";
+				std::cout <<"\n";
+
+				bool hasArgs = paramBindings.size();
+				if (paramBindings.size() && paramBindings[0] == -1) {
+					if (top.lambda->requiredArgs() < 0) {
+						PASS_ERROR("\aERROR: lambda expected at least "<< -top.lambda->requiredArgs() <<" arguments\n");
+					} else {
+						PASS_ERROR("\aERROR: lambda expected " <<top.lambda->requiredArgs() <<" arguments\n");
+					}
 				}
+
+				// add layer to scope
+				UserVar first_node(NULL, " ", 0.0);\
+				first_node.first = &first_node; // needed??
+				var_nodes.push_back(first_node);
+
+				// this gonna get rly complicated
+				if (hasArgs) {
+					uint16_t i;
+					for (i = 0; i < paramBindings.size(); i++) {
+						std::cout <<'$' <<top.lambda->params[paramBindings[i]].c_str() <<" ->cs=" <<top.lambda->countSpaces(paramBindings[i]);
+						// ending w/ var_args
+						if (i + 1 < paramBindings.size() && paramBindings[i] == paramBindings[i + 1]) { // va_args
+							std::vector<CalcValue> args;
+							for (; i < paramBindings.size(); i++)
+								args.push_back(mainStack.top().list->at(i));
+
+
+
+							vars::assignVar(var_nodes,
+							                top.lambda->params[paramBindings[i]].c_str(),
+							                CalcValue(args));
+
+
+						} else if (top.lambda->countSpaces(paramBindings[i]) == 1) { // va_arg
+							std::vector<CalcValue> arg_s;
+							arg_s.push_back(mainStack.top().list->at(i));
+
+							UserVar* var = new UserVar(&first_node,
+							                           top.lambda->params[paramBindings[i]].c_str() + 1,
+							                           CalcValue(arg_s));
+
+							vars::lastVar(&first_node)->next = var;
+
+							vars::assignVar(var_nodes,
+							                top.lambda->params[paramBindings[i]].c_str() + 1,
+							                CalcValue(arg_s));
+
+
+
+						} else if (top.lambda->countSpaces(paramBindings[i]) == 2) { // var with default handler
+							char var_name[top.lambda->params[paramBindings[i]].length()];
+							strcpy(var_name, top.lambda->params[paramBindings[i]].c_str() + 1);
+
+							// ignore handler
+							char* tmp = var_name;
+							while (*tmp && *tmp != ' ')
+								tmp++;
+							if (*tmp)
+								*tmp = '\0';
+
+							UserVar* var = new UserVar(&first_node,
+													   var_name,
+													   mainStack.top().list->at(i));
+							vars::lastVar(&first_node)->next = var;
+							
+						} else if (top.lambda->countSpaces(paramBindings[i]) == 0) { // normal var
+							vars::assignVar(var_nodes,
+							                top.lambda->params[paramBindings[i]].c_str(),
+							                mainStack.top().list->at(i));
+							std::cout <<"assigned var $" <<top.lambda->params[paramBindings[i]].c_str() <<std::endl;
+						}
+						/*
+						//vars::assignVar(var_nodes, top.lambda->params[i].c_str(), mainStack.top().list->at(i)); y u no work :/ ?
+						UserVar *var = new UserVar(&first_node,
+						                           top.lambda->params[i].c_str(),
+						                           mainStack.top().list->at(i));
+						//var->val.type = lhs.type;
+						vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
+						*/
+					}
+
+					// optional variables weren't defined
+					if (i < top.lambda->params.size()) {
+
+						// handle each undefined variable
+						for (; i < top.lambda->params.size(); i++) {
+							// handle undefined optional params
+							if (top.lambda->countSpaces(i) == 2) {
+								char* tmp = (char*) malloc(strlen(top.lambda->params[i].c_str()));
+								strcpy(tmp, top.lambda->params[i].c_str() + 1);
+
+								int c = 0;
+								while (tmp[c] != ' ') c++;
+								tmp[c] = '\0';
+
+								UserVar *var = new UserVar(&first_node, tmp, CalcValue());
+								vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
+
+								char* tmp2 = tmp + c + 1;
+								char* err = processLine(mainStack, var_nodes, showErrors, tmp2, elseStatement, codeFeed);
+								if (err) {
+									PASS_ERROR("\aERROR: in optional variable handler `" <<err <<"`. Called here:\n");
+								}
+								free(tmp);
+
+							// empty va_args
+							} else if (top.lambda->countSpaces(i) == 1) {
+								UserVar *var = new UserVar(&first_node, top.lambda->params[i].c_str() + 1, CalcValue(std::vector<CalcValue>()));
+								vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
+
+
+							}
+						}
+					}
+					mainStack.pop();
+				}
+
+
 
 				// put the statement in a string
 				size_t buff_size = 500;
@@ -1385,36 +1566,20 @@ push_into_arr:
 				rewind(statement);
 				free(buff);
 
-				// add layer to scope
-				UserVar first_node(NULL, " ", 0.0);\
-				first_node.first = &first_node;
-				var_nodes.push_back(first_node);
-
-				if (hasArgs) {
-					for (uint16_t i = 0; i < mainStack.top().list->size(); i++) {
-						//vars::assignVar(var_nodes, top.lambda->params[i].c_str(), mainStack.top().list->at(i)); y u no work :/ ?
-
-						UserVar *var = new UserVar(&first_node,
-						                           top.lambda->params[i].c_str(),
-						                           mainStack.top().list->at(i));
-						//var->val.type = lhs.type;
-						vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
-					}
-					mainStack.pop();
-				}
 				std::stack<CalcValue> fxnStack;
+
 				//run the temp file
 				if (runFile(statement, var_nodes, showErrors, fxnStack, elseStatement)) {
 					PASS_ERROR("\aERROR: @ (exec operator) failed\n");
 				}
 				fclose(statement);
 
-				/* variables go out of scope */
-				UserVar* node = &var_nodes[var_nodes.size() - 1];
-				vars::wipeAll(node);
+				// variables go out of scope
+				vars::wipeAll(&first_node);
 				var_nodes.pop_back();
 
 
+				// reverse order of stack
 				std::stack<CalcValue> tmpStack;
 				while (!fxnStack.empty()) {
 					if (fxnStack.top().type == CalcValue::INX) {
@@ -1424,17 +1589,13 @@ push_into_arr:
 					fxnStack.pop();
 				}
 
+				// add it to mainStack
 				while (!tmpStack.empty()) {
 					mainStack.push(tmpStack.top());
 					tmpStack.pop();
 				}
 
 
-			} else if (top.type == CalcValue::STR) {
-				char* err = processLine(mainStack, var_nodes, showErrors, top.string, elseStatement, codeFeed);
-				if (err) {
-					PASS_ERROR("\aERROR in block near `" <<err <<"`. Called here:\n");
-				}
 			} else {
 				PASS_ERROR("\aERROR: @ (execution operator) only accepts strings and executable arrays\n");
 			}
@@ -1586,22 +1747,27 @@ push_into_arr:
 				PASS_ERROR("\aERROR: while loop needs two blocks - a condition and a process.\n");
 			}
 
+			// verify we have a runnable expression for our condition
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
 			if (mainStack.top().type != CalcValue::BLK) {
 				PASS_ERROR("\aERROR: while: condition must be a block/subroutine\n");
 			}
 
+			// extract condition
 			StrStack condBlock = *mainStack.top().block;
 			mainStack.pop();
-
 			std::stack<CalcValue> condStack;
+
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
 			CalcValue top = mainStack.top();
 
 			// main-loop
 			for (;;) {
 				RUN_STR_STK(condBlock, condStack);
-				if (!condStack.top().getNum())
+				// if condition evaluates to false (or doesnt give a value)
+				if (condStack.empty() || !condStack.top().getNum())
 					break;
 
 				// run process
@@ -1615,7 +1781,7 @@ push_into_arr:
 		} else if (strcmp(p, "for-each") == 0 || strcmp(p, "foreach") == 0) {
 			// we have at least 3 things... the first is a reference
 			if (mainStack.size() < 3 || mainStack.top().type != CalcValue::REF) {
-				PASS_ERROR("\aERROR: malformed for-each statement \n correct format: `{ process } { list } $var for-each`\n" <<std::endl);
+				PASS_ERROR("\aERROR: malformed for-each statement \n correct format: `{ process } list $var for-each`\n" <<std::endl);
 			}
 
 			// if it hasn't been assigned yet..
@@ -1625,9 +1791,9 @@ push_into_arr:
 				vars::lastVar(first_node)->next = var;
 			}*/
 
-
-			vars::assignVar(&var_nodes[var_nodes.size() - 1], mainStack.top().string, CalcValue());
-			UserVar* var = vars::findVar(var_nodes, mainStack.top().string);
+			UserVar iterator_scope(NULL, " ", CalcValue());
+			var_nodes.push_back(iterator_scope);
+			UserVar* var = vars::assignVar(var_nodes, mainStack.top().string, CalcValue());
 
 			// get list
 			mainStack.pop();
@@ -1680,6 +1846,10 @@ push_into_arr:
 				}
 
 			}
+
+			// clear the iterator scope
+			vars::wipeAll(&iterator_scope);
+			var_nodes.pop_back();
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
 		           || !strcmp(p, "exit") || !strcmp(p, "quit")
@@ -2029,6 +2199,18 @@ push_into_arr:
 			}
 
 			mainStack = tmpStack;
+
+		} else if (strcmp(p, "print_macro") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+			if (mainStack.top().type != CalcValue::BLK)
+			{ PASS_ERROR("\aERROR: remove `print_macro` from ur code..."); }
+			size_t size = 512;
+			char* macro = (char*) malloc(size);
+			mainStack.top().block->toString(&macro, &size);
+			printf(macro);
+			free(macro);
 
 		// retarded users...
 		} else if (*p == '\'') {

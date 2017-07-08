@@ -44,7 +44,7 @@ namespace vars {
 	}
 
 	// add a variable to the linked list
-	void assignVar(UserVar* first, const char* name, CalcValue value) {
+	UserVar* assignVar(UserVar* first, const char* name, CalcValue value) {
 
 		UserVar *var = findVar(first, name);
 
@@ -57,10 +57,8 @@ namespace vars {
 		} else
 			var->setValue(value);
 
-	}
+		return var;
 
-	inline void assignVar(std::vector<UserVar>& vars, const char* name, CalcValue value) {
-		return assignVar(&vars[vars.size() - 1], name, value);
 	}
 
 	// remove a variable from the linked list
@@ -87,10 +85,6 @@ namespace vars {
 			} else // keep looking for it
 				first = first->next;
 		}
-	}
-
-	inline void removeVar(std::vector<UserVar> &vars, const char *name) {
-		removeVar(vars::findVar(vars, name)->first, name);
 	}
 
 

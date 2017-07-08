@@ -64,13 +64,12 @@ public:
 		}
 		//if ()
 		ret.reserve(argc);
-
 		uint8_t param = 0;
 		for (uint8_t i = 0; i < argc; i++)
 			if (param < params.size())
-				ret[i] = param++;
+				ret.push_back(param++);
 			else
-				ret[i] = param;
+				ret.push_back(param);
 
 
 		return ret;

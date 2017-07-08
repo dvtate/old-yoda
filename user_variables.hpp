@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
 
 #include "calc_value.hpp"
 
@@ -116,12 +117,13 @@ namespace vars {
 
 	// to make a  new variable, or change it's value
 	//extern void assignVar(UserVar* first, char name[USERVAR_NAME_MAXLENGTH], double value);
-	extern void assignVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH], CalcValue value);
-	extern void assignVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH], CalcValue value);
+	extern UserVar* assignVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH], CalcValue value);
+	inline UserVar* assignVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH], CalcValue value){
+		return assignVar(&vars[vars.size() - 1], name, value);
+	}
 
 	// to remove an individial variable
 	extern void removeVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
-	extern void removeVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]);
 
 	// returns a pointer to the variable
 	extern UserVar* findVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
