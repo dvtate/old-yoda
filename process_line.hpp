@@ -1158,7 +1158,6 @@ push_into_arr:
 		// initialize a list
 		} else if (*p == '(') {
 
-			//printf("p=\"%s\"\n",p);
 			char* newLine = NULL, * p_tmp = ++p;
 
 			while (*p_tmp) {
@@ -1167,31 +1166,6 @@ push_into_arr:
 			if (lineLen - (p_tmp - pInit) > 2) {
 				*p_tmp = ' ';
 			}
-
-			/*
-			if (lineLen - (p - pInit) > 1) { // ( more code....
-				if (*++p == '\0')
-					p++;
-				//while (*p) {
-				//	p++;
-				//}
-				//if (lineLen - (p - pInit) > 1) { // (code, more code
-				//	p++;
-				//}
-				newLine = NULL;
-
-			} else { // (\n
-				newLine = (char*) malloc(256);
-				size_t lineLen = 256;
-
-				if (getline(&newLine, &lineLen, codeFeed) == -1) {
-					PASS_ERROR("\aERROR: `(` invalid list, possible missing `)`\n");
-				} else
-					line++;
-
-				p = newLine;
-
-			}*/
 
 			std::string listBody = list::getList(p, codeFeed);
 			///std::cout <<"listbody=\"" <<listBody <<"\"\n";
@@ -1226,24 +1200,6 @@ push_into_arr:
 
 			free(newLine);
 
-			//printf("lst_p = \"%s\"\n", p);
-
-			// commands and stuff immediately following the literal
-			/*
-			if (p && *p && strlen(p)) {
-				if (!strlen(p)) {
-					break;
-				}
-				p_tmp = p;
-				while (*p_tmp && isspace(*p_tmp))
-					p_tmp++;
-				if (lineLen - (p_tmp - pInit) <= 2)
-					break;
-
-				rpnln = p;
-
-			}
-			*/
 
 			rpnln = p;
 
@@ -1258,36 +1214,7 @@ push_into_arr:
 			if (lineLen - (tmp - pInit) > 2) {
 				*tmp = ' ';
 			}
-			//printf("tmp=\"%s\"\n", tmp);
-			//printf("p=\"%s\"\n", p);
 
-			/*if (lineLen - (p - pInit) > 2) { // { more code....
-				char* tmp = p;
-
-				while (*tmp)
-					tmp++;
-
-				if (lineLen > tmp - pInit) {
-					if (*tmp)
-						printf("tmp=\"%s\"\n", tmp);
-					else
-						*tmp = ' ';
-				}
-
-				newLine = NULL;
-
-			} else { // {\n
-				newLine = (char*) malloc(256);
-				size_t lineLen = 256;
-
-				if (getline(&newLine, &lineLen, codeFeed) == -1) {
-					PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
-				} else
-					line++;
-
-				p = newLine;
-
-			}*/
 			StrStack* execArr = strstk::getStrStack(p, codeFeed);
 
 			//free's mem allocated for line
@@ -1311,7 +1238,7 @@ push_into_arr:
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
 
 		// making a lambda/anonymous function
-		} else if (strcmp(p, "lambda") == 0) {
+		} else if (strcmp(p, "lambda") == 0 || strcmp(p, "lam") == 0) {
 			if (mainStack.size() < 2 || (elseStatement && mainStack.size() < 3)) {
 				PASS_ERROR("\aERROR: lambda expected a body and a list of parameters\n" <<std::endl);
 			}
@@ -1348,7 +1275,7 @@ push_into_arr:
 
 					// optional parameter
 					} else if (val.list->size() == 2) {
-						if (val.list->at(0).type != CalcValue::REF || val.list->at(0).type != CalcValue::BLK) {
+						if (val.list->at(0).type != CalcValue::REF || val.list->at(1).type != CalcValue::BLK) {
 							PASS_ERROR("\aERROR: lambda: invalid parameter: list containing only a variable means va_args, \
 									list containing a variable and a macro handles optional parameters\n");
 						}
@@ -1415,16 +1342,6 @@ push_into_arr:
 					CONVERT_INDEX(mainStack, var_nodes);
 					CONVERT_REFS(mainStack, var_nodes);
 				}
-				/*
-				bool hasArgs = top.lambda->params[0] != "";
-				if (mainStack.empty() && hasArgs && mainStack.top().type != CalcValue::ARR ) {
-					PASS_ERROR("\aERROR: the given lambda expected arguments\n");
-				}
-				// wrong number of args
-				if (hasArgs && mainStack.top().list->size() != top.lambda->params.size()) {
-					PASS_ERROR("\aERROR: lambda expected " <<top.lambda->params.size() <<"arguments, "\
-							   <<mainStack.top().list->size() <<" provided\n");
-				}*/
 
 				std::vector<int16_t> paramBindings = top.lambda->bindArgs(mainStack.top().list->size());
 				std::cout <<"params=";
@@ -1455,7 +1372,6 @@ push_into_arr:
 				if (hasArgs) {
 					uint16_t i;
 					for (i = 0; i < paramBindings.size(); i++) {
-						std::cout <<'$' <<top.lambda->params[paramBindings[i]].c_str() <<" ->cs=" <<top.lambda->countSpaces(paramBindings[i]);
 						// ending w/ var_args
 						if (i + 1 < paramBindings.size() && paramBindings[i] == paramBindings[i + 1]) { // va_args
 							std::vector<CalcValue> args;
@@ -1473,12 +1389,6 @@ push_into_arr:
 							std::vector<CalcValue> arg_s;
 							arg_s.push_back(mainStack.top().list->at(i));
 
-							UserVar* var = new UserVar(&first_node,
-							                           top.lambda->params[paramBindings[i]].c_str() + 1,
-							                           CalcValue(arg_s));
-
-							vars::lastVar(&first_node)->next = var;
-
 							vars::assignVar(var_nodes,
 							                top.lambda->params[paramBindings[i]].c_str() + 1,
 							                CalcValue(arg_s));
@@ -1486,26 +1396,27 @@ push_into_arr:
 
 
 						} else if (top.lambda->countSpaces(paramBindings[i]) == 2) { // var with default handler
+							// copy param into tmp string
 							char var_name[top.lambda->params[paramBindings[i]].length()];
 							strcpy(var_name, top.lambda->params[paramBindings[i]].c_str() + 1);
 
-							// ignore handler
+							// delete handler from cpy
 							char* tmp = var_name;
 							while (*tmp && *tmp != ' ')
 								tmp++;
 							if (*tmp)
 								*tmp = '\0';
 
-							UserVar* var = new UserVar(&first_node,
-													   var_name,
-													   mainStack.top().list->at(i));
-							vars::lastVar(&first_node)->next = var;
-							
+							// assign param
+							vars::assignVar(var_nodes,
+							                var_name,
+							                mainStack.top().list->at(i));
+
+
 						} else if (top.lambda->countSpaces(paramBindings[i]) == 0) { // normal var
 							vars::assignVar(var_nodes,
 							                top.lambda->params[paramBindings[i]].c_str(),
 							                mainStack.top().list->at(i));
-							std::cout <<"assigned var $" <<top.lambda->params[paramBindings[i]].c_str() <<std::endl;
 						}
 						/*
 						//vars::assignVar(var_nodes, top.lambda->params[i].c_str(), mainStack.top().list->at(i)); y u no work :/ ?
@@ -1522,17 +1433,17 @@ push_into_arr:
 
 						// handle each undefined variable
 						for (; i < top.lambda->params.size(); i++) {
+
 							// handle undefined optional params
 							if (top.lambda->countSpaces(i) == 2) {
+								// variable doesnt get defined here but handler gets run
+
 								char* tmp = (char*) malloc(strlen(top.lambda->params[i].c_str()));
 								strcpy(tmp, top.lambda->params[i].c_str() + 1);
 
-								int c = 0;
+								unsigned int c = 0;
 								while (tmp[c] != ' ') c++;
 								tmp[c] = '\0';
-
-								UserVar *var = new UserVar(&first_node, tmp, CalcValue());
-								vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
 
 								char* tmp2 = tmp + c + 1;
 								char* err = processLine(mainStack, var_nodes, showErrors, tmp2, elseStatement, codeFeed);
