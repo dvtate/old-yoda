@@ -1196,10 +1196,13 @@ push_into_arr:
 				delete[] str_head;
 			}
 
-			mainStack.push(arr);
+			// empty lists actually contain no elems and not a null value
+			if (arr.size() == 1 && arr[0].isNull())
+				mainStack.push(std::vector<CalcValue>());
+			else
+				mainStack.push(arr);
 
 			free(newLine);
-
 
 			rpnln = p;
 
@@ -1256,12 +1259,9 @@ push_into_arr:
 				// normal parameter
 				if (val.type == CalcValue::REF)
 					lam.params.push_back(val.isNull() ? "" : val.string);
-				else if (val.isNull())
-					if (mainStack.top().list->size() != 1) {
-						PASS_ERROR("\aERROR: null parameter");
-					} else {
-						break;
-					}
+				else if (val.isNull()) {
+					PASS_ERROR("\aERROR: null parameter");
+				}
 
 				else if (val.type == CalcValue::ARR) {
 					// va_args
@@ -1343,7 +1343,11 @@ push_into_arr:
 					CONVERT_REFS(mainStack, var_nodes);
 				}
 
-				std::vector<int16_t> paramBindings = top.lambda->bindArgs(mainStack.top().list->size());
+				std::vector<int16_t> paramBindings;
+				if (!mainStack.empty())
+					paramBindings = top.lambda->bindArgs(mainStack.top().list->size());
+
+
 				std::cout <<"params=";
 				for (std::string& i : top.lambda->params)
 					std::cout <<i <<",";
@@ -1433,7 +1437,7 @@ push_into_arr:
 
 						// handle each undefined variable
 						for (; i < top.lambda->params.size(); i++) {
-
+							std::cout <<"Handling missing param `" <<top.lambda->params.at(i) <<"` cs=" <<top.lambda->countSpaces(i) <<std::endl;
 							// handle undefined optional params
 							if (top.lambda->countSpaces(i) == 2) {
 								// variable doesnt get defined here but handler gets run
