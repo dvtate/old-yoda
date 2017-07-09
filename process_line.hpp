@@ -1367,10 +1367,13 @@ push_into_arr:
 					}
 				}
 
+				// empty args list won't get popped later as hasArgs == false
+				if (!mainStack.empty() && !mainStack.top().list->size()) {
+					mainStack.pop();
+				}
+
 				// add layer to scope
-				UserVar first_node(NULL, " ", 0.0);\
-				first_node.first = &first_node; // needed??
-				var_nodes.push_back(first_node);
+				var_nodes.push_back(UserVar(NULL, " ", 0.0));
 
 				// this gonna get rly complicated
 				if (hasArgs) {
@@ -1458,14 +1461,44 @@ push_into_arr:
 
 							// empty va_args
 							} else if (top.lambda->countSpaces(i) == 1) {
-								UserVar *var = new UserVar(&first_node, top.lambda->params[i].c_str() + 1, CalcValue(std::vector<CalcValue>()));
-								vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
-
-
+								vars::assignVar(var_nodes,
+								                top.lambda->params[i].c_str() + 1,
+								                std::vector<CalcValue>());
 							}
 						}
 					}
 					mainStack.pop();
+				} else if (top.lambda->params.size()) {
+					// handle each undefined variable
+					for (unsigned int i = 0; i < top.lambda->params.size(); i++) {
+						std::cout <<"Handling missing param `" <<top.lambda->params.at(i) <<"` cs=" <<top.lambda->countSpaces(i) <<std::endl;
+						// handle undefined optional params
+						if (top.lambda->countSpaces(i) == 2) {
+							// variable doesnt get defined here but handler gets run
+
+							char* tmp = (char*) malloc(strlen(top.lambda->params[i].c_str()));
+							strcpy(tmp, top.lambda->params[i].c_str() + 1);
+
+							unsigned int c = 0;
+							while (tmp[c] != ' ') c++;
+							tmp[c] = '\0';
+
+							char* tmp2 = tmp + c + 1;
+							char* err = processLine(mainStack, var_nodes, showErrors, tmp2, elseStatement, codeFeed);
+							if (err) {
+								PASS_ERROR("\aERROR: in optional variable handler `" <<err <<"`. Called here:\n");
+							}
+							free(tmp);
+
+							// empty va_args
+						} else if (top.lambda->countSpaces(i) == 1) {
+							vars::assignVar(var_nodes,
+							                top.lambda->params[i].c_str() + 1,
+							                std::vector<CalcValue>());
+						}
+					}
+
+
 				}
 
 
@@ -1490,8 +1523,7 @@ push_into_arr:
 				fclose(statement);
 
 				// variables go out of scope
-				vars::wipeAll(&first_node);
-				var_nodes.pop_back();
+				vars::clearScope(var_nodes);
 
 
 				// reverse order of stack

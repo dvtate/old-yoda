@@ -172,4 +172,8 @@ namespace vars {
 	}
 
 
+	void clearScope(std::vector<UserVar>& scopes){
+		wipeAll(&scopes[scopes.size() - 1]);
+		scopes.pop_back();
+	}
 }

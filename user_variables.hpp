@@ -136,6 +136,8 @@ namespace vars {
 
 	extern CalcValue* valueAtVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
 	extern CalcValue* valueAtVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]);
+
+	extern void clearScope(std::vector<UserVar>& scopes);
 }
 
 
