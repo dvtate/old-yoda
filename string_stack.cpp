@@ -60,7 +60,8 @@ void StrStack::push(const char* str){
 	if (!str)
 		return;
 
-	*buffer = (char*) malloc(strlen(str) + 1);
+
+	*buffer = (char*) malloc(strlen(str) + 2);
 
 	// write the string to the buffer
 	strcpy(*buffer, str);
@@ -175,9 +176,9 @@ namespace strstk {
 	}
 
 	// note, str is modified and this is used in processLine()
-	StrStack* getStrStack(char*& str, FILE* codeFeed){
+	StrStack* getStrStack(char*& str, FILE* codeFeed, char*& codeLine){
 
-		char* codeLine = str;
+		codeLine = str;
 		uint16_t depth = 1; // shouldn't be >65000 levels of indentation...
 		StrStack* ret = new StrStack();
 
@@ -197,9 +198,11 @@ namespace strstk {
 
 		while (!isEnd) {
 
-			if (getline(&codeLine, &lineLen, codeFeed) == -1)
+			if (getline(&codeLine, &lineLen, codeFeed) == -1) {
+				free(codeLine);
+				delete ret;
 				return NULL; // this signals an error from process_line.hpp
-
+			}
 			str = codeLine;
 
 			line++; // we added a line to our file
@@ -211,12 +214,11 @@ namespace strstk {
 				*str = '\0';
 				ret->push(codeLine);
 				*str = ' ';
+				//free(codeLine);
 				return ret;
 			}
 
 		}
-		free(codeLine);
-		return ret;
 
 	}
 

@@ -108,7 +108,7 @@ int main(int argc, char** argv){
 }
 
 
-void handle_sigint_file(int code){
+void handle_sigint_file(int){
 	printf("In file: %s On line: %d\n", progName, --line);
 
 	char* ln = getLineFromFile(progName, line);
@@ -120,7 +120,7 @@ void handle_sigint_file(int code){
 	exit(EXIT_SUCCESS);
 }
 
-void handle_sigint_shell(int code){
+void handle_sigint_shell(int){
 	printf("\r");
 	//runShell(*shell_vars.nodes, *shell_vars.showErrors, *shell_vars.ms, *shell_vars.elseStat);
 }

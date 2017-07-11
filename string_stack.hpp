@@ -27,7 +27,7 @@ public:
 
 	StrStack():
 			sizeFactor(0),
-			buffer((char**) malloc(256 * sizeof(char*))),
+			buffer((char**) calloc(256, sizeof(char*))),
 			stackDepth(0),
 			stackHead(buffer)
 	{
@@ -37,7 +37,7 @@ public:
 	// copy constructor
 	StrStack(const StrStack& cpy):
 			sizeFactor(cpy.sizeFactor),
-			buffer((char**) malloc((1 << cpy.sizeFactor) * 256 * sizeof(char*))),
+			buffer((char**) calloc((1 << cpy.sizeFactor) * 256, sizeof(char*))),
 			stackDepth(cpy.stackDepth),
 			stackHead(buffer)
 	{
@@ -117,13 +117,13 @@ public:
 		size_t ret = 1;
 
 		while (buff-- > stackHead)
-			ret += strlen(*buff);
+			ret += strlen(*buff) + 2;
 
 		return ret;
 
 	}
 
-	// converts the block to a string
+	/// converts the block to a string
 	void toString(char** dest, size_t* size);
 
 	/// prints the contents of a string stack
@@ -153,7 +153,7 @@ public:
 namespace strstk {
 
 	// gets a string stack from a file
-	StrStack* getStrStack(char*& str, FILE* codeFeed);
+	StrStack* getStrStack(char*& str, FILE* codeFeed, char*& codeLine);
 
 }
 

@@ -10,12 +10,12 @@
 // this really should just be a struct defined somewhere else...
 class Lambda {
 public:
-	StrStack src;
 	std::vector<std::string> params;
+	StrStack src;
 
 	Lambda(){};
 	Lambda(StrStack body, std::vector<std::string> params):
-			src(body), params(params) {}
+			params(params), src(body) {}
 
 	//~Lambda(){};
 
@@ -42,7 +42,7 @@ public:
 		return -1;
 	}
 
-	uint8_t requiredArgs(){
+	int16_t requiredArgs(){
 		int ret = 0;
 		for (const std::string& param : params)
 			if (param.at(0) != ' ')
@@ -58,7 +58,7 @@ public:
 	// one element per argument
 	std::vector<int16_t> bindArgs(const uint8_t argc){
 		std::vector<int16_t> ret;
-		if (!validParams() || argc < requiredArgs()) {
+		if (!validParams()) {
 			ret.push_back(-1);
 			return ret;
 		}

@@ -394,7 +394,7 @@ public:
 			if (ret->list->size() <= elem_index[i] || ret->list->size() < abs(elem_index[i])) {
 				return false;
 			}
-			ret = i < 0 ?
+			ret = elem_index[i] < 0 ?
 			      &ret->list->at(ret->list->size() + elem_index[i]) :
 			      &ret->list->at(elem_index[i]);
 		}

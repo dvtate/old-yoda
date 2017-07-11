@@ -30,11 +30,16 @@
 
 extern char* progName;
 
+#define PL_CLEANUP()\
+	for (void* _f_ptr : freeme)\
+		free(_f_ptr);
+
 // error's if the stack is empty
 #define ASSERT_NOT_EMPTY(OPERATOR)\
 	if (mainStack.empty()) {\
 		if (showErrors)\
 			std::cerr <<"\aERROR: not enough data for `" <<OPERATOR <<"`.\n";\
+		PL_CLEANUP()\
 		return p;\
 	}
 
@@ -42,6 +47,7 @@ extern char* progName;
 #define PASS_ERROR(MSG) \
 	if (showErrors)	\
 		std::cerr <<'(' <<__LINE__ <<") " <<MSG;\
+	PL_CLEANUP()\
 	return p;
 
 #define GET_LIST_INDEX(MAINSTACK, VAR_NODES, ASSIGN_TO)\
@@ -105,7 +111,7 @@ extern char* progName;
 		if (runFile(statement, var_nodes, showErrors, (STACK), elseStatement)) {\
 			PASS_ERROR("\aERROR: @ (exec operator) failed\n");\
 		}\
-		fclose(statement);\
+		\
 \
 		/* variables go out of scope */\
 		vars::wipeAll(&first_node);\
@@ -129,6 +135,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 	size_t lineLen = strlen(rpnln);
 	char* pInit = rpnln;
 
+	std::vector<void*> freeme;
 
 	// get first token from the input
 	char* p = qtok(rpnln, &rpnln);
@@ -770,8 +777,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if (strcmp(p, "print") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
-			if (printCalcValueRAW(mainStack.top(), var_nodes))
-				return p;
+			CONVERT_REFS(mainStack, var_nodes);
+			if (printCalcValueRAW(mainStack.top(), var_nodes)) {
+				PASS_ERROR("\aERROR: print has failed.\n");
+
+			}
 
 
 			mainStack.pop();
@@ -780,8 +790,10 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if (strcmp(p, "println") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
-			if (printCalcValueRAW(mainStack.top(), var_nodes))
-				return p;
+			CONVERT_REFS(mainStack, var_nodes);
+			if (printCalcValueRAW(mainStack.top(), var_nodes)) {
+				PASS_ERROR("\aERROR: printlln has failed.\n");
+			}
 
 			mainStack.pop();
 
@@ -804,24 +816,24 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			// prints in color
 		} else if (strcmp(p, "color_print") == 0) {
 			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: not enough data for function `print_color`. (takes 2 arguments)\n\n");
+				PASS_ERROR("\aERROR: not enough data for function `" <<p <<"`. (expects message and color)\n\n");
 			}
 
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
-			CalcValue val = getNextValue(mainStack);
-			if (!val.isStr()) {
-				PASS_ERROR("\aERROR: print_color expected a string containing a valid HTML color\n\n");
+			if (!mainStack.top().isStr()) {
+				PASS_ERROR("\aERROR: "<<p <<" expected a message and a string containing a valid HTML color\n\n");
 			}
 
-			setFgColor(val.string);
+			setFgColor(mainStack.top().string);
+			mainStack.pop();
 
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
 			CalcValue msg = getNextValue(mainStack);
 			if (printCalcValueRAW(msg, var_nodes)) {
 				setFgColor();
-				return p;
+				PASS_ERROR("ERROR: color_print has failed")
 			}
 
 			setFgColor();
@@ -1218,23 +1230,25 @@ push_into_arr:
 				*tmp = ' ';
 			}
 
-			StrStack* execArr = strstk::getStrStack(p, codeFeed);
+			char* heap_str;
+			StrStack* execArr = strstk::getStrStack(p, codeFeed, heap_str);
+			freeme.push_back((void*) heap_str);
 
 			//free's mem allocated for line
 			free(newLine);
 
 			if (execArr) {
-				mainStack.push(CalcValue(*execArr));
+				mainStack.push(*execArr);
 				delete execArr;
 			} else {
 				PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
-				strcpy(pInit, p);
-				free(p);
-				return pInit;
+				//strcpy(pInit, p);
+				//free(p);
+				//return pInit;
 			}
 
-			rpnln = p; // this is a memory leak..
-			//free(p);
+			rpnln = p;
+
 
 		// ummm hopefully the user actually fucked up and it's not my fault...
 		} else if (*p == '}') {
@@ -1254,7 +1268,6 @@ push_into_arr:
 
 			lam.params.reserve(mainStack.top().list->size());
 
-			bool wasNull = false;
 			for (CalcValue val : *mainStack.top().list) {
 				// normal parameter
 				if (val.type == CalcValue::REF)
@@ -1348,7 +1361,7 @@ push_into_arr:
 					paramBindings = top.lambda->bindArgs(mainStack.top().list->size());
 
 
-				std::cout <<"params=";
+				/*std::cout <<"params=";
 				for (std::string& i : top.lambda->params)
 					std::cout <<i <<",";
 				std::cout <<"\n";
@@ -1357,13 +1370,13 @@ push_into_arr:
 				for (int16_t i : paramBindings)
 					std::cout <<i <<", ";
 				std::cout <<"\n";
-
+				*/
 				bool hasArgs = paramBindings.size();
 				if (paramBindings.size() && paramBindings[0] == -1) {
 					if (top.lambda->requiredArgs() < 0) {
-						PASS_ERROR("\aERROR: lambda expected at least "<< -top.lambda->requiredArgs() <<" arguments\n");
+						PASS_ERROR("\aERROR: lambda expected at least "<< (int) -top.lambda->requiredArgs() <<" arguments\n");
 					} else {
-						PASS_ERROR("\aERROR: lambda expected " <<top.lambda->requiredArgs() <<" arguments\n");
+						PASS_ERROR("\aERROR: lambda expected " << (int) top.lambda->requiredArgs() <<" arguments\n");
 					}
 				}
 
@@ -1381,18 +1394,21 @@ push_into_arr:
 					for (i = 0; i < paramBindings.size(); i++) {
 						// ending w/ var_args
 						if (i + 1 < paramBindings.size() && paramBindings[i] == paramBindings[i + 1]) { // va_args
+							//std::cout <<"filling va_arg1\n";
 							std::vector<CalcValue> args;
 							for (; i < paramBindings.size(); i++)
 								args.push_back(mainStack.top().list->at(i));
+							i--;
 
 
-
+							//std::cout <<"Assigning ["<<i<<":" <<paramBindings[i] <<"] $" <<top.lambda->params[paramBindings[i]].c_str() + 1<<"\n";
 							vars::assignVar(var_nodes,
-							                top.lambda->params[paramBindings[i]].c_str(),
+							                top.lambda->params[paramBindings[i]].c_str() + 1,
 							                CalcValue(args));
 
 
 						} else if (top.lambda->countSpaces(paramBindings[i]) == 1) { // va_arg
+							//std::cout <<"filling va_arg2\n";
 							std::vector<CalcValue> arg_s;
 							arg_s.push_back(mainStack.top().list->at(i));
 
@@ -1440,7 +1456,7 @@ push_into_arr:
 
 						// handle each undefined variable
 						for (; i < top.lambda->params.size(); i++) {
-							std::cout <<"Handling missing param `" <<top.lambda->params.at(i) <<"` cs=" <<top.lambda->countSpaces(i) <<std::endl;
+							//std::cout <<"Handling missing param `" <<top.lambda->params.at(i) <<"` cs=" <<top.lambda->countSpaces(i) <<std::endl;
 							// handle undefined optional params
 							if (top.lambda->countSpaces(i) == 2) {
 								// variable doesnt get defined here but handler gets run
@@ -1566,7 +1582,7 @@ push_into_arr:
 			}
 
 			StrStack newElseClause;
-			newElseClause.push("{");
+			newElseClause.push("\n{\n");
 
 			bool condition = mainStack.top().getNum() != 0;
 			mainStack.pop();
@@ -1576,7 +1592,7 @@ push_into_arr:
 
 			if (elseStatement) {
 				if (mainStack.top().type != CalcValue::BLK) {
-					PASS_ERROR("\aERROR: `else` needs anonymous subroutines to function");
+					PASS_ERROR("\aERROR: `else` needs macros to function");
 				}
 				StrStack elseifBlock = *mainStack.top().block;
 				mainStack.pop();
@@ -1585,18 +1601,18 @@ push_into_arr:
 				CONVERT_REFS(mainStack, var_nodes);
 
 				if (mainStack.top().type != CalcValue::BLK) {
-					PASS_ERROR("\aERROR: `else` needs anonymous subroutines to function");
+					PASS_ERROR("\aERROR: `else` needs macros to function");
 				}
 				StrStack elseBlock = *mainStack.top().block;
 				mainStack.pop();
 
 				StrStack::appendToStack(newElseClause, elseBlock);
-				newElseClause.push("} else {");
+				newElseClause.push("\n} else {");
 				StrStack::appendToStack(newElseClause, elseifBlock);
 				if (condition) {
-					newElseClause.push("} true if");
+					newElseClause.push("\n} 1 if");
 				} else {
-					newElseClause.push("} false if ");
+					newElseClause.push("\n} 0 if ");
 				}
 
 				mainStack.push(newElseClause);
@@ -1804,14 +1820,16 @@ push_into_arr:
 			exit(EXIT_SUCCESS); // exit the program
 
 		// exit the lambda and leave all the values currently on the stack
-		else if (strcmp(p, "break") == 0)
-			return (char*) lambda_finish;
+		else if (strcmp(p, "break") == 0) {
+			PL_CLEANUP();
+			return (char *) lambda_finish;
 
 		// exit the lambda and only leave the top on the stack
-		else if (strcmp(p, "return") == 0) {
+		} else if (strcmp(p, "return") == 0) {
 			CalcValue top = mainStack.top();
 			emptyStack(mainStack);
 			mainStack.push(top);
+			PL_CLEANUP();
 			return (char*) lambda_finish;
 
 		// show help
@@ -2038,10 +2056,13 @@ push_into_arr:
 
 		// error reporting can get annoying on final programs
 		// toggle errors
-		} else if (strcmp(p, "errors-off") == 0)
+		} else if (strcmp(p, "__errors-off") == 0)
 			showErrors = false;
-		else if (strcmp(p, "errors-on") == 0)
+		else if (strcmp(p, "__errors-on") == 0)
 			showErrors = true;
+		else if (strcmp(p, "__errors") == 0)
+			mainStack.push(showErrors);
+
 
 		// show version info
 		else if (strcmp(p, "version") == 0)
@@ -2191,6 +2212,8 @@ push_into_arr:
 
 	}
 
+	
+	PL_CLEANUP();
 	return NULL;
 
 }

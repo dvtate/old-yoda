@@ -1,3 +1,5 @@
+/// NOTE: This funcitonality will eventually be moved to an external library
+
 #ifndef TERMINAL_COLORS_H
 #define TERMINAL_COLORS_H
 

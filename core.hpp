@@ -109,10 +109,10 @@ void runFile(char* programFile, bool& errorReporting){
 			color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(programFile, line));
 
 			// point to the problem area
-			for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
-				std::cerr <<' ';
+			//for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
+			//	std::cerr <<' ';
 
-			color_fputs(stderr, "^\n", 255, 0, 0);
+			//color_fputs(stderr, "^\n", 255, 0, 0);
 
 			// windows sucks :P
 #ifdef _WIN32
@@ -138,7 +138,7 @@ bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReport
 	size_t local_line = 0;
 
 	char* rpnln = NULL, *rpnln_head = rpnln;
-	size_t lineLen = 256;
+	size_t lineLen = 0;
 
 	// for each line in the programFile...
 	for (;;) {

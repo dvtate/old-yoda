@@ -1,3 +1,5 @@
+/// NOTE: This funcitonality will eventually be moved to an external library
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -680,7 +682,7 @@ const RGB_t nameToColor(const char* const cname){
 		*(name + i) = tolower(*(name + i));
 
 
-	/*	this would improve performance but would result in more loose input output
+	/*	this would improve performance but would result in more loose input-output
 		correlation
 
 	if (*name == 'a') { // colors starting with A
