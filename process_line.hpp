@@ -31,8 +31,9 @@
 extern char* progName;
 
 #define PL_CLEANUP()\
-	for (void* _f_ptr : freeme)\
-		free(_f_ptr);
+	if (freeme.size())\
+		for (void* _f_ptr : freeme)\
+			free(_f_ptr);
 
 // error's if the stack is empty
 #define ASSERT_NOT_EMPTY(OPERATOR)\
@@ -84,7 +85,7 @@ extern char* progName;
         }\
 		CalcValue* cv = MAINSTACK.top().getListElem(indx);\
 		if (!cv) {\
-            PASS_ERROR("\aERROR: List index out of bounds");\
+            PASS_ERROR("\aERROR: List index out of bounds\n");\
         }\
 		MAINSTACK.top().setValue(*cv);\
 	}
@@ -130,6 +131,8 @@ extern bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& erro
 char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
                   bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed
 ){
+
+	//std::cout <<"\nCurrent Line: " << rpnln <<"\n";
 
 	// probably won't even use these 2 vars but its good to have them...
 	size_t lineLen = strlen(rpnln);
@@ -1180,7 +1183,7 @@ push_into_arr:
 			}
 
 			std::string listBody = list::getList(p, codeFeed);
-			///std::cout <<"listbody=\"" <<listBody <<"\"\n";
+			//std::cout <<"listbody=\"" <<listBody <<"\"\n";
 			if (listBody == "(") {
 				PASS_ERROR("\aERROR: `(` invalid list, possible missing `)`\n");
 			}
@@ -1232,7 +1235,9 @@ push_into_arr:
 
 			char* heap_str;
 			StrStack* execArr = strstk::getStrStack(p, codeFeed, heap_str);
-			freeme.push_back((void*) heap_str);
+			//freeme.push_back((void*) heap_str);
+			//free(heap_str);
+			//std::cout <<"fm pushed back \"" <<heap_str <<"\"\n";
 
 			//free's mem allocated for line
 			free(newLine);
@@ -2199,7 +2204,9 @@ push_into_arr:
 
 			// the user is an asshole :T
 			if (number == 0 && *p != '0' && (*p != '-' && *(p + 1) != '0')) {
-				PASS_ERROR("\aSYNTAX ERROR: near `" <<p <<"`" <<std::endl);
+				std::cout <<"SYNTAX ERROR: p=\"" <<p <<"\" pInit=\"" <<pInit
+				          << "\"\nfreeme.size=" <<freeme.size() <<"\nrpnln=\"" <<rpnln <<"\"\n";
+				PASS_ERROR("\aSYNTAX ERROR: near <<`" <<p <<"`>>\n");
 
 				// the user has given us a number :D
 			} else
@@ -2212,7 +2219,7 @@ push_into_arr:
 
 	}
 
-	
+
 	PL_CLEANUP();
 	return NULL;
 

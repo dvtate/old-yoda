@@ -44,7 +44,7 @@ public:
 		*buffer = NULL;
 		char** sh = cpy.stackHead;
 		while (sh != cpy.buffer) {
-			*buffer = (char*) malloc ( strlen(*sh) + 1 );
+			*buffer = (char*) calloc ( strlen(*sh) + 1, sizeof(char) );
 			strcpy(*buffer++, *sh++);
 		}
 

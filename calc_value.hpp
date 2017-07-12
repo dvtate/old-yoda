@@ -91,7 +91,7 @@ public:
 
 		if (str) {
 			// allocate memory for the string
-			string = (char*) malloc(strlen(str) + 1);
+			string = (char*) calloc(strlen(str) + 2, sizeof(char));
 
 			// write the string to the buffer
 			strcpy(string, str);

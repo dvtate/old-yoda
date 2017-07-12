@@ -69,7 +69,7 @@ namespace list {
 			if (getline(&codeLine, &lineLen, codeFeed) == -1)
 				return "("; // this signals an error from process_line.hpp
 
-			/*di
+			/*
 			// remove trailing newline
 			size_t len = strlen(codeLine) - 1;
 			if (codeLine[len] == '\n')

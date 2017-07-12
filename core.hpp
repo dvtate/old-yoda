@@ -33,7 +33,7 @@ const char* lambda_finish = "\aERROR: use of `return` or `break` out of context 
 
 
 extern char* metaName;
-
+extern int line;
 
 FILE* program = stdin;
 char* progName = NULL;
@@ -102,11 +102,11 @@ void runFile(char* programFile, bool& errorReporting){
 
 			// file name and
 			setTermEffect(TERM_EFF_BOLD);
-			std::cerr <<programFile <<":" <<line <<':' <<errorToken - rpnln_head <<":\n";
+			std::cerr <<"^^ in " <<programFile <<":" <<line <<':' <<errorToken - rpnln_head <<"\n";
 			setTermEffect();
 
 			// print the problem statement
-			color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(programFile, line));
+			color_fprintf(stderr, 255, 0, 0, "\t%s", getLineFromFile(programFile, line));
 
 			// point to the problem area
 			//for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
@@ -165,8 +165,9 @@ bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReport
 
 			// file name and
 			setTermEffect(TERM_EFF_BOLD);
-			std::cerr <<progName <<":" <<line - linesToEnd(prog_file)
-					  <<':' <<errorToken - rpnln_head <<":\n";
+			std::cerr <<"^^ in " <<progName <<":local_line=" <<local_line
+			          <<":col=" <<errorToken - rpnln_head <<"?\n";
+
 			setTermEffect();
 
 			// print the problem statement
@@ -236,150 +237,6 @@ void runShell(std::vector<UserVar>& var_nodes, bool& errorReporting,
 	std::cout <<std::endl;
 
 }
-
-// this is a shitty function
-void runStringStack(StrStack& code, bool& errorReporting){
-
-
-	// the most important component of the program :)
-	std::stack<CalcValue> mainStack;
-
-	UserVar first_node(NULL, " ", 0.0);
-	first_node.first = &first_node;
-	std::vector<UserVar> var_nodes;
-	var_nodes.push_back(first_node);
-
-	bool elseStatement = false;
-
-	char** stackHead = code.stackHead;
-
-	// for each line in the string stack...
-	for (size_t i = 0; i < code.stackDepth; i++) {
-
-		// used for line numbers in errors
-		line++;
-
-		char* rpnln = *(stackHead++);
-
-		// I need a copy of it to call free() on later.
-		char	*rpnln_head = rpnln,
-				*errorToken = NULL;
-
-
-		// process the line
-		if ((errorToken =
-					 processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, stdin)) // note: stdin is a bad file for this purpose..
-			&& errorReporting
-				) {
-
-			// file name and
-			setTermEffect(TERM_EFF_BOLD);
-			std::cerr <<progName <<":" <<line <<':' <<errorToken - rpnln_head <<":\n";
-			setTermEffect();
-
-			// print the problem statement
-			color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(progName, line));
-
-			// point to the problem area
-			for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
-				std::cerr <<' ';
-			color_fputs(stderr, "^\n", 255, 0, 0);
-
-			// windows sucks :P
-#ifdef _WIN32
-			std::cin.ignore();
-#endif
-
-			// you're dead :P
-			exit(EXIT_FAILURE);
-
-
-		}
-	}
-}
-
-
-/* this will no longer get used
-// this is part of a ghetto solution to make getStrStack() work in nested-blocks
-struct current_block_data_t {
-	char** stackHead;
-	ssize_t linesLeft;
-} curStrStack = { NULL, 0 };
-
-
-/// this is still pretty ghetto...
-bool runStringStack(
-	StrStack& code, bool& errorReporting, std::stack<CalcValue>& mainStack,
-	UserVar* first_node
-){
-
-	bool elseStatement = false;
-	char	*rpnln_head;
-
-
-
-	// used for line numbers in errors (plus previosly mentioned kludge)
-	curStrStack.linesLeft = code.stackDepth;
-
-	curStrStack.stackHead = code.stackHead;
-
-	// 500 chars/line is a reasonable max
-	char* rpnln = rpnln_head= (char*) malloc(512);
-
-	// for each line in the string stack...
-	for (; curStrStack.linesLeft > 0; curStrStack.linesLeft--) {
-
-		// copy line to prevent corruption
-		rpnln = (char*) realloc(rpnln_head, strlen(*curStrStack.stackHead) + 1);
-		strcpy(rpnln, *(curStrStack.stackHead++));
-
-
-		rpnln_head = rpnln;
-
-		// I need to delete it later.
-		char *errorToken = NULL;
-
-		// process the line
-		if ((errorToken =
-			processLine(mainStack, first_node, errorReporting, rpnln, elseStatement, stdin))
-			&& errorReporting)
-		{
-			// why the fuck doesn't this get run ???????
-			setTermEffect(TERM_EFF_BOLD);
-			std::cerr <<progName <<": block : " <<code.stackDepth - curStrStack.linesLeft
-					  <<" : " <<rpnln - rpnln_head << ":\n";
-
-			setTermEffect();
-
-			// print the problem statement
-			//color_fprintf(stderr, 255, 0, 0, "\t%s\t", getLineFromFile(progName, line));
-			color_fprintf(stderr, 255, 0, 0, "\t%s\t", trimStr(*(curStrStack.stackHead - 1)));
-			// point to the problem area
-			for (size_t i = rpnln - rpnln_head; i ; i-- )
-				std::cerr <<' ';
-			color_fputs(stderr, "^\n", 255, 0, 0);
-
-			// windows sucks :P
-			#ifdef _WIN32
-				std::cin.ignore();
-			#endif
-
-			curStrStack = { NULL, 0 };
-			free(rpnln_head);
-
-			// stop execution on error
-			return true;
-
-		}
-
-		//if ()
-	}
-
-	curStrStack = { NULL, 0 };
-	free(rpnln_head);
-	return false;
-}
-*/
 
 
 #endif
