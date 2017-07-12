@@ -1,0 +1,16 @@
+
+{ # recursive fibonacci fxn
+
+	{
+			($n 1 -) $fib @ ($n 2 -) $fib @ + return
+	} else {
+		1 return
+	} $n 1 == $n 2 == || if
+
+} ($n) lam $fib =
+
+"Fibonacci sequence:" println
+{
+	$num print ":" ($num ~) $fib @ + println
+	# for now anything beyond 12 will cause a stack overflow
+} 1 12 range $num foreach
