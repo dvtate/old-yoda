@@ -2,7 +2,7 @@
 { # recursive fibonacci fxn
 
 	{
-			($n 1 -) $fib @ ($n 2 -) $fib @ + return
+		($n 1 -) $fib @ ($n 2 -) $fib @ + return
 	} else {
 		1 return
 	} $n 1 == $n 2 == || if
