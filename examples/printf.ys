@@ -1,0 +1,60 @@
+
+{
+
+	# index of the current item
+	$item 0 =
+	# was the last char a %?
+	$prev "" =
+
+	{
+		# print item
+		{
+			{ 
+				("\n\aERROR: $printf: not enough arguments for format string\n")$printf @ 
+				exit
+			} $item $items list_size == if
+			$items $item ] print # print item
+			$item $item 1 + = # next next
+		} $prev ~ "%" == $c ~ "%" != && if
+
+		# not special character
+		{
+			$c print
+		} $c "%" != if
+
+		# escaped %
+		{
+			"%" print
+			$c "" = # prevent retriggering
+		} $c "%" == $prev "%" == && if
+		
+		# update prev (copy value) 
+		$prev $c ~ =
+
+	# for each character c
+	} $format "" split $c foreach
+
+	{
+		{ 
+			("\n\aERROR: $printf: not enough arguments for format string\n")$printf @ 
+			exit
+		} $item $items list_size == if
+		
+		$items $item ] print # print item
+		$item $item 1 + = # next next	
+	} $prev "%" == if
+
+# $items becomes a list containing any args after $format
+} ($format, ($items)) lambda $printf =
+
+
+("Hello, World!\n") $printf @
+("Hello %%!\n") $printf @
+
+# prompts user for their name and then greets them
+("Hello %!\n", ("What is your name? ") $printf @ input) $printf @
+
+$animal "cow" =
+("The % jumped over the moon % times\n", $animal, 55) $printf @
+("Hello% ") $printf @ # this will error
+
