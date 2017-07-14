@@ -295,14 +295,14 @@ public:
 		if (type == REF)
 			return vars::valueAtVar(first, string);
 		else
-			return NULL;
+			return this;
 	}
 
 	CalcValue* valAtRef(std::vector<UserVar>& vars){
 		if (type == REF)
 			return vars::valueAtVar(vars, string);
 		else
-			return NULL;
+			return this;
 	}
 
 

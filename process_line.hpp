@@ -244,29 +244,14 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 
 			// handling null values
-			if (a.isEmpty() != b.isEmpty()) { // val + null
-				if (a.isEmpty())
-					mainStack.push(b);
-				else
-					mainStack.push(a);
+			if (a.isEmpty() != b.isEmpty()) // val + null
+				mainStack.push(b.isEmpty() ? a : b);
 
-				// get next token
-				p = qtok(rpnln, &rpnln);
-
-				continue;
-
-			} else if (a.isEmpty() && b.isEmpty()) { // null + null
+			else if (a.isEmpty() && b.isEmpty()) // null + null
 				mainStack.push(a);
 
-				// get next token
-				p = qtok(rpnln, &rpnln);
-
-				continue;
-
-			}
-
-			// branching out all 4 permutations of string and num
-			if (a.type == CalcValue::STR) {
+				// branching out all 4 permutations of string and num
+			else if (a.type == CalcValue::STR) {
 				if (b.type == CalcValue::STR) {
 					// allocate enough memory for both strings and a null terminator
 					char combined[strlen(a.getStr()) + strlen(b.getStr()) + 1];
@@ -349,8 +334,125 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			mainStack.push((getNextValue(mainStack).getNum() == 0));
 
+		// ++ | --
+		} else if (strlen(p) == 2 && (*p == '+' || *p == '-') && *(p + 1) == *p) {
+			ASSERT_NOT_EMPTY(p);
+			if (mainStack.top().type != CalcValue::REF) {
+				PASS_ERROR("\aERROR: increment/decrement operator expected a reference\n");
+			}
+			CalcValue* var_val = mainStack.top().valAtRef(var_nodes);
+			if (!var_val) {
+				PASS_ERROR("\aERRORL broken reference to $" <<mainStack.top().string <<std::endl);
+			}
+			if (var_val->type != CalcValue::NUM) {
+				PASS_ERROR("\aIncrement/decrememnt expected a numerical variable\n");
+			}
+			var_val->number = var_val->number + *p == '+' ? 1 : -1;
 
-			//trig functions
+			mainStack.pop(); // behavior different than C/C++
+
+
+		} else if (strlen(p) == 2 && (*p == '+' || *p == '-' || *p == '*' || *p == '/') && *(p + 1) == '='
+			|| strlen(p) == 2 && *p == '<' || *p == '>') {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: not enough error for modified assignment")
+			}
+
+			CalcValue v2 = mainStack.top();
+			mainStack.pop();
+			CalcValue v1 = mainStack.top();
+			mainStack.pop();
+
+			CalcValue* target;
+			CalcValue* val;
+			if (v1.type == CalcValue::REF) {
+				target = v1.valAtRef(var_nodes);
+				val = v2.valAtRef(var_nodes);
+			} else if (v2.type == CalcValue::REF) {
+				target = v2.valAtRef(var_nodes);
+				val = v1.valAtRef(var_nodes);
+			} else {
+				PASS_ERROR("\aERROR: modified assignment expected a reference\n");
+			}
+
+			if (!target || !val) {
+				PASS_ERROR("\aERRORL broken reference to $" <<mainStack.top().string <<std::endl);
+			}
+			if (target->type != CalcValue::NUM && *p != '+') {
+				PASS_ERROR("\aERROR: Modified assignment expected a reference to a numerical value\n");
+			}
+			if (val->type != CalcValue::NUM && *p != '+') {
+				PASS_ERROR("\aERROR: Modified assignment expected a value to modify.")
+			}
+
+			switch (*p) {
+				case '+': // addition is an overloaded operator
+
+					// handling null values
+					if (target->isEmpty() != val->isEmpty()) // val + null
+						target->number = target->isEmpty() ?  val->number : target->number;
+
+					// branching out all 4 permutations of string and num
+					else if (target->type == CalcValue::STR) {
+						if (val->type == CalcValue::STR) {
+							// allocate enough memory for both strings and a null terminator
+							char combined[strlen(target->getStr()) + strlen(val->getStr()) + 1];
+
+							// combine the strings
+							strcpy(combined, target->getStr());
+							strcpy(combined + strlen(target->getStr()), val->getStr());
+
+							target->setValue(combined);
+
+						} else if (val->type == CalcValue::NUM) { // b is a number
+
+							// convert the double to a string
+							char str[26];
+							snprintf(str, 26, "%*.*g", 10, 16, val->getNum());
+							char* trimmedStr = trimStr(str);
+
+							// allocate memory
+							char combined[strlen(target->getStr()) + strlen(trimmedStr) + 1];
+
+							// combine them
+							strcpy(combined, target->getStr());
+							strcpy(combined + strlen(target->getStr()), trimmedStr);
+
+							target->setValue(combined);
+						}
+					} else if (target->type == CalcValue::NUM) {
+						if (val->type == CalcValue::STR) {
+
+							// convert the double to a string
+							char str[26];
+
+							snprintf(str, 26, "%*.*g", 10, 16, target->getNum());
+							char* trimmedStr = trimStr(str);
+
+							// allocate memory
+							char combined[strlen(trimmedStr) + strlen(val->getStr()) + 1];
+							// combine them
+							strcpy(combined, trimmedStr);
+							strcpy(&combined[strlen(trimmedStr)], val->getStr());
+
+							target->setValue(combined);
+
+						} else if (val->type == CalcValue::NUM)
+							target->number = target->number + val->number;
+					}
+					break;
+				case '-':
+					target->number = target->number - val->number;
+					break;
+				case '*':
+					target->number = target->number * val->number;
+					break;
+				case '/':
+					target->number = target->number / val->number;
+					break;
+			}
+
+		//trig functions
 		} else if (strcmp(p, "sin") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -2202,13 +2304,12 @@ push_into_arr:
 			// parse input
 			double number = atof(p);
 
-			// the user is an asshole :T
+			// the user is still learning
 			if (number == 0 && *p != '0' && (*p != '-' && *(p + 1) != '0')) {
-				std::cout <<"SYNTAX ERROR: p=\"" <<p <<"\" pInit=\"" <<pInit
-				          << "\"\nfreeme.size=" <<freeme.size() <<"\nrpnln=\"" <<rpnln <<"\"\n";
-				PASS_ERROR("\aSYNTAX ERROR: near <<`" <<p <<"`>>\n");
+				PASS_ERROR("\aSYNTAX ERROR: near `" <<p <<"`\nfirst token = `" <<pInit <<"`\nstklen = "
+                           <<mainStack.size() <<"\nrpnln=\"" <<rpnln <<"\"\n");
 
-				// the user has given us a number :D
+			// the user has given us a number
 			} else
 				mainStack.push(number);
 		}

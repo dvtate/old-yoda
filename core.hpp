@@ -81,6 +81,7 @@ void runFile(char* programFile, bool& errorReporting){
 		// used for line numbers in errors
 		line++;
 
+		// here there be bugs
 		if (getline(&rpnln, &lineLen, program) == -1) {
 			// prevent memory leaks...
 			//fclose(program); not needed as the file gets closed automatically

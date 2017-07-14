@@ -1,13 +1,12 @@
 #include <iostream>
 #include <stack>
 #include <cstring>
-
-#ifdef _WIN32
-#include "fuck_windows.h"
-#endif
-
 #include <cmath>
 #include <signal.h>
+
+
+// re-implemented getline()
+#include "fuck_windows.h"
 
 #include "string_stack.hpp"
 

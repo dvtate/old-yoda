@@ -3,12 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-
-// provided by fuck_windows.h
-#ifdef _WIN32
-	int getline(char**, size_t*, FILE*);
-#endif
-
+#include "fuck_windows.h"
 
 
 // resets the object to it's original state
