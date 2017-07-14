@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "fuck_windows.h"
-
 
 // resets the object to it's original state
 void StrStack::clear(){

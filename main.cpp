@@ -1,9 +1,8 @@
 #include <iostream>
 #include <stack>
-#include <cstring>
-#include <cmath>
+#include <string.h>
+#include <math.h>
 #include <signal.h>
-
 
 // re-implemented getline()
 #include "fuck_windows.h"
@@ -32,14 +31,6 @@ extern char* progName;
 void handle_sigint_file(int);
 void handle_sigint_shell(int);
 
-/*
-struct {
-	std::vector<UserVar>* nodes;
-	bool* elseStat;
-	bool* showErrors;
-	std::stack<CalcValue>* ms;
-} shell_vars;
-*/
 
 int main(int argc, char** argv){
 
@@ -51,6 +42,9 @@ int main(int argc, char** argv){
 	// shell
 	if (argc == 1) {
 
+		// seed random
+		srand(time(NULL));
+
 		// set up a namespace for variables
 		UserVar first_node(NULL, " ", 0.0);
 		first_node.first = &first_node;
@@ -59,6 +53,8 @@ int main(int argc, char** argv){
 		var_nodes.push_back(first_node);
 
 		bool elseStatement = false;
+
+		std::vector<void*> freeable;
 
 		// the most important component to the language
 		std::stack<CalcValue> mainStack;
@@ -75,7 +71,7 @@ int main(int argc, char** argv){
 
 		// process commands as they come in
 		for (;;)
-			runShell(var_nodes, showErrors, mainStack, elseStatement);
+			runShell(var_nodes, showErrors, mainStack, elseStatement, freeable);
 
 
 
@@ -93,8 +89,14 @@ int main(int argc, char** argv){
 
 		// file
 	} else {
+
+		// seed random
+		srand (time(NULL));
+
 		// this handles Ctrl+C
 		signal(SIGINT, handle_sigint_file);
+
+		// start file
 		runFile(argv[1], showErrors);
 
 

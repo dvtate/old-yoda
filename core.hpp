@@ -71,8 +71,14 @@ void runFile(char* programFile, bool& errorReporting){
 	var_nodes.push_back(first_node);
 
 	bool elseStatement = false;
+
+	std::vector<void*> freeable;
+
+
+
 	char *rpnln = (char*) malloc(256), *rpnln_head = rpnln;
 	size_t lineLen = 256;
+
 
 
 	// for each line in the programFile...
@@ -82,7 +88,7 @@ void runFile(char* programFile, bool& errorReporting){
 		line++;
 
 		// here there be bugs
-		if (getline(&rpnln, &lineLen, program) == -1) {
+		if (get_line(&rpnln, &lineLen, program) == -1) {
 			// prevent memory leaks...
 			//fclose(program); not needed as the file gets closed automatically
 			// I'd rather have some minor leak like this which cant cause issues
@@ -96,7 +102,7 @@ void runFile(char* programFile, bool& errorReporting){
 		char *errorToken = NULL;
 		// process the line
 		if ((errorToken =
-					 processLine(mainStack, var_nodes,errorReporting, rpnln, elseStatement, program))
+					 processLine(mainStack, var_nodes,errorReporting, rpnln, elseStatement, program, freeable))
 			&& errorReporting
 				) {
 
@@ -129,7 +135,7 @@ void runFile(char* programFile, bool& errorReporting){
 }
 
 bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReporting,
-			 std::stack<CalcValue>& mainStack, bool& elseStatement
+			 std::stack<CalcValue>& mainStack, bool& elseStatement, std::vector<void*>& freeable
 ) {
 
 	if (!prog_file)
@@ -157,7 +163,7 @@ bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReport
 		char* errorToken = NULL;
 		// process the line
 		if ((errorToken =
-					 processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, prog_file))
+					 processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, prog_file, freeable))
 			&& errorReporting
 				) {
 
@@ -202,7 +208,7 @@ cleanup_end:
 
 
 void runShell(std::vector<UserVar>& var_nodes, bool& errorReporting,
-			  std::stack<CalcValue>& mainStack, bool& elseStatement
+			  std::stack<CalcValue>& mainStack, bool& elseStatement, std::vector<void*> freeable
 ){
 
 	std::cout <<line++ <<">>> ";
@@ -221,7 +227,7 @@ void runShell(std::vector<UserVar>& var_nodes, bool& errorReporting,
 	char* rpnln_head = rpnln;
 
 	// process the line
-	bool errors = processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, stdin);
+	bool errors = processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, stdin, freeable);
 
 	if (errors)
 		emptyStack(mainStack);

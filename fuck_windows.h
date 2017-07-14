@@ -6,18 +6,18 @@
  * THE CIVILIZED WORLD? They make me implement my own function
  * just to make this cross-platform... SO SALTY... FML
  */
-#ifdef _WIN32
+//#ifdef _WIN32
 
 #include <stdlib.h>
 #include <stdio.h>
 
 
-int getline(char** lineptr, size_t* n, FILE* stream) {
+int get_line(char** lineptr, size_t* n, FILE* stream) {
 
-	char *bufptr = NULL,
+	char *bufptr,
 		 *p = bufptr;
 
-	ssize_t size;
+	size_t size;
 	int c;
 
 	// all parameters are required
@@ -43,7 +43,7 @@ int getline(char** lineptr, size_t* n, FILE* stream) {
 
 	while (c != EOF) {
 
-		if ((p - bufptr) > (size - 1)) {
+		if ((p - bufptr) > (size - 2)) {
 			size = size + 128;
 			bufptr = (char*) realloc(bufptr, size);
 			if (bufptr == NULL)
@@ -51,7 +51,7 @@ int getline(char** lineptr, size_t* n, FILE* stream) {
 		}
 
 		*p++ = c;
-		if (c == '\n')
+		if (c == '\n' || c == '\0')
 			break;
 
 		c = fgetc(stream);
@@ -66,6 +66,6 @@ int getline(char** lineptr, size_t* n, FILE* stream) {
 
 }
 
-#endif // _WIN32
+//#endif // _WIN32
 
 #endif // FUCK_WINDOWS_H
