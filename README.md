@@ -259,6 +259,8 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `is_defined`: returns whether or not the given variable is defined or not
   - `vars`, `ls_vars`: prints list of variables in all scopes plus debugging info
   - `typeof`: pushes string containing type of a value
+  - `+=`, `-=`, `*=`, `/=`, `<<=`, `>>=`: modified assignment operators
+  - `++`, `--`: increment/decrement operator
 
 * String operators:
   - `strlen`: returns the length of a given string
