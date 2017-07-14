@@ -352,8 +352,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.pop(); // behavior different than C/C++
 
 
-		} else if (strlen(p) == 2 && (*p == '+' || *p == '-' || *p == '*' || *p == '/') && *(p + 1) == '='
-			|| strlen(p) == 2 && *p == '<' || *p == '>') {
+		} else if ((strlen(p) == 2 && (*p == '+' || *p == '-' || *p == '*' || *p == '/') && *(p + 1) == '=')
+			|| (strlen(p) == 3 && (*p == '<' || *p == '>') && *p == *(p + 1) && *(p + 2) == '=')) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: not enough error for modified assignment")
 			}
@@ -449,6 +449,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					break;
 				case '/':
 					target->number = target->number / val->number;
+					break;
+				case '<':
+					target->number = (double) ((int) target->number << (int) target->number);
+					break;
+				case '>':
+					target->number = (double) ((int) target->number >> (int) target->number);
 					break;
 			}
 
