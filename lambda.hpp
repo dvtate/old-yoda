@@ -66,7 +66,7 @@ public:
 		ret.reserve(argc);
 		uint8_t param = 0;
 		for (uint8_t i = 0; i < argc; i++)
-			if (param + 1 < params.size())
+			if (param + 1U < (unsigned) params.size())
 				ret.push_back(param++);
 			else
 				ret.push_back(param);

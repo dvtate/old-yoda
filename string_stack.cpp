@@ -212,6 +212,8 @@ namespace strstk {
 			}
 
 		}
+		delete ret;
+		return NULL;
 
 	}
 

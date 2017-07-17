@@ -35,7 +35,7 @@ public:
 	}
 
 	UserVar(UserVar* firstn, const char* const identifier, CalcValue contents):
-			first(firstn), next((UserVar*) NULL), val(contents)
+			val(contents), first(firstn), next((UserVar*) NULL)
 	{
 		strncpy(name, identifier, USERVAR_NAME_MAXLENGTH - 1);
 	}

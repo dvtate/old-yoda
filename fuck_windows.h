@@ -14,10 +14,9 @@
 
 int get_line(char** lineptr, size_t* n, FILE* stream) {
 
-	char *bufptr,
-		 *p = bufptr;
+	char *bufptr, *p;
 
-	size_t size;
+	ssize_t size;
 	int c;
 
 	// all parameters are required

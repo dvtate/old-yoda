@@ -363,7 +363,7 @@ public:
 		CalcValue* ret = this;
 
 		for (ssize_t i : elem_index) {
-			if (ret->list->size() <= i || ret->list->size() < abs(i)) {
+			if ((ssize_t) ret->list->size() <= i || (ssize_t) ret->list->size() < abs(i)) {
 				return NULL;
 			}
 			ret = i < 0 ?
@@ -391,7 +391,7 @@ public:
 
 		CalcValue* ret = this;
 		for (uint16_t i = 0; i < elem_index.size() - 1; i++) {
-			if (ret->list->size() <= elem_index[i] || ret->list->size() < abs(elem_index[i])) {
+			if ((ssize_t) ret->list->size() <= elem_index[i] || (ssize_t) ret->list->size() < abs(elem_index[i])) {
 				return false;
 			}
 			ret = elem_index[i] < 0 ?

@@ -585,7 +585,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			mainStack.push(strstr(haystack, needle));
 
-			// case-insensitive strstr
+		// case-insensitive strstr
 		} else if (strcmp(p, "stristr") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
@@ -612,6 +612,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			mainStack.push(strstr(haystack, needle));
 
+		// remove leading and triling
 		} else if (strcmp(p, "trim") == 0) {
 
 			ASSERT_NOT_EMPTY(p);
@@ -743,9 +744,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					PASS_ERROR("\aERROR: char_at expected a string and a numerical index\n");
 				}
 
-				int i = mainStack.top().number;
+				ssize_t i = mainStack.top().number;
 
-				if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
+				if ((size_t) abs(i) > strlen(mainStack.top().string) || i == (ssize_t) strlen(mainStack.top().string)) {
 					PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
 				}
 				mainStack.pop();
@@ -759,7 +760,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			} else if (mainStack.top().type == CalcValue::NUM) {
 
-				int i = mainStack.top().number;
+				ssize_t i = mainStack.top().number;
+
 				mainStack.pop();
 				CONVERT_INDEX(mainStack, var_nodes);
 				CONVERT_REFS(mainStack, var_nodes);
@@ -769,7 +771,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				}
 
 				char chr[2];
-				if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
+				if ((size_t) abs(i) > strlen(mainStack.top().string) || i == (ssize_t) strlen(mainStack.top().string)) {
 					PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
 				}
 				chr[0] = mainStack.top().string[i >= 0 ? i : strlen(mainStack.top().string) + i];
@@ -803,7 +805,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				mainStack.pop();
 
 				// assert index in range
-				if (abs(i) > strlen(tmp) || i == strlen(tmp)) {
+				if (abs(i) > (ssize_t) strlen(tmp) || i == (ssize_t) strlen(tmp)) {
 					PASS_ERROR("\aERROR: del_char: index `" << i << "` out of bounds\n");
 				}
 
@@ -812,13 +814,13 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				mainStack.push(tmp);
 
 
-			} else if (mainStack.top().type == CalcValue::NUM) {
+			} else if (mainStack.top().type == CalcValue::NUM)  {
 				// get index
-				int i = (int) mainStack.top().number;
+				ssize_t i = (ssize_t) mainStack.top().number;
 				mainStack.pop();
 
 				// check range of index
-				if (abs(i) > strlen(mainStack.top().string) || i == strlen(mainStack.top().string)) {
+				if (abs(i) > (ssize_t) strlen(mainStack.top().string) || i == (ssize_t) strlen(mainStack.top().string)) {
 					PASS_ERROR("\aERROR: del_char: index `" << i << "` out of bounds\n");
 				}
 
@@ -829,6 +831,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					PASS_ERROR("\aERROR: del_char expected a string and a numerical index");
 				}
 
+				// calls delete char on the CV in ms.top(), if index is negative then start from reverse
 				char* str = mainStack.top().string;
 				deleteChar(i >= 0 ? i + str : str + strlen(str) + i);
 
@@ -838,7 +841,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if (*p == '#')
 			break; // ignore rest of line
 
-		// literals
+		// constants
 		else if (strcmp(p, "pi") == 0)
 			mainStack.push(M_PI); // defined in math.h
 		else if (*p == 'e' && *(p + 1) == '\0')
@@ -1496,7 +1499,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					uint16_t i;
 					for (i = 0; i < paramBindings.size(); i++) {
 						// ending w/ var_args
-						if (i + 1 < paramBindings.size() && paramBindings[i] == paramBindings[i + 1]) { // va_args
+						if (i + 1U < paramBindings.size() && paramBindings[i] == paramBindings[i + 1]) { // va_args
 							//std::cout <<"filling va_arg1\n";
 							std::vector<CalcValue> args;
 							for (; i < paramBindings.size(); i++)
