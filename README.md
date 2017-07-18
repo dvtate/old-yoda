@@ -244,8 +244,8 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `asinh`, `acosh`, `atanh`: inverse hyperbolic trigonometric functions (radians)
 
 * Logical operators: (0 is false everything else is true)
-  - `&&`: logical-and
-  - `||`: logical-or
+  - `&&`: logical-and (use macro enclosed boolean expressions for short-circuit logic)
+  - `||`: logical-or (use macro enclosed boolean expressions for short-circuit logic)
   - `!`: logical-not
   - `!=`: logical-XOR
 
