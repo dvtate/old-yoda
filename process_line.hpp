@@ -10,6 +10,10 @@
 #include <math.h>
 #include <inttypes.h>
 
+// sleep
+#include <chrono>
+#include <thread>
+
 // this is the class used in our stack
 #include "calc_value.hpp"
 
@@ -1852,7 +1856,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if (strcmp(p, "for-each") == 0 || strcmp(p, "foreach") == 0) {
 			// we have at least 3 things... the first is a reference
 			if (mainStack.size() < 3 || mainStack.top().type != CalcValue::REF) {
-				PASS_ERROR("\aERROR: malformed for-each statement \n correct format: `{ process } list $var for-each`\n" <<std::endl);
+				PASS_ERROR("\aERROR: malformed for-each statement \n correct format: `{ process } list $var for-each`\n"
+						           << std::endl);
 			}
 
 			// if it hasn't been assigned yet..
@@ -1864,7 +1869,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			UserVar iterator_scope(NULL, " ", CalcValue());
 			var_nodes.push_back(iterator_scope);
-			UserVar* var = vars::assignVar(var_nodes, mainStack.top().string, CalcValue());
+			UserVar *var = vars::assignVar(var_nodes, mainStack.top().string, CalcValue());
 
 			// get list
 			mainStack.pop();
@@ -1872,7 +1877,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CONVERT_REFS(mainStack, var_nodes);
 
 			if (mainStack.top().type != CalcValue::BLK && mainStack.top().type != CalcValue::ARR) {
-				PASS_ERROR("\aERROR: malformed for-each statement \n correct format: `{ process } $list $var for-each`\n" <<std::endl);
+				PASS_ERROR(
+						"\aERROR: malformed for-each statement \n correct format: `{ process } $list $var for-each`\n"
+								<< std::endl);
 			}
 
 			if (mainStack.top().type == CalcValue::BLK) {
@@ -1885,7 +1892,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				CONVERT_INDEX(mainStack, var_nodes);
 				CONVERT_REFS(mainStack, var_nodes);
 				if (mainStack.top().type != CalcValue::BLK) {
-					PASS_ERROR("\aERROR: malformed for-each statement \n correct format: `{ process } { list } $var for-each`\n");
+					PASS_ERROR(
+							"\aERROR: malformed for-each statement \n correct format: `{ process } { list } $var for-each`\n");
 				}
 
 				StrStack process(*mainStack.top().block);
@@ -1905,13 +1913,14 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				CONVERT_INDEX(mainStack, var_nodes);
 				CONVERT_REFS(mainStack, var_nodes);
 				if (mainStack.top().type != CalcValue::BLK) {
-					PASS_ERROR("\aERROR: malformed for-each statement \n correct format: `{ process } (list) $var for-each`\n");
+					PASS_ERROR(
+							"\aERROR: malformed for-each statement \n correct format: `{ process } (list) $var for-each`\n");
 				}
 
 				StrStack process(*mainStack.top().block);
 				mainStack.pop();
 
-				for (CalcValue& cv : vec) {
+				for (CalcValue &cv : vec) {
 					var->val = cv;
 					RUN_STR_STK(process, mainStack);
 				}
@@ -1921,6 +1930,17 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			// clear the iterator scope
 			vars::wipeAll(&iterator_scope);
 			var_nodes.pop_back();
+
+		// sleep fxn
+		} else if (strcmp(p, "sleep") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+
+			// accepts miliseconds but has microsecond accuracy
+			std::this_thread::sleep_for(std::chrono::microseconds((unsigned) (1000 * mainStack.top().number)));
+			mainStack.pop();
+
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
 		           || !strcmp(p, "exit") || !strcmp(p, "quit")
