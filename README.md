@@ -26,12 +26,10 @@ YodaScript is a stack-based language based on reverse polish notation.
   + dynamically typed, dynamically scoped
   + ANSI terminal color functions (soon to be an external library) 
   + lambdas (first-class functions) through the lambda keyword
-  
-- Features currenctly under development:
   + optional parameters and va_args
   
 - Some features which I plan on implementing (top to bottom):
-  + OOP (using an intermediate scoping type similar to the INX type)
+  + OOP (using an intermediate scoping type similar to the `CalcValue::INX` type)
   + extending the language using C++ (using .so's and perhapse remote repos)
   + concurrency (if possible) (perhaps w/ std::thread)
   + dictionaries
@@ -43,7 +41,7 @@ YodaScript is a stack-based language based on reverse polish notation.
     
 # Supported Types/Literals:
 * Strings: `"literal enclosed in quotes"` : text
-* Numbers: `1 1.0 inf 1e-4`: numerical values
+* Numbers: `1 1.0 inf 1e-4`: numerical values, or `true`=1/`false`=0
 * Null: `null`: a placeholder for a lack of a value
 * Reference: `$var`: a reference to another piece of data (or another reference)
 * Macro/Block/Stack: `{ }`: a container of code/values which can be run (similar to functions)
@@ -54,14 +52,14 @@ YodaScript is a stack-based language based on reverse polish notation.
 # How to use (note- may be out of date)
  - <b>Comments:</b>
    Anything after the `#` symbol will be ignored.
-   ```
+   ```Tcl
    >>> 32 # this is a comment
    32
    ```
 
  - <b>Binary operators:</b>
   Place the operator after it's two operands.
-   ```
+   ```Tcl
    >>> 1 2 +    # 1 + 2
    3
    >>> 2 5 **   # 2 ^ (5)
@@ -70,7 +68,7 @@ YodaScript is a stack-based language based on reverse polish notation.
 
  - <b>Unary operators:</b>
   place the unary operator/funciton behind it's parameter
-  ```
+  ```tcl
   >>> 100 log   # log10(100)
   2
   >>> 0.5 sin   # sine of 0.5 radians
@@ -79,33 +77,33 @@ YodaScript is a stack-based language based on reverse polish notation.
 
  - <b>Combining operators:</b>
   One of postfix notation's main strengths is that it eliminates the need for parenthases. Simply combine operators in a way that would lead to them being performed sequentially.
-  ```
+  ```tcl
   >>> 1 1 + 2 *    # (1 + 1) * 2  
   4
   ```
  - <b>Variables:</b>
   Variables are created as soon as you start using them. All variable names must start with a `$` to prevent them from clashing with other keywords and literals. Here's an example:
-```
+```tcl
  >>> $a 4 =
  >>> $a print
  4
 ```
   Variables are references to data, variables can reference eachother. Changing the value of a reference changes the value  of it's referenced variable.  If you want to make a deep copy, use the copy operator (`~`). Also, note: this language uses dynamic scope resolution and variables are deleted as they go out of scope. If 2 variables in different scopes have the same name, the one in the more specific scope will be used.
-```
+```tcl
 >>> $a 8 =    # now $a is a reference to the number 8
 >>> $b $a =   # now $b is a reference to $a and $a is a reference to the number 8
 >>> $b $a ~ = # now they are both references to the number 8
 ```
  - <b>Strings:</b>
   This is a loosely-typed language. Strings are enclosed in double quotes `"` and only need a closing `"` if it would change the meaning without it. (ie - end-of-line automatically adds a '\n' and ends the quote)
- ```
+ ```tcl
  >>> "hello " "there" + $a = # notice that the `+` operator is overloaded
  >>> $a print
  hello there
  ```
  - <b>Macros:</b>
   Depending on the context these are also called anonymous subroutines. They are containers of code and function like most other data, working with operators. You can run the code in one with the `@` operator.
-  ```
+  ```tcl
   >>> $mySub {
     "hello there" print
     $a 5 =
@@ -120,13 +118,13 @@ YodaScript is a stack-based language based on reverse polish notation.
   Loops can be used to repeat the code a number of times. This language has several types of loops built in.
   - <b>Repeat Loops:</b>
    runs code <i>n</i> times
-   ```
+   ```tcl
    >>> { "ha" print } 5 repeat
    hahahahaha
    ```
   - <b>While Loops:</b>
    runs core while a condition is met (checks before each cycle)
-   ```
+   ```tcl
    >>> $count 0 =    # set $count to 0
    >>> {
        "count is " $count + println
@@ -140,7 +138,7 @@ YodaScript is a stack-based language based on reverse polish notation.
    ```
   - <b>for-each Loops:</b>
    assigns a variable to each element in an execuatable array
-   ```
+   ```tcl
    1>>> {
 	     $num print  
    } { 4 3 2 1 0 } $num for-each
@@ -148,7 +146,7 @@ YodaScript is a stack-based language based on reverse polish notation.
    ```
  - <b>Conditionals:</b>
   These can be used to run code if a condition is met
-  ```
+  ```tcl
   >>> "Enter GPA: " print $gpa input int =
   Enter GPA: 4
   >>> #this first method is syntactic sugar and slower than the second
@@ -168,14 +166,14 @@ YodaScript is a stack-based language based on reverse polish notation.
   ```
  - <b>Lists:</b>
   lists hold multiple pieces of data in one container. They contain diverse types and are handled like any other data.
-  ```
+  ```tcl
   >>> # use the get operator to get the value at an index of a list
   >>> (1,"hello",{ "hi" print }) 1 get println
   hello
   ```
  - <b>Lambdas:</b>
   Lambdas are equivalent to functions in javascript.
-  ```
+  ```tcl
   >>> { $a print } ($a) lambda $fxn =
   >>> ("hello") $fxn @ # calling the lambda
   hello
@@ -183,10 +181,43 @@ YodaScript is a stack-based language based on reverse polish notation.
   >>> # return pushes the last value and ends the lambda
   >>> { 5 return } () lambda @ print
   5
-  >>> # break stops the lambda and pushes the entire stack
+  >>> # break stops the lambda and carries the entire stack
   >>> { 4 5 break } () lambda @ + print
   9 
 ```
+  - <b>Missing handlers:</b>
+   These will run a macro if the parameter isn't provided as an argument. 
+   ```tcl
+   >>> {
+        { $msg println } 
+            $msg is_defined if
+   } (($msg, {
+       "missing $msg" println 
+   })) lambda $echo =
+
+   >>> ("hi") $echo @
+   hi
+   >>> $echo @
+   missing $msg
+   >>> () $echo @
+   missing $msg
+```
+  - <b>Variable Arguments list:</b>
+   If you have a function which needs to accept a variable number of arguments (ie - [printf](examples/printf.ys)), you can end your parameters list with a variable enclosed in a list, denoting a variable arguments list. If not called on anything, the variable is assigned to an empty list. 
+   ```tcl
+   >>> {
+        $total 0 = 
+        { $total $n += } 
+            $vals $n foreach
+        $total return
+    }  (($vals)) lambda $sum =
+    >>> (1,2,3) $sum @
+    6
+    >>> $sum @
+    0
+```
+   
+
 
 # An incomplete list of built-in operators, functions, constants, etc.:
 * Constants:
