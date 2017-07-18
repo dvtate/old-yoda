@@ -141,7 +141,7 @@ YodaScript is a stack-based language based on reverse polish notation.
    ```tcl
    1>>> {
 	     $num print  
-   } { 4 3 2 1 0 } $num for-each
+   } (0, 1, 2, 3, 4) $num foreach
    01234
    ```
  - <b>Conditionals:</b>
@@ -322,7 +322,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   
 * Structure-Equivalent Operators:
   - `else`, `elseif`, `if`: conditional operators
-  - `repeat`, `while`, `for-each`: looping operators
+  - `repeat`, `while`, `foreach`: looping operators
 
 * Interpreter Commands
   - `q`, `exit`, `quit`: stops interpretation of the script
