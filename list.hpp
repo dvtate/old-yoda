@@ -88,7 +88,7 @@ namespace list {
 				arrBody += codeLine;
 				*str = ' ';
 				free(codeLine);
-				printf(str);
+				printf("%s", str);
 				return arrBody;
 			}
 
