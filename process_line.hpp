@@ -2308,7 +2308,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			size_t size = 512;
 			char* macro = (char*) malloc(size);
 			mainStack.top().block->toString(&macro, &size);
-			printf(macro);
+			printf("%s", macro);
 			free(macro);
 
 		// retarded users...
