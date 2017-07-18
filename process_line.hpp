@@ -1459,8 +1459,10 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				//ASSERT_NOT_EMPTY(p);
 				if (!mainStack.empty()) {
 					CONVERT_INDEX(mainStack, var_nodes);
-					CONVERT_REFS(mainStack, var_nodes);
+					//CONVERT_REFS(mainStack, var_nodes); // could cause problems later on
 				}
+				if (mainStack.top().type != CalcValue::ARR)
+					mainStack.push(std::vector<CalcValue>());
 
 				std::vector<int16_t> paramBindings;
 				if (!mainStack.empty())
@@ -1562,7 +1564,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 						// handle each undefined variable
 						for (; i < top.lambda->params.size(); i++) {
-							//std::cout <<"Handling missing param `" <<top.lambda->params.at(i) <<"` cs=" <<top.lambda->countSpaces(i) <<std::endl;
+							//std::cout <<"ignoring missing handler `" <<top.lambda->params.at(i) <<"` cs=" <<top.lambda->countSpaces(i) <<std::endl;
 							// handle undefined optional params
 							if (top.lambda->countSpaces(i) == 2) {
 								// variable doesnt get defined here but handler gets run
@@ -1593,7 +1595,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				} else if (top.lambda->params.size()) {
 					// handle each undefined variable
 					for (unsigned int i = 0; i < top.lambda->params.size(); i++) {
-						std::cout <<"Handling missing param `" <<top.lambda->params.at(i) <<"` cs=" <<top.lambda->countSpaces(i) <<std::endl;
+						//std::cout <<"Handling missing param `" <<top.lambda->params.at(i) <<"` cs=" <<top.lambda->countSpaces(i) <<std::endl;
 						// handle undefined optional params
 						if (top.lambda->countSpaces(i) == 2) {
 							// variable doesnt get defined here but handler gets run
@@ -1931,9 +1933,13 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 		// exit the lambda and only leave the top on the stack
 		} else if (strcmp(p, "return") == 0) {
-			CalcValue top = mainStack.top();
-			emptyStack(mainStack);
-			mainStack.push(top);
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+			if (!mainStack.empty()) {
+				CalcValue top = mainStack.top();
+				emptyStack(mainStack);
+				mainStack.push(top);
+			}
 			return (char*) lambda_finish;
 
 		// show help
