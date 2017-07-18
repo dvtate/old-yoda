@@ -150,17 +150,11 @@ YodaScript is a stack-based language based on reverse polish notation.
   >>> "Enter GPA: " print $gpa input int =
   Enter GPA: 4
   >>> #this first method is syntactic sugar and slower than the second
-  >>> { "You can do better than that." println } else
-  { "That's good enough for me." println } $gpa 3 >= elseif
-  { "Woooooooooooow!" println } $gpa 4 >= if
-  Woooooooooooow!
-
-  >>> # this method has better performance but gets ugly quick
-  >>> {
-      { "You can do better than that." println } else
-      { "That's good enough for me." println } $gpa 3 >= if
-  } else {
-      "Woooooooooooow!" println
+  >>> { "You can do better than that." println 
+  } else { 
+      "That's good enough for me." println 
+  } $gpa 3 >= elseif { 
+      "Woooooooooooow!" println 
   } $gpa 4 >= if
   Woooooooooooow!
   ```
