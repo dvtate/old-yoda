@@ -6,13 +6,13 @@
  * THE CIVILIZED WORLD? They make me implement my own function
  * just to make this cross-platform... SO SALTY... FML
  */
-//#ifdef _WIN32
+#ifdef _WIN32
 
 #include <stdlib.h>
 #include <stdio.h>
 
 
-int get_line(char** lineptr, size_t* n, FILE* stream) {
+int getline(char** lineptr, size_t* n, FILE* stream) {
 
 	char *bufptr, *p;
 
@@ -65,6 +65,6 @@ int get_line(char** lineptr, size_t* n, FILE* stream) {
 
 }
 
-//#endif // _WIN32
+#endif // _WIN32
 
 #endif // FUCK_WINDOWS_H

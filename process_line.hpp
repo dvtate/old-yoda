@@ -396,7 +396,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		// short-circuit ||
 		} else if (strcmp(p, "||") == 0) {
 			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit or) expected 2 boolean expressions/macros\n");
+				PASS_ERROR("\aERROR: `" << p << "` (short-circuit or) expected 2 boolean expressions/macros\n");
 			}
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
@@ -427,7 +427,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 						else
 							mainStack.push(1.0);
 					} else {
-						PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit or) expected a boolean expression/macro\n");
+						PASS_ERROR("\aERROR: `" << p << "` (short-circuit or) expected a boolean expression/macro\n");
 					}
 				}
 
@@ -455,18 +455,16 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 						else
 							mainStack.push(1.0);
 					} else {
-						PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit and) expected a boolean expression/macro\n");
+						PASS_ERROR("\aERROR: `" << p << "` (short-circuit and) expected a boolean expression/macro\n");
 					}
 				}
 
 
-
 			} else {
-				PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit and) expected a boolean expression/macro\n");
+				PASS_ERROR("\aERROR: `" << p << "` (short-circuit and) expected a boolean expression/macro\n");
 			}
 
-
-			// ++ | --
+		// ++ | --
 		} else if (strlen(p) == 2 && (*p == '+' || *p == '-') && *(p + 1) == *p) {
 			ASSERT_NOT_EMPTY(p);
 			if (mainStack.top().type != CalcValue::REF) {

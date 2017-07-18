@@ -6,7 +6,7 @@
 // ansi colors not supported on windows < 10
 #include "fuck_windows.h"
 
-#define YODA_LANG_VERSION "YodaScript - v0.1.0-beta"
+#define YODA_LANG_VERSION "YodaScript - v0.1.3-beta"
 
 
 // I got this value from `$ lolcat -f -S 27 -F 0.27 ver_info.txt > color.txt && xxd -i color.txt > version_info.h && rm color.txt`
@@ -811,6 +811,7 @@ inline void printVersionInfo(){
 	printf("Compiled: %s\n", __DATE__);
 
 	// Windows 10 is the only windows OS to support ANSI color codes...
+	// and even then... its not all that
 #ifndef _WIN32
 	printf("%s", ver_inf_txt);
 

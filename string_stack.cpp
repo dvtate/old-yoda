@@ -4,6 +4,10 @@
 #include <string.h>
 
 
+#ifdef _WIN32
+	int getline(char** lineptr, size_t* n, FILE* stream);
+#endif
+
 // resets the object to it's original state
 void StrStack::clear(){
 
