@@ -154,7 +154,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		      || *p == '|' || *p == '&' || *p == '^' || *p == '>' || *p == '<')
 		     && *(p + 1) == '\0')
 		    || !strcmp(p, "<<") || !strcmp(p, ">>") || !strcmp(p, "**")
-		    || !strcmp(p, "&&") || !strcmp(p, "||") // logical operators
 		    || !strcmp(p, "<=") || !strcmp(p, ">=")
 		    || !strcmp(p, "logBase") || !strcmp(p, "logbase")
 		    || !strcmp(p, "pow") // for those who dont like "**"
@@ -192,19 +191,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				case '-': mainStack.push(a - b); break;
 				case '%': mainStack.push((int) a % (int) b); break;
 				case '^': mainStack.push((int) a ^ (int) b); break;
-				case '|':
-					if (*(p + 1) == '\0') // bitwise
-						mainStack.push((int) a | (int) b);
-					else // logical
-						mainStack.push(a || b);
-					break;
-
-				case '&':
-					if (*(p + 1) != '\0')
-						mainStack.push(a && b);
-					else
-						mainStack.push((int) a & (int) b);
-					break;
+				case '|': mainStack.push((int) a | (int) b); break;
+				case '&': mainStack.push((int) a & (int) b); break;
 
 				case '<':
 					switch (*(p + 1)) {
@@ -323,7 +311,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CONVERT_REFS(mainStack, var_nodes);
 			mainStack.top() = !(mainStack.top() == a);
 
-			// logical not operator
+		// logical not operator
 		} else if (*p == '!' && *(p + 1) == '\0') {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -331,7 +319,154 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			mainStack.push((getNextValue(mainStack).getNum() == 0));
 
-		// ++ | --
+		// short-circuit &&
+		} else if (strcmp(p, "&&") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit and) expected 2 boolean expressions/macros\n");
+			}
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+			CalcValue v2 = mainStack.top();
+			mainStack.pop();
+
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+			CalcValue v1 = mainStack.top();
+			mainStack.pop();
+
+			if (v1.type == CalcValue::NUM) {
+				if (v1.number == 0)
+					mainStack.push(0.0);
+				else {
+					if (v2.type == CalcValue::NUM) {
+						if (v2.number == 0)
+							mainStack.push(0.0);
+						else
+							mainStack.push(1.0);
+					} else if (v2.type == CalcValue::BLK) {
+						std::stack<CalcValue> condStack;
+
+						RUN_STR_STK(*v2.block, condStack);
+						// if condition evaluates to false (or doesnt give a value)
+						if (condStack.empty() || !condStack.top().getNum())
+							mainStack.push(0.0);
+						else
+							mainStack.push(1.0);
+					} else {
+						PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit and) expected a boolean expression/macro\n");
+					}
+				}
+
+			} else if (v1.type == CalcValue::BLK) {
+
+				std::stack<CalcValue> condStack;
+
+				RUN_STR_STK(*v1.block, condStack);
+				// if condition evaluates to false (or doesnt give a value)
+				if (condStack.empty() || !condStack.top().getNum())
+					mainStack.push(0.0);
+				else {
+					if (v2.type == CalcValue::NUM) {
+						if (v2.number == 0)
+							mainStack.push(0.0);
+						else
+							mainStack.push(1.0);
+					} else if (v2.type == CalcValue::BLK) {
+						std::stack<CalcValue> condStack;
+
+						RUN_STR_STK(*v2.block, condStack);
+						// if condition evaluates to false (or doesnt give a value)
+						if (condStack.empty() || !condStack.top().getNum())
+							mainStack.push(0.0);
+						else
+							mainStack.push(1.0);
+					} else {
+						PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit and) expected a boolean expression/macro\n");
+					}
+				}
+
+
+
+			} else {
+				PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit or) expected a boolean expression/macro\n");
+			}
+
+
+
+		// short-circuit ||
+		} else if (strcmp(p, "||") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit or) expected 2 boolean expressions/macros\n");
+			}
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+			CalcValue v2 = mainStack.top();
+			mainStack.pop();
+
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+			CalcValue v1 = mainStack.top();
+			mainStack.pop();
+
+			if (v1.type == CalcValue::NUM) {
+				if (v1.number != 0)
+					mainStack.push(1.0);
+				else {
+					if (v2.type == CalcValue::NUM) {
+						if (v2.number == 0)
+							mainStack.push(0.0);
+						else
+							mainStack.push(1.0);
+					} else if (v2.type == CalcValue::BLK) {
+						std::stack<CalcValue> condStack;
+
+						RUN_STR_STK(*v2.block, condStack);
+						// if condition evaluates to false (or doesnt give a value)
+						if (condStack.empty() || !condStack.top().getNum())
+							mainStack.push(0.0);
+						else
+							mainStack.push(1.0);
+					} else {
+						PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit or) expected a boolean expression/macro\n");
+					}
+				}
+
+			} else if (v1.type == CalcValue::BLK) {
+
+				std::stack<CalcValue> condStack;
+
+				RUN_STR_STK(*v1.block, condStack);
+				// if condition evaluates to false (or doesnt give a value)
+				if (!condStack.empty() && condStack.top().getNum())
+					mainStack.push(1.0);
+				else {
+					if (v2.type == CalcValue::NUM) {
+						if (v2.number == 0)
+							mainStack.push(0.0);
+						else
+							mainStack.push(1.0);
+					} else if (v2.type == CalcValue::BLK) {
+						std::stack<CalcValue> condStack;
+
+						RUN_STR_STK(*v2.block, condStack);
+						// if condition evaluates to false (or doesnt give a value)
+						if (condStack.empty() || !condStack.top().getNum())
+							mainStack.push(0.0);
+						else
+							mainStack.push(1.0);
+					} else {
+						PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit and) expected a boolean expression/macro\n");
+					}
+				}
+
+
+
+			} else {
+				PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit and) expected a boolean expression/macro\n");
+			}
+
+
+			// ++ | --
 		} else if (strlen(p) == 2 && (*p == '+' || *p == '-') && *(p + 1) == *p) {
 			ASSERT_NOT_EMPTY(p);
 			if (mainStack.top().type != CalcValue::REF) {
