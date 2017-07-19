@@ -33,7 +33,7 @@
 
 
 extern char* progName;
-
+extern FILE* program;
 
 // error's if the stack is empty
 #define ASSERT_NOT_EMPTY(OPERATOR)\
@@ -107,7 +107,7 @@ extern char* progName;
 \
 		/* run the temp file */\
 		if (runFile(statement, var_nodes, showErrors, (STACK), elseStatement, freeable)) {\
-			PASS_ERROR("\aERROR: @ (exec operator) failed\n");\
+			PASS_ERROR("\aERROR: macro execution failed\n");\
 		}\
 		\
 \
@@ -477,7 +477,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (var_val->type != CalcValue::NUM) {
 				PASS_ERROR("\aIncrement/decrememnt expected a numerical variable\n");
 			}
-			var_val->number = var_val->number + *p == '+' ? 1 : -1;
+			var_val->number += *p == '+' ? 1 : -1;
 
 			mainStack.pop(); // behavior different than C/C++
 
