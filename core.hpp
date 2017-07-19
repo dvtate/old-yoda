@@ -76,8 +76,9 @@ void runFile(char* programFile, bool& errorReporting){
 
 
 
-	char *rpnln = (char*) malloc(256), *rpnln_head = rpnln;
-	size_t lineLen = 256;
+	char* rpnln = NULL;
+	char* rpnln_head = rpnln;
+	size_t lineLen = 0;
 
 
 
@@ -87,15 +88,13 @@ void runFile(char* programFile, bool& errorReporting){
 		// used for line numbers in errors
 		line++;
 
-		// here there be bugs
-		if (getline(&rpnln, &lineLen, program) == -1) {
-			// prevent memory leaks...
-			//fclose(program); not needed as the file gets closed automatically
-			// I'd rather have some minor leak like this which cant cause issues
-			// than a segfault that everyone can see...
+		rpnln = rpnln_head;
 
-			return; // EOF
+		// here there be bugs
+		if (getline(&rpnln, &lineLen, program) == -1) { // EOF
+			return;
 		}
+
 		// I need a copy of it to call free() on later.
 		rpnln_head = rpnln;
 
@@ -122,9 +121,10 @@ void runFile(char* programFile, bool& errorReporting){
 			//color_fputs(stderr, "^\n", 255, 0, 0);
 
 			// windows sucks :P
-#ifdef _WIN32
-			std::cin.ignore();
-#endif
+			#ifdef _WIN32
+				std::cin.ignore();
+			#endif
+
 			// you're dead :P
 			exit(EXIT_FAILURE);
 
@@ -153,6 +153,7 @@ bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReport
 		// used for line numbers in errors
 		local_line++;
 
+		rpnln = rpnln_head;
 		if (getline(&rpnln, &lineLen, prog_file) == -1) {
 			//free(rpnln);
 			return false; // EOF
