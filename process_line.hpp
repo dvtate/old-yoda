@@ -20,7 +20,6 @@
 // user defined variables
 #include "user_variables.hpp"
 
-
 // some useful functions
 #include "utils.hpp"
 
@@ -30,10 +29,17 @@
 // lists
 #include "list.hpp"
 
+// macros
+#include "string_stack.hpp"
 
 
 extern char* progName;
 extern FILE* program;
+
+
+extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReporting,
+                            std::stack<CalcValue>& mainStack, bool& elseStatement, std::vector<void*>& freeable);
+
 
 // error's if the stack is empty
 #define ASSERT_NOT_EMPTY(OPERATOR)\
@@ -106,8 +112,11 @@ extern FILE* program;
 		var_nodes.push_back(first_node);\
 \
 		/* run the temp file */\
-		if (runFile(statement, var_nodes, showErrors, (STACK), elseStatement, freeable)) {\
+		macro::ret_t ret = runFile(statement, var_nodes, showErrors, (STACK), elseStatement, freeable);\
+		if (ret == macro::ERROR) {\
 			PASS_ERROR("\aERROR: macro execution failed\n");\
+		} else if (ret == macro::RETURN || ret == macro::BREAK) {\
+			return (char*) lambda_finish;\
 		}\
 		\
 \
@@ -117,10 +126,6 @@ extern FILE* program;
 		fclose(statement);\
 	}
 
-
-extern bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReporting,
-                    std::stack<CalcValue>& mainStack, bool& elseStatement, std::vector<void*>& freeable
-);
 
 /// returns: location/source of error or NULL
 /// params: environment/operation variables
@@ -882,22 +887,22 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				}
 
 				ssize_t i = mainStack.top().number;
-
-				if ((size_t) abs(i) > strlen(mainStack.top().string) || i == (ssize_t) strlen(mainStack.top().string)) {
-					PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
-				}
 				mainStack.pop();
 
-				char chr[2];
+				if ((size_t) abs(i) > strlen(tmp) || i == (ssize_t) strlen(tmp)) {
+					//PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
+					mainStack.push(CalcValue());
+				} else {
+					char chr[2];
 
-				// negative index starts from back
-				chr[0] = tmp[i >= 0 ? i : strlen(tmp) + i];
-				chr[1] = '\0';
-				mainStack.push(chr);
-
+					// negative index starts from back
+					chr[0] = tmp[i >= 0 ? i : strlen(tmp) + i];
+					chr[1] = '\0';
+					mainStack.push(chr);
+				}
 			} else if (mainStack.top().type == CalcValue::NUM) {
 
-				ssize_t i = mainStack.top().number;
+				ssize_t i = (ssize_t) mainStack.top().number;
 
 				mainStack.pop();
 				CONVERT_INDEX(mainStack, var_nodes);
@@ -908,13 +913,18 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				}
 
 				char chr[2];
-				if ((size_t) abs(i) > strlen(mainStack.top().string) || i == (ssize_t) strlen(mainStack.top().string)) {
-					PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
-				}
-				chr[0] = mainStack.top().string[i >= 0 ? i : strlen(mainStack.top().string) + i];
-				mainStack.pop();
-				mainStack.push(chr);
 
+				if ((size_t) abs(i) > strlen(mainStack.top().string) || i == (ssize_t) strlen(mainStack.top().string)) {
+					//PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
+					mainStack.pop();
+					mainStack.push(CalcValue()); // returns null on error
+				} else {
+
+					chr[0] = mainStack.top().string[i >= 0 ? i : strlen(mainStack.top().string) + i];
+					chr[1] = '\0';
+					mainStack.pop();
+					mainStack.push(chr);
+				}
 			}
 
 			// delete a char from a string at an index
@@ -1122,6 +1132,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				input[strlen(input) - 1] = '\0';
 
 			mainStack.push(input);
+			freeable.push_back(input);
 
 			free(input);
 
@@ -1763,7 +1774,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				}
 
 
-
 				// put the statement in a string
 				size_t buff_size = 500;
 				char* buff = (char*) malloc(buff_size);
@@ -1777,8 +1787,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				std::stack<CalcValue> fxnStack;
 
+				macro::ret_t ret = runFile(statement, var_nodes, showErrors, fxnStack, elseStatement, freeable);
 				//run the temp file
-				if (runFile(statement, var_nodes, showErrors, fxnStack, elseStatement, freeable)) {
+				if (ret == macro::ERROR) {
 					PASS_ERROR("\aERROR: @ (exec operator) failed\n");
 				}
 				fclose(statement);
