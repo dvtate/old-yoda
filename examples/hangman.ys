@@ -1,0 +1,163 @@
+# hangman 
+
+# here are the words we have to choose from
+# source: https://www.prdaily.com/Main/Articles/49_unbeatable_words_for_the_game_hangman_20880.aspx
+$words
+("awkward", "bagpipes", "banjo", "bungler", "croquet", "crypt", "dwarves", "fervid", 
+"fishhook", "fjord", "gazebo", "gypsy", "haiku", "haphazard", "hyphen", "ivory", 
+"jazzy", "jiffy", "jinx", "jukebox", "kayak", "kiosk", "klutz", "memento", "mystify",
+"numbskull", "ostracize", "oxygen", "pajama", "phlegm", "pixel", "polka", "quad", 
+"quip", "rhythmic", "rogue", "sphinx", "squawk", "swivel", "toady", "twelfth", 
+"unzip", "waxy", "wildebeest", "yacht", "zealous", "zigzag", "zippy", "zombie")
+	=
+
+$solved false =
+$tries 13 =
+
+# pick a word
+$word $words random $words list_size 1 - * ] =
+
+
+$used_letters () =
+
+{ #in_list
+	{
+		{
+			true return
+		} $elem ~ $query ~ == if
+	} $list $elem foreach
+	false return
+} ($list, $query) lam $in_list =
+
+{ # print_word
+	{
+		{
+			"_" print
+		} else {
+			$c print
+		} ($used_letters ~, $c ~) $in_list @ if
+		" " print
+	} $word "" split $c foreach
+
+} ($word, $used_letters) lam $print_word =
+
+
+{ # draw_game
+
+	# drawing the figure
+
+	# <Hangman/ASCII>
+	#  __ 	:5	 67			_ _ _ _ _ _ _ 	
+	# /  |	:5	5  8
+	# |  0  :5	4  9		6 tries remaining
+	# |  T	:5	3   10		previous: a b c d e f
+	#_|_ ^	:5	012 11 		next letter:
+
+
+	# clear the screen
+	cls
+
+	"Hangman in ASCII:" println
+
+	$fails 12 $tries - =
+
+	# 1st row
+	"  " print
+	{ " " print } else
+	{ "_" print } $fails 6 >= if
+
+	{ " " print } else
+	{ "_" print } $fails 7 >= if
+	" " print
+	"        " print
+	($word ~, $used_letters ~) $print_word @
+
+	# 2nd row
+	"\n " print
+	{ " " print } else
+	{ "/" print } $fails 5 >= if
+	"  " print
+	{ " " print } else
+	{ "|" print } $fails 8 >= if
+
+	# 3rd row
+	"\n " print
+	{ " " print } else
+	{ "|" print } $fails 4 >= if
+	"  " print
+	{ " " print } else
+	{ "0" print } $fails 9 >= if
+	"        " $tries + " guesses remaining" + println
+	
+	# 4th row
+	" " print
+	{ " " print } else
+	{ "|" print } $fails 3 >= if
+	"  " print
+	{ " " print } else
+	{ "T" print } $fails 10 >= if
+	"        previous: " print
+
+	{
+		{
+			"pass" print
+		} else {
+			$c print
+		} $c null != if
+		" " print
+	} $used_letters $c foreach
+	
+	# 5th row
+	{ "\n " print } else
+	{ "\n_" print } $fails 0 >= if
+
+	{ " " print } else
+	{ "|" print } $fails 2 >= if
+
+	{ " " print } else
+	{ "_" print } $fails 1 >= if
+	
+	" " print
+	{ " " print } else
+	{ "^" print } $fails 11 >= if	
+	"    next guess: " print
+	
+
+} ($word, $used_letters, $tries) lam $draw_game =
+
+{ # is_solved
+	{
+		{
+			false return
+		} ($used_letters, $ch) $in_list @ ! if 
+	} $word "" split $ch foreach
+	true return
+} ($word, $used_letters) lam $is_solved = 
+
+
+
+{ # main loop
+
+	($word ~, $used_letters ~, $tries ~) $draw_game @
+
+	input 0 char_at $choice =
+	$used_letters $choice push_back
+	
+	{
+		$tries --
+	} ($word "" split, $choice) $in_list @ ! if 
+
+	$solved ($word ~, $used_letters ~) $is_solved @ =
+
+} { $solved !  $tries 0 >  && } while
+
+($word ~, $used_letters ~, $tries ~) $draw_game @
+
+# say goodbye
+{
+	"Oh no, you died." println
+	"the word was: " $word + println
+} else {
+	"Nice job! you solved it" println
+} $solved if 
+

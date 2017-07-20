@@ -1,0 +1,19 @@
+# dice.ys
+
+$choice "y" =
+
+{
+	"The die says: " random 5 * 1 + int + println
+	"Roll again? (Y/n) " print
+	input 0 char_at $choice =
+
+	{
+		"\nRoll again? (Y/n) " print
+	}
+		$choice "y" != $choice "Y" != &&
+		$choice "n" != $choice "N" != && &&
+		$choice null !=
+			if
+
+} { $choice "y" == $choice "Y" == || $choice null == || } while
+
