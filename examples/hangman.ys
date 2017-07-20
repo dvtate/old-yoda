@@ -1,14 +1,17 @@
-# hangman 
+#!/usr/bin/yoda
+
+# hangman useing ASCII text and system-clear
+# 2017.7.19
 
 # here are the words we have to choose from
-# source: https://www.prdaily.com/Main/Articles/49_unbeatable_words_for_the_game_hangman_20880.aspx
+# modified list from: https://www.prdaily.com/Main/Articles/49_unbeatable_words_for_the_game_hangman_20880.aspx
 $words
 ("awkward", "bagpipes", "banjo", "bungler", "croquet", "crypt", "dwarves", "fervid", 
 "fishhook", "fjord", "gazebo", "gypsy", "haiku", "haphazard", "hyphen", "ivory", 
 "jazzy", "jiffy", "jinx", "jukebox", "kayak", "kiosk", "klutz", "memento", "mystify",
-"numbskull", "ostracize", "oxygen", "pajama", "phlegm", "pixel", "polka", "quad", 
-"quip", "rhythmic", "rogue", "sphinx", "squawk", "swivel", "toady", "twelfth", 
-"unzip", "waxy", "wildebeest", "yacht", "zealous", "zigzag", "zippy", "zombie")
+"ostracize", "oxygen", "pajama", "phlegm", "pixel", "polka", "quad", "quip", 
+"rhythmic", "rogue", "sphinx", "squawk", "swivel", "toady", "twelfth", "unzip",
+"waxy", "wildebeest","wingnut", "yacht", "zealous", "zigzag", "zippy", "zombie")
 	=
 
 $solved false =
@@ -17,21 +20,29 @@ $tries 13 =
 # pick a word
 $word $words random $words list_size 1 - * ] =
 
-
+# initialize $used_letters as an empty list
+# since we haven't used any letters yet
 $used_letters () =
 
-{ #in_list
+
+# is the value $query in the list $list
+{ # in_list
 	{
-		{
+		{ # if its in list then ret true
 			true return
-		} $elem ~ $query ~ == if
+		} $elem $query == if
 	} $list $elem foreach
+
+	# wasn't found in list so its not there
 	false return
+
 } ($list, $query) lam $in_list =
 
+
+# print the word only filling in the letters already used
 { # print_word
-	{
-		{
+	{ # for each letter in the word
+		{ # if the letter is chosen print it, else print a blank
 			"_" print
 		} else {
 			$c print
@@ -41,10 +52,10 @@ $used_letters () =
 
 } ($word, $used_letters) lam $print_word =
 
-
+# clear the screen and draw the game board
 { # draw_game
 
-	# drawing the figure
+	#PLANNING: drawing the figure
 
 	# <Hangman/ASCII>
 	#  __ 	:5	 67			_ _ _ _ _ _ _ 	
@@ -70,7 +81,9 @@ $used_letters () =
 	{ "_" print } $fails 7 >= if
 	" " print
 	"        " print
+	# print the word if letter is known print it else print an _
 	($word ~, $used_letters ~) $print_word @
+
 
 	# 2nd row
 	"\n " print
@@ -98,9 +111,10 @@ $used_letters () =
 	{ "T" print } $fails 10 >= if
 	"        previous: " print
 
-	{
+	{ # print past choices
 		{
-			"pass" print
+			"pass" print # pressing enter without a letter = pass 
+			# can be used to increase difficulty
 		} else {
 			$c print
 		} $c null != if
@@ -120,12 +134,16 @@ $used_letters () =
 	" " print
 	{ " " print } else
 	{ "^" print } $fails 11 >= if	
-	"    next guess: " print
+	"    next guess: " print # prompt
 	
 
 } ($word, $used_letters, $tries) lam $draw_game =
 
+
+# have we figured out the word yet?
 { # is_solved
+	# if there is a letter in the word that hasn't been picked then the word hasn't
+	# been solved
 	{
 		{
 			false return
@@ -135,23 +153,30 @@ $used_letters () =
 } ($word, $used_letters) lam $is_solved = 
 
 
-
+# this gets run until the game is over (win/loose)
 { # main loop
-
+	# print the board
 	($word ~, $used_letters ~, $tries ~) $draw_game @
 
+	# get the user's choice
 	input 0 char_at $choice =
 	$used_letters $choice push_back
 	
+	# if the choice isn't in the word they used one of their tries
 	{
 		$tries --
 	} ($word "" split, $choice) $in_list @ ! if 
 
+	# check if the game is solved
 	$solved ($word ~, $used_letters ~) $is_solved @ =
 
+# while the game hasn't been solved and we still have tries remaining
 } { $solved !  $tries 0 >  && } while
 
+# draw the game once more to update the tries-count
 ($word ~, $used_letters ~, $tries ~) $draw_game @
+
+
 
 # say goodbye
 {
