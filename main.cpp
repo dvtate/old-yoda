@@ -19,7 +19,7 @@
 // some useful functions
 #include "utils.hpp"
 
-int line = 1;
+int line = 0;
 
 #include "core.hpp"
 
@@ -41,6 +41,7 @@ int main(int argc, char** argv){
 
 	// shell
 	if (argc == 1) {
+		line = 1; // required for alignment
 
 		// seed random
 		srand(time(NULL));

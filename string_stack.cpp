@@ -5,8 +5,13 @@
 
 
 #ifdef _WIN32
-	int getline(char** lineptr, size_t* n, FILE* stream);
+	extern int getline(char** lineptr, size_t* n, FILE* stream);
 #endif
+
+extern FILE* program;
+
+
+
 
 // resets the object to it's original state
 void StrStack::clear(){
@@ -172,6 +177,7 @@ namespace strstk {
 
 	}
 
+
 	// note, str is modified and this is used in processLine()
 	StrStack* getStrStack(char*& str, FILE* codeFeed, char*& codeLine){
 
@@ -202,7 +208,8 @@ namespace strstk {
 			}
 			str = codeLine;
 
-			line++; // we added a line to our file
+			if (codeFeed == program)
+				line++; // we added a line to our file
 
 			isEnd = endOfStk(str, depth);
 			if (!isEnd)

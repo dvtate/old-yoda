@@ -312,9 +312,13 @@ public:
 		if (type == cv2.type) {
 
 			// same value
-			if (type == CalcValue::NUM && number == cv2.number)
+			if (type == NUM && number == cv2.number)
 				return true;
-			else if ((type == CalcValue::STR || cv2.type == CalcValue::REF))
+			if (type == STR && isEmpty() != !cv2.string)
+				return false;
+			if (type == STR && string == cv2.string)
+				return true;
+			else if (type == STR || cv2.type == CalcValue::REF)
 				return strcmp(string, cv2.string) == 0;
 			// this doesnt work...
 			else if (type == CalcValue::ARR) {

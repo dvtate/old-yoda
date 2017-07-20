@@ -160,4 +160,16 @@ namespace strstk {
 }
 
 
+namespace macro {
+
+	typedef enum {
+		MACRO, LAMBDA, OTHER
+	} exec_t;
+
+	typedef enum {
+		SUCCESS, RETURN, ERROR, BREAK
+	} ret_t;
+}
+
+
 #endif

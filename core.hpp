@@ -134,12 +134,26 @@ void runFile(char* programFile, bool& errorReporting){
 
 }
 
-bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReporting,
+
+
+
+/* from string_stack.hpp
+namespace macro {
+	typedef enum {
+		MACRO, LAMBDA, OTHER
+	} exec_t;
+
+	typedef enum {
+		SUCCESS, RETURN, ERROR, BREAK
+	} ret_t;
+}
+*/
+macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReporting,
 			 std::stack<CalcValue>& mainStack, bool& elseStatement, std::vector<void*>& freeable
 ) {
 
 	if (!prog_file)
-		return true;
+		return macro::ERROR;
 
 
 	size_t local_line = 0;
@@ -156,7 +170,7 @@ bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReport
 		rpnln = rpnln_head;
 		if (getline(&rpnln, &lineLen, prog_file) == -1) {
 			//free(rpnln);
-			return false; // EOF
+			return macro::SUCCESS; // EOF
 		}
 
 		rpnln_head = rpnln;
@@ -168,12 +182,17 @@ bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReport
 			&& errorReporting
 				) {
 
-			if (errorToken == lambda_finish)
-				goto cleanup_end;
-
-			// file name and
+			if (errorToken == lambda_finish) {
+				// prevent memory leaks...
+				free(rpnln_head);
+				if (mainStack.size() == 1)
+					return macro::RETURN;
+				else
+					return macro::BREAK;
+			}
+			// info on location
 			setTermEffect(TERM_EFF_BOLD);
-			std::cerr <<"^^ in " <<progName <<":local_line=" <<local_line
+			std::cerr <<"^^ in " <<progName <<": local_line=" <<local_line
 			          <<":col=" <<errorToken - rpnln_head <<"?\n";
 
 			setTermEffect();
@@ -194,16 +213,15 @@ bool runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReport
 
 			// prevent memory leaks...
 			free(rpnln_head);
-			return true;
+			return macro::ERROR;
 		}
 		free(rpnln_head);
 		rpnln = rpnln_head = NULL;
 	}
 
-cleanup_end:
 	// prevent memory leaks...
 	free(rpnln_head);
-	return false;
+	return macro::SUCCESS;
 
 }
 
