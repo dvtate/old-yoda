@@ -1483,7 +1483,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 
 			char* heap_str;
-			StrStack* execArr = strstk::getStrStack(p, codeFeed, heap_str);
+			StrStack* execArr = macro::getMacro(p, codeFeed, heap_str);
 			freeable.push_back((void*) heap_str);
 			//free(heap_str);
 			//std::cout <<"fm pushed back \"" <<heap_str <<"\"\n";
@@ -1595,6 +1595,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CalcValue top = CalcValue(mainStack.top());
 			mainStack.pop();
 
+			bool elseStatement_cpy = elseStatement;
+			elseStatement = false;
 			if (top.type == CalcValue::BLK) {
 				RUN_STR_STK(*top.block, mainStack);
 			} else if (top.type == CalcValue::STR) {
@@ -1818,6 +1820,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			} else {
 				PASS_ERROR("\aERROR: @ (execution operator) only accepts strings and executable arrays\n");
 			}
+			elseStatement = elseStatement_cpy;
 
 		// conditionals::else
 		} else if (strcmp(p, "else") == 0) {
@@ -1885,6 +1888,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			} else if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: if expected a condition and a block of code (takes 2 arguments)\n");
 			}
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
 
 			bool condition = mainStack.top().getNum() != 0;
 			mainStack.pop();

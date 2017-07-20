@@ -140,7 +140,7 @@ extern FILE* program;
 extern unsigned int line;
 
 
-namespace strstk {
+namespace macro {
 
 	static bool endOfStk(char*& str, uint16_t& depth){
 		// NULL string (safety first)
@@ -179,7 +179,7 @@ namespace strstk {
 
 
 	// note, str is modified and this is used in processLine()
-	StrStack* getStrStack(char*& str, FILE* codeFeed, char*& codeLine){
+	StrStack* getMacro(char*& str, FILE* codeFeed, char*& codeLine){
 
 		codeLine = str;
 		uint16_t depth = 1; // shouldn't be >65000 levels of indentation...

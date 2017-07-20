@@ -151,16 +151,11 @@ public:
 };
 
 
-// associated functions
-namespace strstk {
+// associated stuffz
+namespace macro {
 
 	// gets a string stack from a file
-	StrStack* getStrStack(char*& str, FILE* codeFeed, char*& codeLine);
-
-}
-
-
-namespace macro {
+	StrStack* getMacro(char*& str, FILE* codeFeed, char*& codeLine);
 
 	typedef enum {
 		MACRO, LAMBDA, OTHER
