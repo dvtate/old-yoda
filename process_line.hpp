@@ -9,10 +9,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <inttypes.h>
-
-// sleep
-#include <chrono>
-#include <thread>
+#include <unistd.h>
 
 // this is the class used in our stack
 #include "calc_value.hpp"
@@ -1000,11 +997,13 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		else if (strcmp(p, "false") == 0)
 			mainStack.push(0.0);
 
-		// generates a list with a range of numbers from * to *
+		// generates a list with a range of numbers from * to * ~~
 		else if (strcmp(p, "range") == 0) {
+			// assert stklen
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: range expected 2 numbers, a start and end\n");
 			}
+			// get end
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
 			if (mainStack.top().type != CalcValue::NUM) {
@@ -1013,6 +1012,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			int end = (int) mainStack.top().getNum();
 			mainStack.pop();
 
+
+			// get start
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
 			if (mainStack.top().type != CalcValue::NUM) {
@@ -1021,20 +1022,23 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			int start = (int) mainStack.top().getNum();
 			mainStack.pop();
 
+			// generate list
 			std::vector<CalcValue> list;
-			if (start > end) {
-				for (; start > end; start--)
+			if (start > end) { // [start, end] 3,2,1
+				for (; start >= end; start--)
 					list.push_back((double) start);
 				mainStack.push(list);
-			} else if (start < end) {
+			} else if (start < end) { // [start, end) 1,2,3
 				for (; start < end; start++)
 					list.push_back((double) start);
 				mainStack.push(list);
-			} else mainStack.push(start);
+			} else { // start == end
+				list.push_back(start);
+				mainStack.push(list);
+			}
 
 
-
-			// print to terminal
+		// print value terminal
 		} else if (strcmp(p, "print") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -1043,11 +1047,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: print has failed.\n");
 
 			}
-
-
 			mainStack.pop();
 
-			// print and end with a newline
+		// print and end with a newline
 		} else if (strcmp(p, "println") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -1055,11 +1057,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (printCalcValueRAW(mainStack.top(), var_nodes)) {
 				PASS_ERROR("\aERROR: printlln has failed.\n");
 			}
-
 			mainStack.pop();
 
 			std::cout <<std::endl;
-
 
 		} else if (strcmp(p, "color_print") == 0) {
 			if (mainStack.size() < 2) {
@@ -1085,7 +1085,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			setFgColor();
 
-			// changes the terminal background color for text
+		// changes the terminal background color for text
 		} else if (strcmp(p, "setBgColor") == 0) {
 
 			ASSERT_NOT_EMPTY(p);
@@ -1138,9 +1138,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 		// get a single character from stdin
 		} else if (strcmp(p, "getchar") == 0) {
-			char input[2] = { (char) getc(stdin), '\0' };
+			char input[2] = {(char) getc(stdin), '\0'};
 			mainStack.push(input);
-
+		} else if (strcmp(p, "getch") == 0) {
+		} else if (strcmp(p, "getch") == 0) {
+		} else if (strcmp(p, "get_pass") == 0) {
+			mainStack.push(getpass(""));
 		// load the contents of a file into a string
 		} else if (strcmp(p, "file_get_contents") == 0) {
 
@@ -2087,7 +2090,14 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CONVERT_REFS(mainStack, var_nodes);
 
 			// accepts miliseconds but has microsecond accuracy
+
+			/* perhaps add back after adding multi-threading support?
+			#include <chrono>
+			#include <thread>
 			std::this_thread::sleep_for(std::chrono::microseconds((unsigned) (1000 * mainStack.top().number)));
+			 */
+
+			usleep((unsigned long)(mainStack.top().number * 1000));
 			mainStack.pop();
 
 		// exit the program
