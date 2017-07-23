@@ -29,6 +29,9 @@
 // macros
 #include "string_stack.hpp"
 
+// terminal stuff
+#include "termio.hpp"
+
 
 extern char* progName;
 extern FILE* program;
@@ -1140,8 +1143,26 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if (strcmp(p, "getchar") == 0) {
 			char input[2] = {(char) getc(stdin), '\0'};
 			mainStack.push(input);
+		// silently get character without needing newline
 		} else if (strcmp(p, "getch") == 0) {
-		} else if (strcmp(p, "getch") == 0) {
+			char tmp[] {
+#ifdef _WIN32
+				getch()
+#else
+				termio::getch()
+#endif
+			, '\0'};
+			mainStack.push(tmp);
+		// get character without newline
+		} else if (strcmp(p, "getche") == 0) {
+			char tmp[] {
+#ifdef _WIN32
+					getche()
+#else
+					termio::getche()
+#endif
+					, '\0'};
+			mainStack.push(tmp);
 		} else if (strcmp(p, "get_pass") == 0) {
 			mainStack.push(getpass(""));
 		// load the contents of a file into a string
