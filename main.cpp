@@ -51,6 +51,7 @@ int main(int argc, char** argv){
 		first_node.first = &first_node;
 
 		std::vector<UserVar> var_nodes;
+		var_nodes.reserve(2000); // overkill but it will prevent addresses from changing
 		var_nodes.push_back(first_node);
 
 		bool elseStatement = false;

@@ -129,13 +129,18 @@ namespace vars {
 	extern UserVar* findVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
 	extern UserVar* findVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]);
 
-		// has the variable been declared yet?
+	// has the variable been declared yet?
 	extern bool varExists(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
 	extern bool varExists(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]);
 
-
+	// de-references a value
 	extern CalcValue* valueAtVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
 	extern CalcValue* valueAtVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]);
+
+	// last variable in a chain of variables linking eachother
+	// similar to valueAtVar() but returns var instead of val
+	extern UserVar* lastVarInRefChain(UserVar *first, const char name[USERVAR_NAME_MAXLENGTH]);
+	extern UserVar* lastVarInRefChain(std::vector<UserVar> &vars, const char name[USERVAR_NAME_MAXLENGTH]);
 
 	extern void clearScope(std::vector<UserVar>& scopes);
 }

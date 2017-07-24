@@ -45,11 +45,15 @@ namespace vars {
 
 	// add a variable to the linked list
 	UserVar* assignVar(UserVar* first, const char* name, CalcValue value) {
+		UserVar* var;
+		if (*name == ' ')
+			goto make_new_var;
 
-		UserVar *var = findVar(first, name);
+		var = findVar(first, name);
 
 		// making a new variable
 		if (var == NULL) {
+make_new_var:
 			var = new UserVar(first, name, value);
 			lastVar(first)->next = var;
 
@@ -100,7 +104,7 @@ namespace vars {
 
 		// search the linked list for the object
 		while (first != NULL)
-			if (strncmp(first->name, name, len) == 0)
+			if (strcmp(first->name, name) == 0)
 				return first;
 			else
 				first = first->next;
@@ -166,6 +170,35 @@ namespace vars {
 				return valueAtVar(vars, val->string);
 			else
 				return val;
+		} else
+			return NULL;
+
+	}
+
+	// finds the last var in a reference chain
+	UserVar *lastVarInRefChain(UserVar *first, const char name[USERVAR_NAME_MAXLENGTH]) {
+		UserVar *var = findVar(first, name);
+
+		if (var) {
+			CalcValue *val = &var->val;
+			if (val->type == CalcValue::REF)
+				return lastVarInRefChain(first, val->string);
+			else
+				return var;
+		} else
+			return NULL;
+
+	}
+
+	UserVar *lastVarInRefChain(std::vector<UserVar> &vars, const char name[USERVAR_NAME_MAXLENGTH]) {
+		UserVar *var = findVar(vars, name);
+
+		if (var) {
+			CalcValue *val = &var->val;
+			if (val->type == CalcValue::REF)
+				return lastVarInRefChain(vars, val->string);
+			else
+				return var;
 		} else
 			return NULL;
 

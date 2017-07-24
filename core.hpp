@@ -41,6 +41,7 @@ char* progName = NULL;
 
 void runFile(char* programFile, bool& errorReporting){
 
+
 	progName = programFile;
 
 	program = fopen(programFile, "r");
@@ -68,6 +69,7 @@ void runFile(char* programFile, bool& errorReporting){
 	first_node.first = &first_node;
 
 	std::vector<UserVar> var_nodes;
+	var_nodes.reserve(2000); // overkill but it will prevent addresses from changing
 	var_nodes.push_back(first_node);
 
 	bool elseStatement = false;

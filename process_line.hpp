@@ -55,7 +55,7 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 
 #define GET_LIST_INDEX(MAINSTACK, VAR_NODES, ASSIGN_TO)\
 	if (MAINSTACK.top().type == CalcValue::INX) {\
-		while (!MAINSTACK.empty() && mainStack.top().type == CalcValue::INX) {\
+		while (!MAINSTACK.empty() && MAINSTACK.top().type == CalcValue::INX) {\
 			ASSIGN_TO.push_back(MAINSTACK.top().index);\
 			MAINSTACK.pop();\
 		}\
@@ -1240,6 +1240,30 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.pop();
 			fclose(output_file);
 
+		// functionally equivalent to #include but without a preprocessor
+		} else if (strcmp(p, "insert") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+
+			if (mainStack.top().type != CalcValue::STR || mainStack.top().isEmpty()) {
+				PASS_ERROR("\aERROR: `" <<p <<"` expected a string for the file name")
+			}
+			FILE* statement = fopen(mainStack.top().string, "r");
+			if (!statement) {
+				PASS_ERROR("\aERROR: \""<<mainStack.top().string <<"\" couldn't be found.\n");
+			}
+			mainStack.pop();
+
+			// run the file
+			macro::ret_t ret = runFile(statement, var_nodes, showErrors, mainStack, elseStatement, freeable);
+			if (ret == macro::ERROR) {
+				PASS_ERROR("\aERROR: error in file added with `insert`\n");
+			}
+
+			// we're now done with the file
+			fclose(statement);
+
 		// get the value at the specific index of an array
 		} else if (strcmp(p, "get") == 0) {
 			if (mainStack.size() < 2) {
@@ -1479,6 +1503,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				if (err) {
 					PASS_ERROR("\aERROR in element near `" << err << "`. in list:\n");
 				}
+				if (!tmpStack.empty()) {
+					CONVERT_INDEX(tmpStack, var_nodes);
+				}
 				arr.push_back(tmpStack.empty() ? CalcValue() : tmpStack.top());
 				emptyStack(tmpStack);
 				delete[] str_head;
@@ -1635,12 +1662,15 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					CONVERT_INDEX(mainStack, var_nodes);
 					//CONVERT_REFS(mainStack, var_nodes); // could cause problems later on
 				}
-				if (mainStack.top().type != CalcValue::ARR)
+				// no arguments provided
+				if (mainStack.empty() || mainStack.top().type != CalcValue::ARR)
 					mainStack.push(std::vector<CalcValue>());
 
+				if (mainStack.top().list->size() > top.lambda->max_args()) {
+					PASS_ERROR("\aERROR: too many arguments for the given lambda expression");
+				}
 				std::vector<int16_t> paramBindings;
-				if (!mainStack.empty())
-					paramBindings = top.lambda->bindArgs(mainStack.top().list->size());
+				paramBindings = top.lambda->bindArgs(mainStack.top().list->size());
 
 
 				/*std::cout <<"params=";
@@ -1653,7 +1683,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					std::cout <<i <<", ";
 				std::cout <<"\n";
 				*/
-				bool hasArgs = paramBindings.size();
+				bool hasArgs = top.lambda->params.size() && paramBindings.size();
 				if (paramBindings.size() && paramBindings[0] == -1) {
 					if (top.lambda->requiredArgs() < 0) {
 						PASS_ERROR("\aERROR: lambda expected at least "<< (int) -top.lambda->requiredArgs() <<" arguments\n");
@@ -1712,16 +1742,81 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 							if (*tmp)
 								*tmp = '\0';
 
-							// assign param
-							vars::assignVar(var_nodes,
-							                var_name,
-							                mainStack.top().list->at(i));
+							// prevent cyclic references from occuring by mutilateing reference names
+							if (mainStack.top().list->at(i).type == CalcValue::REF) {
+								// { } ($a) lam $fxn =
+								// $a 6 =
+								// ($a) $fxn @
+								// assign var: "$ a" val_at($a)
+								// set $a = ref"$ a"
+								// set ($a) = ref"$ a"
+
+								// find last variable argument references
+								UserVar* end = vars::lastVarInRefChain(var_nodes, mainStack.top().list->at(i).string);
+								// broken reference
+								if (!end) {
+									mainStack.push(mainStack.top().list->at(i));
+									CONVERT_REFS(mainStack, var_nodes); // this will error and exit
+								}
+
+								char* ref_name = end->name;
+
+								// var->val isn't escaped
+								if (end->name[0] != ' ') {
+									// set it to a reference to an identical and safer variable
+									char* v_name = mutilate::mutilateVarName(end->name);
+									vars::assignVar(end->first, v_name, end->val);
+									end->val.setRef(v_name);
+									free(v_name);
+									ref_name = end->val.string;
+								}
+
+								vars::assignVar(var_nodes,
+								                var_name,
+								                CalcValue().setRef(ref_name));
+							} else
+								vars::assignVar(var_nodes,
+								                var_name,
+								                mainStack.top().list->at(i));
 
 
 						} else if (top.lambda->countSpaces(paramBindings[i]) == 0) { // normal var
-							vars::assignVar(var_nodes,
-							                top.lambda->params[paramBindings[i]].c_str(),
-							                mainStack.top().list->at(i));
+							// prevent cyclic references from occuring by mutilateing reference names
+							if (mainStack.top().list->at(i).type == CalcValue::REF) {
+								// { } ($a) lam $fxn =
+								// $a 6 =
+								// ($a) $fxn @
+								// assign var: "$ a" val_at($a)
+								// set $a = ref"$ a"
+								// set ($a) = ref"$ a"
+
+								// find last variable argument references
+								UserVar* end = vars::lastVarInRefChain(var_nodes, mainStack.top().list->at(i).string);
+								// broken reference
+								if (!end) {
+									mainStack.push(mainStack.top().list->at(i));
+									CONVERT_REFS(mainStack, var_nodes); // this will error and exit
+								}
+
+								char* ref_name = end->name;
+
+								// var->val isn't escaped
+								if (end->name[0] != ' ') {
+									// set it to a reference to an identical and safer variable
+									char* var_name = mutilate::mutilateVarName(end->name);
+									vars::assignVar(end->first, var_name, end->val);
+									end->val.setRef(var_name);
+									free(var_name);
+									ref_name = end->val.string;
+								}
+
+								vars::assignVar(var_nodes,
+								                top.lambda->params[paramBindings[i]].c_str(),
+												CalcValue().setRef(ref_name));
+							} else
+								vars::assignVar(var_nodes,
+								                top.lambda->params[paramBindings[i]].c_str(),
+								                mainStack.top().list->at(i));
 						}
 						/*
 						//vars::assignVar(var_nodes, top.lambda->params[i].c_str(), mainStack.top().list->at(i)); y u no work :/ ?
@@ -2066,7 +2161,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				CONVERT_REFS(mainStack, var_nodes);
 				if (mainStack.top().type != CalcValue::BLK) {
 					PASS_ERROR(
-							"\aERROR: malformed for-each statement \n correct format: `{ process } { list } $var for-each`\n");
+							"\aERROR: malformed for-each statement \n correct format: `{ process } $list $var for-each`\n");
 				}
 
 				StrStack process(*mainStack.top().block);
@@ -2162,6 +2257,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 		// useful for debugging
 		} else if (strcmp(p, "vars") == 0 || strcmp(p, "ls_vars") == 0) {
+			std::cout <<"Defined Variables:\nNote: variables with spaces after the `$` and a crunch-code at\nthe end are defined by the interpreter for safety.\n";
 			// for each scope
 			for (size_t i = 0; i < var_nodes.size(); i++) {
 
@@ -2204,7 +2300,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 					else if (var->val.type == CalcValue::LAM) {
 						std::cout << "[LAM] @ " <<var <<": (";
-						bool hasParams = var->val.lambda->params[0] != "";
+						bool hasParams =var->val.lambda->params.size() && var->val.lambda->params[0] != "";
 						if (hasParams) {
 							std::cout <<"$" <<var->val.lambda->params[0];
 							for (uint16_t param = 1; param < var->val.lambda->params.size(); param++) {

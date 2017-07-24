@@ -53,6 +53,16 @@ public:
 		return ret;
 	}
 
+	int max_args() {
+		int max = 0;
+		for (unsigned i = 0; i < params.size(); i++) {
+			if (countSpaces(i) == 1) {
+				return -1;
+			}
+			max++;
+		}
+		return max;
+	}
 
 	// returns a vector containing the parameter each argument will be bound to
 	// one element per argument
@@ -78,16 +88,24 @@ public:
 
 	// this doesnt actually count spaces correctly... it conserves CPU
 	int countSpaces(int param) {
+
+		// 0 spaces = normal arg
+		// 1 space = va_args
+		// 2 spaces = arg + handler
+
 		//if (params.size() - 1 < param)
 		//	return -2;
+		// "a"
 		if (params[param].at(0) != ' ')
 			return 0;
 
-		for (uint16_t i = 1; i < params[param].size(); i++) {
+		// " a process to runn if $a not provided"
+		for (uint8_t i = 1; i < params[param].size(); i++) {
 			if (params[param].at(i) == ' ')
 				return 2;
 		}
 
+		// " a"
 		return 1;
 	}
 };
