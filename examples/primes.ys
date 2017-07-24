@@ -1,7 +1,7 @@
 # returns true if prime; false if not
 {
 	{
-		($num ~, $i 1 -) $isPrime? @ return
+		($num, $i 1 -) $isPrime? @ return
 	} else { 
 		false return
 	} $num $i % 0 == elseif {
@@ -16,11 +16,5 @@
 		$number " is not prime." + println
 	} else {
 		$number " is prime." + println
-	} ($number ~, $number 1 - int) $isPrime? @ if
+	} ($number, $number 1 - int) $isPrime? @ if
 } 2 20 range $number for-each
-
-        
-
-# NOTE: in order to avoid cyclic references, use the copy operator
-# `~` when making recursive function calls or calling functions with the
-# same parameter names.
