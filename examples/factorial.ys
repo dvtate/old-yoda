@@ -2,10 +2,10 @@
 # factorial example
 # 2017.6.17
 
-# returns factorial of a given $n
-{
-	{
-		$n ($n 1 -) $fac @ * return 
+{ # our factorial function
+
+	{	# recursion
+		$n ~ ($n 1 -) $fac @ * return
 	} else {
 		1 return # factorial of 0 is 1 
 	} $n 0 == if
@@ -16,4 +16,4 @@
 	($val) $fac @ println	# print $fac of $val + newline
 	
 # for each $val on the range [0,9]	
-} 0 10 range $val foreach 
+} 0 20 range $val foreach 
