@@ -108,7 +108,6 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 \
 		/* add layer to scope*/\
 		UserVar first_node(NULL, " ", 0.0);\
-		first_node.first = &first_node;\
 		var_nodes.push_back(first_node);\
 \
 		/* run the temp file */\
@@ -116,13 +115,15 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 		if (ret == macro::ERROR) {\
 			PASS_ERROR("\aERROR: macro execution failed\n");\
 		} else if (ret == macro::RETURN || ret == macro::BREAK) {\
+			/* variables go out of scope */\
+			vars::clearScope(var_nodes);\
+			fclose(statement);\
 			return (char*) lambda_finish;\
 		}\
 		\
 \
 		/* variables go out of scope */\
 		vars::clearScope(var_nodes);\
-		var_nodes.pop_back();\
 		fclose(statement);\
 	}
 
@@ -159,8 +160,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		      || *p == '|' || *p == '&' || *p == '^' || *p == '>' || *p == '<')
 		     && *(p + 1) == '\0')
 		    || !strcmp(p, "<<") || !strcmp(p, ">>") || !strcmp(p, "**")
-		    || !strcmp(p, "<=") || !strcmp(p, ">=")
-		    || !strcmp(p, "logBase") || !strcmp(p, "logbase")
+		    || !strcmp(p, "<=") || !strcmp(p, ">=") || !strcmp(p, "logbase")
 		    || !strcmp(p, "pow") // for those who dont like "**"
 				) {
 
@@ -243,7 +243,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			else if (a.isEmpty() && b.isEmpty()) // null + null
 				mainStack.push(a);
 
-				// branching out all 4 permutations of string and num
+			// branching out all 4 permutations of string and num
 			else if (a.type == CalcValue::STR) {
 				if (b.type == CalcValue::STR) {
 					// allocate enough memory for both strings and a null terminator
@@ -1754,13 +1754,20 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 								// set $a = ref"$ a"
 								// set ($a) = ref"$ a"
 
-								// find last variable argument references
-								UserVar* end = vars::lastVarInRefChain(var_nodes, mainStack.top().list->at(i).string);
-								// broken reference
+
+
+								UserVar* end = vars::findVar(var_nodes, mainStack.top().list->at(i).string);
 								if (!end) {
 									mainStack.push(mainStack.top().list->at(i));
 									CONVERT_REFS(mainStack, var_nodes); // this will error and exit
 								}
+								// find last variable argument references
+								//UserVar* end = vars::lastVarInRefChain(var_nodes, mainStack.top().list->at(i).string);
+								// broken reference
+								//if (!end) {
+								//	mainStack.push(mainStack.top().list->at(i));
+								//	CONVERT_REFS(mainStack, var_nodes); // this will error and exit
+								//}
 
 								char* ref_name = end->name;
 
@@ -1793,13 +1800,19 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 								// set $a = ref"$ a"
 								// set ($a) = ref"$ a"
 
-								// find last variable argument references
-								UserVar* end = vars::lastVarInRefChain(var_nodes, mainStack.top().list->at(i).string);
-								// broken reference
+
+								UserVar* end = vars::findVar(var_nodes, mainStack.top().list->at(i).string);
 								if (!end) {
 									mainStack.push(mainStack.top().list->at(i));
 									CONVERT_REFS(mainStack, var_nodes); // this will error and exit
 								}
+								// find last variable argument references
+								//UserVar* end = vars::lastVarInRefChain(var_nodes, mainStack.top().list->at(i).string);
+								// broken reference
+								/*if (!end) {
+									mainStack.push(mainStack.top().list->at(i));
+									CONVERT_REFS(mainStack, var_nodes); // this will error and exit
+								}*/
 
 								char* ref_name = end->name;
 
@@ -1864,6 +1877,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 						}
 					}
 					mainStack.pop();
+
+				// no args provided but we still might need to fill in params
 				} else if (top.lambda->params.size()) {
 					// handle each undefined variable
 					for (unsigned int i = 0; i < top.lambda->params.size(); i++) {
@@ -1920,7 +1935,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				// variables go out of scope
 				vars::clearScope(var_nodes);
-
 
 				// reverse order of stack
 				std::stack<CalcValue> tmpStack;
@@ -2199,7 +2213,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 
 			// clear the iterator scope
-			vars::wipeAll(&iterator_scope);
+			vars::clearScope(var_nodes);
 			var_nodes.pop_back();
 
 		// sleep fxn
