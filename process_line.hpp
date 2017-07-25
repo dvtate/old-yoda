@@ -2006,7 +2006,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				if (condition) {
 					newElseClause.push("\n} 1 if");
 				} else {
-					newElseClause.push("\n} 0 if ");
+					newElseClause.push("\n} 0 if");
 				}
 
 				mainStack.push(newElseClause);

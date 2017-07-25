@@ -142,13 +142,12 @@ extern unsigned int line;
 
 namespace macro {
 
-	static bool endOfStk(char*& str, uint16_t& depth){
+	static bool endOfStk(char*& str, int16_t& depth){
 		// NULL string (safety first)
 		if (!str)
 			return false;
 
 		bool quoted = false;
-
 
 		// base indentation
 		if (depth == 0)
@@ -157,6 +156,8 @@ namespace macro {
 			return true;
 		if (*str == '{')
 			depth++;
+		if (*str == '}')
+			depth--;
 		else if (*str == '\"')
 			quoted = true;
 
@@ -164,7 +165,7 @@ namespace macro {
 		else if (*str == '#' || !*str)
 			return false;
 
-		while (depth && *(++str) != '#' && *str)
+		while (depth && *(++str) != '#' && *str) {
 			if (!quoted && *str == '{')
 				depth++;
 			else if (!quoted && *str == '}')
@@ -172,7 +173,7 @@ namespace macro {
 			else if (*str == '\"')
 				if (!(quoted && *(str - 1) == '\\'))
 					quoted = !quoted;
-
+		}
 		return !depth;
 
 	}
@@ -182,9 +183,8 @@ namespace macro {
 	StrStack* getMacro(char*& str, FILE* codeFeed, char*& codeLine){
 
 		codeLine = str;
-		uint16_t depth = 1; // shouldn't be >65000 levels of indentation...
+		int16_t depth = 1; // shouldn't be >65000 levels of indentation...
 		StrStack* ret = new StrStack();
-
 		bool isEnd = endOfStk(str, depth);
 		if (!isEnd)
 			ret->push(codeLine);
@@ -212,6 +212,7 @@ namespace macro {
 				line++; // we added a line to our file
 
 			isEnd = endOfStk(str, depth);
+
 			if (!isEnd)
 				ret->push(codeLine);
 			else {
