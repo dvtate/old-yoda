@@ -2221,7 +2221,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
 
-			// accepts miliseconds but has microsecond accuracy
 
 			/* perhaps add back after adding multi-threading support?
 			#include <chrono>
@@ -2229,19 +2228,22 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			std::this_thread::sleep_for(std::chrono::microseconds((unsigned) (1000 * mainStack.top().number)));
 			 */
 
+			// accepts miliseconds but has microsecond accuracy
 			usleep((unsigned long)(mainStack.top().number * 1000));
 			mainStack.pop();
 
 		// exit the program
 		} else if ((*p == 'q' && *(p + 1) == '\0')
 		           || !strcmp(p, "exit") || !strcmp(p, "quit")
-				)
-			exit(EXIT_SUCCESS); // exit the program
+				) {
+			exit(EXIT_SUCCESS);
 
-		// exit the lambda and leave all the values currently on the stack
-		else if (strcmp(p, "break") == 0) {
+		// exit the current macro and leave all the values currently on the stack
+		} else if (strcmp(p, "break") == 0) {
 			return (char *) lambda_finish;
-
+		} else if (strcmp(p, "pass") == 0) {
+			rpnln = (char*) lambda_finish;
+			return (char *) lambda_finish;
 		// exit the lambda and only leave the top on the stack
 		} else if (strcmp(p, "return") == 0) {
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -2251,6 +2253,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				emptyStack(mainStack);
 				mainStack.push(top);
 			}
+			rpnln = (char*) lambda_finish;
 			return (char*) lambda_finish;
 
 		// show help

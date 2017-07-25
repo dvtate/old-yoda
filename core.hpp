@@ -23,8 +23,7 @@
 
 // will be the error code given when a function return successfully
 // this content is set so that if they use it out of context they are still told so
-const char* lambda_finish = "\aERROR: use of `return` or `break` out of context :/";
-
+const char* lambda_finish = "\aERROR: use of `return` or `break` out of context :/\n";
 
 #include "process_line.hpp"
 
@@ -186,7 +185,7 @@ macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& err
 			if (errorToken == lambda_finish) {
 				// prevent memory leaks...
 				free(rpnln_head);
-				if (mainStack.size() == 1)
+				if (rpnln == lambda_finish)
 					return macro::RETURN;
 				else
 					return macro::BREAK;
