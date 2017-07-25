@@ -65,6 +65,15 @@ make_new_var:
 
 	}
 
+
+	UserVar* assignNewVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH], CalcValue value){
+		// making a new variable
+		UserVar* var = new UserVar(first, name, value);
+		lastVar(first)->next = var;
+		return var;
+	}
+
+
 	// remove a variable from the linked list
 	void removeVar(UserVar* first, const char* name) {
 		if (!name || !first)

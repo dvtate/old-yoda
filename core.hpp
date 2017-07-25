@@ -77,7 +77,6 @@ void runFile(char* programFile, bool& errorReporting){
 	std::vector<void*> freeable;
 
 
-
 	char* rpnln = NULL;
 	char* rpnln_head = rpnln;
 	size_t lineLen = 0;

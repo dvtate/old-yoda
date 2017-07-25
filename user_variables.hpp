@@ -121,6 +121,10 @@ namespace vars {
 	inline UserVar* assignVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH], CalcValue value){
 		return assignVar(&vars[vars.size() - 1], name, value);
 	}
+	extern UserVar* assignNewVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH], CalcValue value);
+	inline UserVar* assignNewVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH], CalcValue value){
+		return assignNewVar(&vars[vars.size() - 1], name, value);
+	}
 
 	// to remove an individial variable
 	extern void removeVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);

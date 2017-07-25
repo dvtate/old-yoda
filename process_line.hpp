@@ -121,7 +121,7 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 		\
 \
 		/* variables go out of scope */\
-		vars::wipeAll(&first_node);\
+		vars::clearScope(var_nodes);\
 		var_nodes.pop_back();\
 		fclose(statement);\
 	}
@@ -167,6 +167,16 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: Not enough data to satisfy operator `" <<p <<"`.\n");
 			}
+			//printf("\nb="); printCalcValue(mainStack.top(), var_nodes);
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+			if (mainStack.top().type != CalcValue::NUM) {
+				PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
+			}
+
+			double b = mainStack.top().getNum();
+			//printf("\nb=(%s) ", CVtypename(mainStack.top())); printCalcValue(mainStack.top(), var_nodes);
+			mainStack.pop();
 
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
@@ -174,16 +184,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
 			}
 
-			double b = getNextValue(mainStack).getNum();
-
-			CONVERT_INDEX(mainStack, var_nodes);
-			CONVERT_REFS(mainStack, var_nodes);
-			if (mainStack.top().type != CalcValue::NUM) {
-				PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
-			}
-
-			double a = getNextValue(mainStack).getNum();
-
+			double a = mainStack.top().getNum();
+			//printf("\na="); printCalcValue(mainStack.top(), var_nodes);
+			mainStack.pop();
 			switch (*p) {
 				case '*':
 					if (*(p + 1) == '*')
@@ -1714,7 +1717,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 
 							//std::cout <<"Assigning ["<<i<<":" <<paramBindings[i] <<"] $" <<top.lambda->params[paramBindings[i]].c_str() + 1<<"\n";
-							vars::assignVar(var_nodes,
+							vars::assignNewVar(var_nodes,
 							                top.lambda->params[paramBindings[i]].c_str() + 1,
 							                CalcValue(args));
 
@@ -1724,7 +1727,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 							std::vector<CalcValue> arg_s;
 							arg_s.push_back(mainStack.top().list->at(i));
 
-							vars::assignVar(var_nodes,
+							vars::assignNewVar(var_nodes,
 							                top.lambda->params[paramBindings[i]].c_str() + 1,
 							                CalcValue(arg_s));
 
@@ -1765,19 +1768,19 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 								if (end->name[0] != ' ') {
 									// set it to a reference to an identical and safer variable
 									char* v_name = mutilate::mutilateVarName(end->name);
-									vars::assignVar(end->first, v_name, end->val);
+									vars::assignNewVar(end->first, v_name, end->val);
 									end->val.setRef(v_name);
 									free(v_name);
 									ref_name = end->val.string;
 								}
 
-								vars::assignVar(var_nodes,
-								                var_name,
-								                CalcValue().setRef(ref_name));
+								vars::assignNewVar(var_nodes,
+								                   var_name,
+								                   CalcValue().setRef(ref_name));
 							} else
-								vars::assignVar(var_nodes,
-								                var_name,
-								                mainStack.top().list->at(i));
+								vars::assignNewVar(var_nodes,
+								                   var_name,
+								                   mainStack.top().list->at(i));
 
 
 						} else if (top.lambda->countSpaces(paramBindings[i]) == 0) { // normal var
@@ -1804,19 +1807,19 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 								if (end->name[0] != ' ') {
 									// set it to a reference to an identical and safer variable
 									char* var_name = mutilate::mutilateVarName(end->name);
-									vars::assignVar(end->first, var_name, end->val);
+									vars::assignNewVar(end->first, var_name, end->val);
 									end->val.setRef(var_name);
 									free(var_name);
 									ref_name = end->val.string;
 								}
 
-								vars::assignVar(var_nodes,
-								                top.lambda->params[paramBindings[i]].c_str(),
-												CalcValue().setRef(ref_name));
+								vars::assignNewVar(var_nodes,
+								                   top.lambda->params[paramBindings[i]].c_str(),
+								                   CalcValue().setRef(ref_name));
 							} else
-								vars::assignVar(var_nodes,
-								                top.lambda->params[paramBindings[i]].c_str(),
-								                mainStack.top().list->at(i));
+								vars::assignNewVar(var_nodes,
+								                   top.lambda->params[paramBindings[i]].c_str(),
+								                   mainStack.top().list->at(i));
 						}
 						/*
 						//vars::assignVar(var_nodes, top.lambda->params[i].c_str(), mainStack.top().list->at(i)); y u no work :/ ?
@@ -1854,9 +1857,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 							// empty va_args
 							} else if (top.lambda->countSpaces(i) == 1) {
-								vars::assignVar(var_nodes,
-								                top.lambda->params[i].c_str() + 1,
-								                std::vector<CalcValue>());
+								vars::assignNewVar(var_nodes,
+								                   top.lambda->params[i].c_str() + 1,
+								                   std::vector<CalcValue>());
 							}
 						}
 					}
@@ -1885,9 +1888,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 							// empty va_args
 						} else if (top.lambda->countSpaces(i) == 1) {
-							vars::assignVar(var_nodes,
-							                top.lambda->params[i].c_str() + 1,
-							                std::vector<CalcValue>());
+							vars::assignNewVar(var_nodes,
+							                   top.lambda->params[i].c_str() + 1,
+							                   std::vector<CalcValue>());
 						}
 					}
 
