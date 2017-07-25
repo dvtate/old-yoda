@@ -2245,9 +2245,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			return (char *) lambda_finish;
 		// exit the lambda and only leave the top on the stack
 		} else if (strcmp(p, "return") == 0) {
-			CONVERT_INDEX(mainStack, var_nodes);
-			CONVERT_REFS(mainStack, var_nodes);
 			if (!mainStack.empty()) {
+				CONVERT_INDEX(mainStack, var_nodes);
+				CONVERT_REFS(mainStack, var_nodes);
 				CalcValue top = mainStack.top();
 				emptyStack(mainStack);
 				mainStack.push(top);
