@@ -2214,7 +2214,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			// clear the iterator scope
 			vars::clearScope(var_nodes);
-			var_nodes.pop_back();
 
 		// sleep fxn
 		} else if (strcmp(p, "sleep") == 0) {
