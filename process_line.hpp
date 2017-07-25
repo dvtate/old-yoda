@@ -1356,8 +1356,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				} else if (mainStack.top().type == CalcValue::ARR)
 					list = mainStack.top().getListElem(index);
-
-				if (!list) {
+				else {
 					PASS_ERROR("\aERROR: invalid list index\n");
 				}
 
@@ -1669,7 +1668,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				if (mainStack.empty() || mainStack.top().type != CalcValue::ARR)
 					mainStack.push(std::vector<CalcValue>());
 
-				if (mainStack.top().list->size() > top.lambda->max_args()) {
+				if ( (long) mainStack.top().list->size() > top.lambda->max_args()) {
 					PASS_ERROR("\aERROR: too many arguments for the given lambda expression");
 				}
 				std::vector<int16_t> paramBindings;

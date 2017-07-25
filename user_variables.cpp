@@ -1,7 +1,5 @@
 #include <iostream>
-#include <cstdlib>
-#include <cstring>
-#include <inttypes.h>
+#include <string.h>
 
 #include "calc_value.hpp"
 
@@ -109,8 +107,6 @@ make_new_var:
 
 		first = first->next;
 
-		uint8_t len = strlen(name) + 1;
-
 		// search the linked list for the object
 		while (first != NULL)
 			if (strcmp(first->name, name) == 0)
@@ -147,7 +143,7 @@ make_new_var:
 
 	bool varExists(std::vector<UserVar> &vars, const char *name) {
 		bool ret = false;
-		for (int i = vars.size() - 1; i >= 0 && !ret; i--)
+		for (size_t i = vars.size() - 1; i >= 0 && !ret; i--)
 			ret = varExists(&vars[i], name);
 
 		return ret;
