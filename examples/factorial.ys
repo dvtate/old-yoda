@@ -2,18 +2,18 @@
 # factorial example
 # 2017.6.17
 
-{ # our factorial function
+{ # returns factorial of $n
 
-	{	# recursion
-		$n ~ ($n 1 -) $fac @ * return
-	} else {
-		1 return # factorial of 0 is 1 
+	{ # recursion
+		$n ($n 1 -) $fac @ * return
+	} else { # factorial of 0 is 1 
+		1 return
 	} $n 0 == if
+
 } ($n) lambda $fac = 
 
 {
 	$val "! = " + print 	# print "2! = "
 	($val) $fac @ println	# print $fac of $val + newline
-	
 # for each $val on the range [0,9]	
 } 0 20 range $val foreach 
