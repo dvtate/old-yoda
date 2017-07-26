@@ -290,6 +290,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				} else if (b.type == CalcValue::NUM)
 					mainStack.push(a.getNum() + b.getNum());
+			} else {
+				PASS_ERROR("\aERROR: operator `+` doesn't work on the provided types")
 			}
 		} else if (strcmp(p, "==") == 0) {
 			if (mainStack.size() < 2) {
@@ -304,7 +306,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CONVERT_REFS(mainStack, var_nodes);
 			mainStack.top().setValue(CalcValue(mainStack.top() == a));
 
-			// not equal to
+		// not equal to
 		} else if (strcmp(p, "!=") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: `" <<p <<"` expected 2 values to compare\n");
@@ -475,10 +477,28 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		// ++ | --
 		} else if (strlen(p) == 2 && (*p == '+' || *p == '-') && *(p + 1) == *p) {
 			ASSERT_NOT_EMPTY(p);
-			if (mainStack.top().type != CalcValue::REF) {
-				PASS_ERROR("\aERROR: increment/decrement operator expected a reference\n");
+
+			CalcValue* var_val;
+			if (mainStack.top().type == CalcValue::REF) {
+				//PASS_ERROR("\aERROR: increment/decrement operator expected a reference\n");
+				var_val = mainStack.top().valAtRef(var_nodes);
+				mainStack.pop();
+			} else if (mainStack.top().type == CalcValue::INX) {
+				std::vector<ssize_t> index;
+				GET_LIST_INDEX(mainStack, var_nodes, index);
+
+				CalcValue list = mainStack.top();
+				mainStack.pop();
+
+				if (list.type == CalcValue::REF) {
+					var_val = list.valAtRef(var_nodes)->getListElem(index);
+					if (!var_val) {
+						PASS_ERROR("\aERROR: $"<< list.string <<" undefined or inaccessable.\n");
+					}
+				} else {
+					PASS_ERROR("\aERROR: invalid use of list assignment\n");
+				}
 			}
-			CalcValue* var_val = mainStack.top().valAtRef(var_nodes);
 			if (!var_val) {
 				PASS_ERROR("\aERRORL broken reference to $" <<mainStack.top().string <<std::endl);
 			}
@@ -487,15 +507,19 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 			var_val->number += *p == '+' ? 1 : -1;
 
-			mainStack.pop(); // behavior different than C/C++
 
-
+		// modified assignment '*'= += *= /= -= %=
 		} else if ((strlen(p) == 2 && (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '%') && *(p + 1) == '=')
 			|| (strlen(p) == 3 && (*p == '<' || *p == '>') && *p == *(p + 1) && *(p + 2) == '=')) {
 			// not enough data
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: not enough data for modified assignment")
 			}
+			bool last_index = false;
+			if (mainStack.top().type == CalcValue::INX)
+				last_index = true;
+			CONVERT_INDEX(mainStack,var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
 
 			CalcValue v2 = mainStack.top();
 			mainStack.pop();
@@ -504,12 +528,35 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			CalcValue* target;
 			CalcValue* val;
-			if (v1.type == CalcValue::REF) {
+
+			if (v1.type == CalcValue::INX) {
+				mainStack.push(v1);
+
+				std::vector<ssize_t> index;
+
+				GET_LIST_INDEX(mainStack, var_nodes, index);
+
+				CalcValue list = mainStack.top();
+				mainStack.pop();
+
+				if (list.type == CalcValue::REF) {
+					target = list.valAtRef(var_nodes)->getListElem(index);
+					if (!target) {
+						PASS_ERROR("\aERROR: $"<< list.string <<" undefined or inaccessable.\n");
+					}
+				} else {
+					PASS_ERROR("\aERROR: invalid use of list assignment\n");
+				}
+				val = v2.valAtRef(var_nodes);
+
+			} else if (v1.type == CalcValue::REF) {
 				target = v1.valAtRef(var_nodes);
 				val = v2.valAtRef(var_nodes);
 			} else if (v2.type == CalcValue::REF) {
 				target = v2.valAtRef(var_nodes);
 				val = v1.valAtRef(var_nodes);
+			} else if (last_index) {
+				PASS_ERROR("\aERROR: modified assignment expected the index on the left and the value on the right\n");
 			} else {
 				PASS_ERROR("\aERROR: modified assignment expected a reference\n");
 			}
@@ -2401,8 +2448,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				CONVERT_INDEX(mainStack, var_nodes);
 			}
 
-			CalcValue rhs = getNextValue(mainStack),
-					  lhs = getNextValue(mainStack);
+			CalcValue rhs = getNextValue(mainStack);
+
+			CalcValue lhs = getNextValue(mainStack);
 
 			if (lhs.type == CalcValue::REF ) {
 				UserVar *var = vars::findVar(var_nodes, lhs.string);
