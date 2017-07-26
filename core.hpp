@@ -125,6 +125,9 @@ void runFile(char* programFile, bool& errorReporting){
 				std::cin.ignore();
 			#endif
 
+			//for (void* p : freeable) free(p);
+			//freeable.clear();
+
 			// you're dead :P
 			exit(EXIT_FAILURE);
 
@@ -184,6 +187,8 @@ macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& err
 
 			if (errorToken == lambda_finish) {
 				// prevent memory leaks...
+				for (void* p : freeable) free(p);
+				freeable.clear();
 				free(rpnln_head);
 				if (rpnln == lambda_finish)
 					return macro::RETURN;
@@ -210,6 +215,8 @@ macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& err
 			color_fputs(stderr, "^\n", 255, 0, 0);
 */
 
+			for (void* p : freeable) free(p);
+			freeable.clear();
 
 			// prevent memory leaks...
 			free(rpnln_head);

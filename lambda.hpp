@@ -56,7 +56,7 @@ public:
 	int max_args() {
 		int max = 0;
 		for (unsigned i = 0; i < params.size(); i++) {
-			if (countSpaces(i) == 1) {
+			if (countSpaces(i) == 1) { // lambdas with va_args can take infinite arguments
 				return -1;
 			}
 			max++;

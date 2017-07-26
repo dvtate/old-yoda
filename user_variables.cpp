@@ -143,7 +143,7 @@ make_new_var:
 
 	bool varExists(std::vector<UserVar> &vars, const char *name) {
 		bool ret = false;
-		for (size_t i = vars.size() - 1; i >= 0 && !ret; i--)
+		for (ssize_t i = vars.size() - 1; i >= 0 && !ret; i--)
 			ret = varExists(&vars[i], name);
 
 		return ret;

@@ -202,7 +202,7 @@ namespace macro {
 		while (!isEnd) {
 
 			if (getline(&codeLine, &lineLen, codeFeed) == -1) {
-				free(codeLine);
+				//free(codeLine);
 				delete ret;
 				return NULL; // this signals an error from process_line.hpp
 			}
@@ -224,6 +224,7 @@ namespace macro {
 			}
 
 		}
+		//free(codeLine);
 		delete ret;
 		return NULL;
 

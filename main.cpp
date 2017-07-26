@@ -75,8 +75,6 @@ int main(int argc, char** argv){
 		for (;;)
 			runShell(var_nodes, showErrors, mainStack, elseStatement, freeable);
 
-
-
 		// version info
 	} else if (strcmp(argv[1], "-V") == 0 || strcmp(argv[1], "--version")  == 0) {
 		printVersionInfo();
