@@ -2,8 +2,20 @@
 #define YODA_TERMIO_HPP
 
 	#ifdef _WIN32
-	#include <conio.h>
+		#include <conio.h>
 
+		namespace termio {
+
+			// read 1 character without echo
+			inline char getch(void) {
+				return getch();
+			}
+
+			// read 1 character with echo
+			inline char getche(void){
+				return getche();
+			}
+		}
 	#else
 	// not sure if this will work on OSX or not...
 
