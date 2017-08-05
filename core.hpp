@@ -172,7 +172,7 @@ macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& err
 
 		rpnln = rpnln_head;
 		if (getline(&rpnln, &lineLen, prog_file) == -1) {
-			//free(rpnln);
+			free(rpnln);
 			return macro::SUCCESS; // EOF
 		}
 
