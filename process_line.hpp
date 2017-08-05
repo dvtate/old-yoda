@@ -1686,7 +1686,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			mainStack.push(lam);
 
-			// eval operator
+		// eval operator
 		} else if ((*p == '@' && *(p + 1) == '\0') || strcmp(p, "eval") == 0) {
 			ASSERT_NOT_EMPTY(p);
 
@@ -1704,6 +1704,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				if (err) {
 					PASS_ERROR("\aERROR in block near `" <<err <<"`. Called here:\n");
 				}
+
+			// note: after adding va_args and missing handlers, lambda execution performance has decreased significantly
 			}  else if (top.type == CalcValue::LAM) {
 
 				//ASSERT_NOT_EMPTY(p);
@@ -1715,13 +1717,15 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				if (mainStack.empty() || mainStack.top().type != CalcValue::ARR)
 					mainStack.push(std::vector<CalcValue>());
 
-				int max_args = top.lambda->max_args();
+				// verify we dont have too many arguments
+				long max_args = top.lambda->max_args(); // -1 = no max
 				if (max_args != -1 && (long) mainStack.top().list->size() > max_args) {
 					PASS_ERROR("\aERROR: too many arguments for the given lambda expression");
 				}
+
+				// which parameter gets assigned which argument(s)
 				std::vector<int16_t> paramBindings;
 				paramBindings = top.lambda->bindArgs(mainStack.top().list->size());
-
 
 				/*std::cout <<"params=";
 				for (std::string& i : top.lambda->params)
@@ -1733,6 +1737,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					std::cout <<i <<", ";
 				std::cout <<"\n";
 				*/
+
+				// not enough args :(
 				bool hasArgs = top.lambda->params.size() && paramBindings.size();
 				if (paramBindings.size() && paramBindings[0] == -1) {
 					if (top.lambda->requiredArgs() < 0) {
@@ -1753,8 +1759,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				// this gonna get rly complicated
 				if (hasArgs) {
 					uint16_t i;
+
+					// for each argument
 					for (i = 0; i < paramBindings.size(); i++) {
-						// ending w/ var_args
+
+						// if coresponding parameter is a va_args and the end of the arg list
+						// we fill it with the remaining args
 						if (i + 1U < paramBindings.size() && paramBindings[i] == paramBindings[i + 1]) { // va_args
 							//std::cout <<"filling va_arg1\n";
 							std::vector<CalcValue> args;
@@ -1769,6 +1779,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 							                   CalcValue(args));
 
 
+						// if coresponding parameter is a va_args we fill it with the remaining args
 						} else if (top.lambda->countSpaces(paramBindings[i]) == 1) { // va_arg
 							//std::cout <<"filling va_arg2\n";
 							std::vector<CalcValue> arg_s;
@@ -1779,7 +1790,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 							                   CalcValue(arg_s));
 
 
-
+						// the parameter has been provided and thus we ignore the missing handler
 						} else if (top.lambda->countSpaces(paramBindings[i]) == 2) { // var with default handler
 							// copy param into tmp string
 							char var_name[top.lambda->params[paramBindings[i]].length()];
@@ -1836,7 +1847,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 								                   var_name,
 								                   mainStack.top().list->at(i));
 
-
+						// this really should be the first condition...
 						} else if (top.lambda->countSpaces(paramBindings[i]) == 0) { // normal var
 							// prevent cyclic references from occuring by mutilateing reference names
 							if (mainStack.top().list->at(i).type == CalcValue::REF) {
@@ -1915,7 +1926,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 								}
 								free(tmp);
 
-								// empty va_args
+							// empty va_args list
 							} else if (top.lambda->countSpaces(i) == 1) {
 								vars::assignNewVar(var_nodes,
 								                   top.lambda->params[i].c_str() + 1,
@@ -1923,14 +1934,15 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 							}
 						}
 					}
+					// done with args list
 					mainStack.pop();
 
-					// no args provided but we still might need to fill in params
+				// no args provided but we still might need to fill in params
 				} else if (top.lambda->params.size()) {
 					// handle each undefined variable
 					for (unsigned int i = 0; i < top.lambda->params.size(); i++) {
 						//std::cout <<"Handling missing param `" <<top.lambda->params.at(i) <<"` cs=" <<top.lambda->countSpaces(i) <<std::endl;
-						// handle undefined optional params
+						// handle undefined optional params (call missing handler)
 						if (top.lambda->countSpaces(i) == 2) {
 							// variable doesnt get defined here but handler gets run
 
@@ -1948,7 +1960,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 							}
 							free(tmp);
 
-							// empty va_args
+						// empty va_args list
 						} else if (top.lambda->countSpaces(i) == 1) {
 							vars::assignNewVar(var_nodes,
 							                   top.lambda->params[i].c_str() + 1,
@@ -1973,8 +1985,10 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				std::stack<CalcValue> fxnStack;
 
+				// run the lambda/tmpfile
 				macro::ret_t ret = runFile(statement, var_nodes, showErrors, fxnStack, elseStatement, freeable);
-				//run the temp file
+
+				// check return value (why did the lambda finish?)
 				if (ret == macro::ERROR) {
 					PASS_ERROR("\aERROR: @ (exec operator) failed\n");
 				}
