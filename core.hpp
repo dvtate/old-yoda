@@ -92,6 +92,8 @@ void runFile(char* programFile, bool& errorReporting){
 
 		// here there be bugs
 		if (getline(&rpnln, &lineLen, program) == -1) { // EOF
+			for (void* x : freeable)
+				free(x);
 			return;
 		}
 

@@ -1191,7 +1191,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			// get a single character from stdin
 		} else if (strcmp(p, "getchar") == 0) {
-			char input[2] = {(char) getc(stdin), '\0'};
+			char input[2] = { (char) getc(stdin), '\0'};
 			mainStack.push(input);
 			// silently get character without needing newline
 		} else if (strcmp(p, "getch") == 0) {
@@ -1528,7 +1528,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				*p_tmp = ' ';
 			}
 
-			std::string listBody = list::getList(p, codeFeed);
+			std::string listBody = list::getList(p, codeFeed, freeable);
 			//std::cout <<"listbody=\"" <<listBody <<"\"\n";
 			if (listBody == "(") {
 				PASS_ERROR("\aERROR: `(` invalid list, possible missing `)`\n");
@@ -1586,7 +1586,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			StrStack* execArr = macro::getMacro(p, codeFeed, heap_str);
 			freeable.push_back((void*) heap_str);
 			//free(heap_str);
-			//std::cout <<"fm pushed back \"" <<heap_str <<"\"\n";
 
 			//free's mem allocated for line
 			free(newLine);

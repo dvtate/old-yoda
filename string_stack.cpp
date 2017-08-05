@@ -111,7 +111,9 @@ void StrStack::toString(char** dest, size_t* space){
 
 	// reallocate memory to fit data
 	*space = totalLength();
-	*dest = (char*) realloc((void*) *dest, *space);
+	free(*dest);
+	*dest = (char*) malloc(*space);
+	//*dest = (char*) realloc((void*) *dest, *space);
 	//memset(*dest, '-', *space);
 	// begin copying in data
 	char** buff = stackHead; // start from bottom of stack
@@ -192,6 +194,7 @@ namespace macro {
 			*str = '\0';
 			str++;
 			ret->push(codeLine);
+			codeLine = NULL;
 			return ret;
 		}
 

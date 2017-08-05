@@ -46,7 +46,7 @@ namespace list {
 
 
 	// note, str is modified and this is used in processLine()
-	std::string getList(char*& str, FILE* codeFeed){
+	std::string getList(char*& str, FILE* codeFeed, std::vector<void*>& freeable){
 		char* codeLine = str;
 		uint16_t depth = 1; // shouldn't be 65000 dimensional array
 		std::string arrBody = "";
@@ -87,13 +87,11 @@ namespace list {
 				*str = '\0';
 				arrBody += codeLine;
 				*str = ' ';
-				free(codeLine);
-				printf("%s", str);
+				freeable.push_back(codeLine);
 				return arrBody;
 			}
 
 		}
-		free(codeLine);
 		return arrBody;
 	}
 
