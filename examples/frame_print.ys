@@ -1,0 +1,67 @@
+{ # returns length of the longest word in a list
+	$ret 0 =
+	{
+		{
+			$ret $word strlen =
+		} $word strlen $ret > if
+	} $words $word foreach
+
+	$ret return
+
+} ($words) lam $longest_len = 
+
+
+
+{ # print words in a frame
+	# example
+	# *********
+	# * henlo *
+	# * fren  *
+	# *********
+
+	
+	$len ($words) $longest_len @ 1 + =
+	
+	# print top border
+	"**" print
+	{
+		"*" print
+	} 0 $len range $x foreach
+	
+	# print each line of text with borders on the sides
+	"*" println
+	{
+		"* " $word + print
+
+		{ " " print	} 0 $len $word strlen - range $x foreach
+
+		"*" println
+
+	} $words $word foreach
+	
+	# print bottom border
+	"**" print
+	{
+		"*" print
+	} 0 $len range $x foreach
+	"*" println
+
+
+} ( ($words) ) lam $print_frame =
+
+# print some yoda quotes in frames
+
+("do or", "do not.", "there is", "no try", "-Yoda") $print_frame @
+
+(	"Fear is the path to the dark side.",
+	"Fear leads to anger.",
+	"Anger leads to hate.",
+	"Hate leads to suffering.",
+	"  - Yoda"
+) $print_frame @
+
+
+(	"If you end your training now",
+	"If you choose the quick and easy path",
+	"You will become an agent of evil."
+) $print_frame @
