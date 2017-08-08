@@ -160,6 +160,7 @@ macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& err
 	if (!prog_file)
 		return macro::ERROR;
 
+	std::vector<void*> freeable2;
 
 	size_t local_line = 0;
 
@@ -174,6 +175,8 @@ macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& err
 
 		rpnln = rpnln_head;
 		if (getline(&rpnln, &lineLen, prog_file) == -1) {
+			for (auto x : freeable2)
+				free(x);
 			free(rpnln);
 			return macro::SUCCESS; // EOF
 		}
@@ -183,14 +186,14 @@ macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& err
 		char* errorToken = NULL;
 		// process the line
 		if ((errorToken =
-					 processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, prog_file, freeable))
+					 processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, prog_file, freeable2))
 			&& errorReporting
 				) {
 
 			if (errorToken == lambda_finish) {
 				// prevent memory leaks...
-				//for (void* p : freeable) free(p);
-				//freeable.clear();
+				for (auto x : freeable2)
+					free(x);
 				free(rpnln_head);
 				if (rpnln == lambda_finish)
 					return macro::RETURN;
@@ -217,10 +220,10 @@ macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& err
 			color_fputs(stderr, "^\n", 255, 0, 0);
 */
 
-			//for (void* p : freeable) free(p);
-			//freeable.clear();
 
 			// prevent memory leaks...
+			for (auto x : freeable2)
+				free(x);
 			free(rpnln_head);
 			return macro::ERROR;
 		}
