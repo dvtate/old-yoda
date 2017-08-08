@@ -1185,7 +1185,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				input[strlen(input) - 1] = '\0';
 
 			mainStack.push(input);
-			freeable.push_back(input);
 
 			free(input);
 
