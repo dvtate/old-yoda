@@ -2407,43 +2407,24 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CalcValue val = mainStack.top();
 			mainStack.pop();
 
-			if (val.isNull()) // NULL string pointer
-				mainStack.push("NULL_VAL");
+			mainStack.push(CVtypename(val));
 
-			else if (val.type == CalcValue::STR) // string-type
-				mainStack.push("string"); // STR
-
-			else if (val.type == CalcValue::NUM) // number-type
-				mainStack.push("number/boolean"); // NUM/BLN
-
-			else if (val.type == CalcValue::REF) // variable reference
-				mainStack.push("reference");
-
-			else if (val.type == CalcValue::BLK) // string_stack
-				mainStack.push("executable array");
-
-			else if (val.type == CalcValue::ARR) // list
-				mainStack.push("list");
-
-			else if (val.type == CalcValue::LAM) // lambda
-				mainStack.push("lambda");
-
-			// system call (problem: this conflicts with the current strategy for handling if statements.....)
-		} else if (strcmp(p, "sys") == 0 || strcmp(p, "system") == 0) {
+		// system call
+		} else if (strcmp(p, "system") == 0) {
 
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
 
 			if (mainStack.top().isStr())
-				system(mainStack.top().getStr()); // gets run in BASH/CMD
+				system(mainStack.top().getStr()); // gets run in shell
 
 			else if (mainStack.top().type == CalcValue::NUM) {
 				PASS_ERROR("\aERROR: cannot make a system call with a number...\n" <<std::endl);
 			}
 			mainStack.pop();
 
-			// assignment operator
+		// assignment operator
 		} else if (*p == '=' && *(p + 1) == '\0') { // variable assignment
 
 			if (mainStack.size() < 2) {

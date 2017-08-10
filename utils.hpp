@@ -368,7 +368,9 @@ inline size_t linesToEnd(FILE* fil){
 	return numLines;
 }
 
+// variable name mutilator which uses a base 62 counting system to give variables unique names
 namespace mutilate {
+
 	const uint8_t L_REF_MUTILATOR = 11; // number of numberals
 	const char baseNumerals[62] = { // base 62 numerals
 			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
@@ -426,14 +428,6 @@ const char* CVtypename(CalcValue val) {
 	else if (val.type == CalcValue::LAM) // lambda
 		return "lambda";
 	else return "WTF";
-}
-
-template <class T>
-void freeAll(std::vector<T*>& ptrs) {
-	for (auto p : ptrs)
-		free(p);
-	ptrs.clear();
-
 }
 
 #endif
