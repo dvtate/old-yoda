@@ -25,8 +25,9 @@ namespace vars {
 }
 
 // utils.h
-extern char* trimStr(char* string);
-
+namespace strutils {
+	extern char *trimStr(char *string);
+}
 
 // this will be used for list indexes
 // I want numbers to by default be converted into CalcValue::NUM and not indexes
@@ -435,7 +436,7 @@ public:
 		} else if (type == CalcValue::NUM) {
 			char str[27];
 			snprintf(str, 26, "%*.*g", 10, 16, getNum());
-			return trimStr(str);
+			return strutils::trimStr(str);
 
 			// already a string
 		} else if (type == CalcValue::STR)

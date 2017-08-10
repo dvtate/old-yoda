@@ -103,7 +103,7 @@ void runFile(char* programFile, bool& errorReporting){
 		char *errorToken = NULL;
 		// process the line
 		if ((errorToken =
-					 processLine(mainStack, var_nodes,errorReporting, rpnln, elseStatement, program, freeable))
+					 processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, program, freeable))
 			&& errorReporting
 				) {
 

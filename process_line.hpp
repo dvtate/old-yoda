@@ -558,7 +558,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 							// convert the double to a string
 							char str[26];
 							snprintf(str, 26, "%*.*g", 10, 16, val->getNum());
-							char* trimmedStr = trimStr(str);
+							char* trimmedStr = strutils::trimStr(str);
 
 							// allocate memory
 							char combined[strlen(target->getStr()) + strlen(trimmedStr) + 1];
@@ -576,7 +576,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 							char str[26];
 
 							snprintf(str, 26, "%*.*g", 10, 16, target->getNum());
-							char* trimmedStr = trimStr(str);
+							char* trimmedStr = strutils::trimStr(str);
 
 							// allocate memory
 							char combined[strlen(trimmedStr) + strlen(val->getStr()) + 1];
@@ -765,7 +765,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			strcpy(haystack, mainStack.top().string);
 			mainStack.pop();
 
-			mainStack.push(strstr(haystack, needle));
+			mainStack.push(strutils::stristr(haystack, needle));
 
 			// remove leading and triling
 		} else if (strcmp(p, "trim") == 0) {
@@ -780,7 +780,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			char str[strlen(mainStack.top().string) + 1];
 			strcpy(str, mainStack.top().string);
 			mainStack.pop();
-			mainStack.push(trimStr(str));
+			mainStack.push(strutils::trimStr(str));
 
 		} else if (strcmp(p, "split") == 0) {
 			ASSERT_NOT_EMPTY(p);
@@ -877,7 +877,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			strcpy(repl, mainStack.top().string);
 			mainStack.pop();
 
-			char *tmp = str_replace(mainStack.top().string, repl, with);
+			char *tmp = strutils::str_replace(mainStack.top().string, repl, with);
 			mainStack.push(tmp);
 			free(tmp);
 
@@ -970,7 +970,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				}
 
 				// delete char at index
-				deleteChar(i >= 0 ? tmp + i  : tmp + strlen(tmp) + i);
+				strutils::deleteChar(i >= 0 ? tmp + i  : tmp + strlen(tmp) + i);
 				mainStack.push(tmp);
 
 
@@ -993,7 +993,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				// calls delete char on the CV in ms.top(), if index is negative then start from reverse
 				char* str = mainStack.top().string;
-				deleteChar(i >= 0 ? i + str : str + strlen(str) + i);
+				strutils::deleteChar(i >= 0 ? i + str : str + strlen(str) + i);
 
 			}
 
@@ -2239,13 +2239,28 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			usleep((unsigned long)(mainStack.top().number * 1000));
 			mainStack.pop();
 
-			// exit the program
-		} else if ((*p == 'q' && *(p + 1) == '\0')
-		           || !strcmp(p, "exit") || !strcmp(p, "quit")
-				) {
+		// exit the program
+		} else if ((*p == 'q' && *(p + 1) == '\0') || !strcmp(p, "exit") || !strcmp(p, "quit")) {
 			exit(EXIT_SUCCESS);
 
-			// exit the current macro and leave all the values currently on the stack
+		// user is creating an error
+		} else if (strcmp(p, "error") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+
+			if (mainStack.top().type != CalcValue::STR && mainStack.top().type != CalcValue::NUM) {
+				PASS_ERROR("\aERROR: `error` expected a message or error code to exit with")
+			}
+
+			if (mainStack.top().isEmpty()) {
+				PASS_ERROR("\aUNSPECIFIED_ERROR");
+			} else if (mainStack.top().type == CalcValue::STR) {
+				PASS_ERROR('\a' <<mainStack.top().string);
+			} else if (mainStack.top().type == CalcValue::NUM) {
+				PASS_ERROR("\aERROR: CODE# " <<mainStack.top().number <<'\n');
+			}
+		// exit the current macro and leave all the values currently on the stack
 		} else if (strcmp(p, "break") == 0) {
 			return (char *) lambda_finish;
 		} else if (strcmp(p, "pass") == 0) {
@@ -2262,6 +2277,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 			rpnln = (char*) lambda_finish;
 			return (char*) lambda_finish;
+
 
 			// show help
 		} else if (strcmp(p, "help") == 0) {
@@ -2488,8 +2504,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
 
-			// error reporting can get annoying on final programs
-			// toggle errors
+		// error reporting can get annoying on final programs
+		// toggle errors
 		} else if (strcmp(p, "__errors-off") == 0)
 			showErrors = false;
 		else if (strcmp(p, "__errors-on") == 0)
@@ -2498,11 +2514,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.push(showErrors);
 
 
-			// show version info
+		// show version info
 		else if (strcmp(p, "version") == 0)
 			printVersionInfo();
 
-			// delete a variable
+		// delete a variable
 		else if (strcmp(p, "delete") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			// deleting an element of a list
@@ -2531,20 +2547,20 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: delete expected a variable/reference or a list index to delete\n");
 			}
 
-			// clear the stack
-		}else if  (strcmp(p, "...") == 0)
+		// clear the stack
+		} else if  (strcmp(p, "...") == 0)
 			emptyStack(mainStack);
 
-			// pop the top of the stack
+		// pop the top of the stack
 		else if  (*p == ';' && *(p + 1) == '\0') {
 			if (!mainStack.empty())
 				mainStack.pop();
 
-			// pushes the stack size to the stack
+		// pushes the stack size to the stack
 		} else if (strcmp(p, "stklen") == 0)
 			mainStack.push(mainStack.size());
 
-			// swap the top 2 elements in the stack
+		// swap the top 2 elements in the stack
 		else if (strcmp(p, "swap") == 0) {
 			CONVERT_INDEX(mainStack, var_nodes);
 
@@ -2566,12 +2582,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.push(val1);
 			mainStack.push(val2);
 
-			// duplicate the top of the stack
+		// duplicate the top of the stack
 		} else if (strcmp(p, "dup") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			mainStack.push(mainStack.top());
 
-			// duplicate the top elements a set number of times
+		// duplicate the top elements a set number of times
 		} else if (strcmp(p, "dupx") == 0 || strcmp(p, "dupn") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: Not enough data to satisfy `" <<p <<"` operator." <<std::endl);
@@ -2588,7 +2604,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			while (copies-- > 1)
 				mainStack.push(mainStack.top());
 
-			// reverses the order of the stack
+		// reverses the order of the stack
 		} else if (strcmp(p, "reverse_stack") == 0) {
 			std::stack<CalcValue> tmpStack;
 

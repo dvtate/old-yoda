@@ -9,9 +9,10 @@
 
 
 // deleteChar() && deleteChars() defined in utils.hpp
-void deleteChar(char* toDelete);
-void deleteChars(char* toDelete, const size_t numChars);
-
+namespace strutils {
+	void deleteChar(char *toDelete);
+	void deleteChars(char *toDelete, const size_t numChars);
+}
 // Returns the start of the token/string-constant
 // manages escape-sequences within string-constants
 char* qtok(char* str, char** next){
@@ -49,31 +50,31 @@ char* qtok(char* str, char** next){
 						// horizontal tab
 					} else if (*(current + 1) == 't') { // "\\t" => "\t"
 						*current = '\t';
-						deleteChar(current + 1);
+						strutils::deleteChar(current + 1);
 
 						// bel
 					} else if (*(current + 1) == 'a') { // "\\a" => "\a"
 						*current = '\a';
-						deleteChar(current + 1);
+						strutils::deleteChar(current + 1);
 
 						// backspace
 					} else if (*(current + 1) == 'b') { // "\\b" => "\b"
 						*current = '\b';
-						deleteChar(current + 1);
+						strutils::deleteChar(current + 1);
 
 						// formfeed
 					} else if (*(current + 1) == 'f') { // "\\f" => "\f"
 						*current = '\f';
-						deleteChar(current + 1);
+						strutils::deleteChar(current + 1);
 
 						// vertical tab
 					} else if (*(current + 1) == 'v') { // "\\v" => "\v"
 						*current = '\v';
-						deleteChar(current + 1);
+						strutils::deleteChar(current + 1);
 
 						// escaped backslash
 					} else if (*(current + 1) == '\\') // "\\\\" => "\\"
-						deleteChar(current);
+						strutils::deleteChar(current);
 
 						// escape sequence "\nnn"
 					else if (isdigit(*(current + 1))) { // "\\nnn" => "char(nnn)"
@@ -86,7 +87,7 @@ char* qtok(char* str, char** next){
 						char* ptr;
 						// convert the octal literal to single char (8bit int)
 						*current = (char) strtol(str, &ptr, 8);
-						deleteChars(current + 1, ptr - str);
+						strutils::deleteChars(current + 1, ptr - str);
 
 						// escape sequence "\xhh"
 					} else if (*(current + 1) == 'x' && isdigit(*(current + 2))) { // "\\hh" => "char(hh)"
@@ -95,12 +96,12 @@ char* qtok(char* str, char** next){
 						char* ptr;
 						// convert the hex literal to single char (8bit int)
 						*current = (char) strtol(str, &ptr, 16);
-						deleteChars(current + 1, ptr - str);
+						strutils::deleteChars(current + 1, ptr - str);
 
 						// indicates that the next character should be ignored by the tokenizer
 						// this works for \", \', etc.
 					} else
-						deleteChar(current);
+						strutils::deleteChar(current);
 
 					//current++;
 				}
