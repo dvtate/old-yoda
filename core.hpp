@@ -261,7 +261,9 @@ void runShell(std::vector<UserVar>& var_nodes, bool& errorReporting,
 	bool errors = processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, stdin, freeable);
 
 	if (errors)
-		emptyStack(mainStack);
+		while (!mainStack.empty())
+			mainStack.pop();
+
 
 	// prevent memory leaks...
 	free(rpnln_head);

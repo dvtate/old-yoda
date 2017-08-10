@@ -159,18 +159,6 @@ namespace strutils {
 }
 
 
-template<class T>
-inline T getNextValue(std::stack<T>& stk){
-	const T topVal = stk.top();
-	stk.pop();
-	return topVal;
-}
-
-template <class T>
-inline void emptyStack(std::stack<T>& stk){
-	while (!stk.empty())
-		stk.pop();
-}
 
 char* getLineFromFile(const char* filename, size_t lineNumber){
 	FILE *file = fopen(filename, "r");
