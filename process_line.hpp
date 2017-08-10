@@ -38,7 +38,7 @@ extern FILE* program;
 
 
 extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReporting,
-                            std::stack<CalcValue>& mainStack, bool& elseStatement, std::vector<void*>& freeable);
+                            std::stack<CalcValue>& mainStack, bool& elseStatement);
 
 
 // error's if the stack is empty
@@ -111,7 +111,7 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 		var_nodes.push_back(first_node);\
 \
 		/* run the temp file */\
-		macro::ret_t ret = runFile(statement, var_nodes, showErrors, (STACK), elseStatement, freeable);\
+		macro::ret_t ret = runFile(statement, var_nodes, showErrors, (STACK), elseStatement);\
 		if (ret == macro::ERROR) {\
 			PASS_ERROR("\aERROR: macro execution failed\n");\
 		} else if (ret == macro::RETURN || ret == macro::BREAK) {\
@@ -134,7 +134,7 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 /// go ahead and hate on the fact its over 200 lines long... but it works tho :)
 char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
                   bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
-                  std::vector<void*>& freeable
+                  std::vector<void*> freeable
 ){
 
 	//std::cout <<"\nCurrent Line: " << rpnln <<"\n";
@@ -243,56 +243,19 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			else if (a.isEmpty() && b.isEmpty()) // null + null
 				mainStack.push(a);
 
-				// branching out all 4 permutations of string and num
-			else if (a.type == CalcValue::STR) {
-				if (b.type == CalcValue::STR) {
-					// allocate enough memory for both strings and a null terminator
-					char combined[strlen(a.getStr()) + strlen(b.getStr()) + 1];
 
-					// combine the strings
-					strcpy(combined, a.getStr());
-					strcpy(combined + strlen(a.getStr()), b.getStr());
+			// 1 + 1
+			else if (a.type == CalcValue::NUM && b.type == CalcValue::NUM)
+				mainStack.push(a.getNum() + b.getNum());
 
-					mainStack.push(combined);
-
-				} else if (b.type == CalcValue::NUM) { // b is a number
-
-					// convert the double to a string
-					char str[26];
-					snprintf(str, 26, "%*.*g", 10, 16, b.getNum());
-					char* trimmedStr = trimStr(str);
-
-					// allocate memory
-					char combined[strlen(a.getStr()) + strlen(trimmedStr) + 1];
-
-					// combine them
-					strcpy(combined, a.getStr());
-					strcpy(&combined[strlen(a.getStr())], trimmedStr);
-
-					mainStack.push(combined);
-				}
-			} else if (a.type == CalcValue::NUM) {
-				if (b.type == CalcValue::STR) {
-
-					// convert the double to a string
-					char str[26];
-
-					snprintf(str, 26, "%*.*g", 10, 16, a.getNum());
-					char* trimmedStr = trimStr(str);
-
-					// allocate memory
-					char combined[strlen(trimmedStr) + strlen(b.getStr()) + 1];
-					// combine them
-					strcpy(combined, trimmedStr);
-					strcpy(&combined[strlen(trimmedStr)], b.getStr());
-
-					mainStack.push(combined);
-
-				} else if (b.type == CalcValue::NUM)
-					mainStack.push(a.getNum() + b.getNum());
+			// "x" + y = "xy"
+			else if (a.type == CalcValue::STR || b.type == CalcValue::STR) {
+				const std::string combined = a.toString(var_nodes) + b.toString(var_nodes);
+				mainStack.push(combined.c_str());
 			} else {
-				PASS_ERROR("\aERROR: operator `+` doesn't work on the provided types")
+				PASS_ERROR("\aERROR: incompatable types for operator +.\n");
 			}
+
 		} else if (strcmp(p, "==") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: `" <<p <<"` expected 2 values to compare\n");
@@ -1185,7 +1148,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				input[strlen(input) - 1] = '\0';
 
 			mainStack.push(input);
-
 			free(input);
 
 			// get a single character from stdin
@@ -1305,7 +1267,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.pop();
 
 			// run the file
-			macro::ret_t ret = runFile(statement, var_nodes, showErrors, mainStack, elseStatement, freeable);
+			macro::ret_t ret = runFile(statement, var_nodes, showErrors, mainStack, elseStatement);
 			if (ret == macro::ERROR) {
 				PASS_ERROR("\aERROR: error in file added with `insert`\n");
 			}
@@ -1435,16 +1397,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CONVERT_REFS(mainStack, var_nodes);
 			CalcValue val = getNextValue(mainStack);
 
-			if (val.type == CalcValue::STR)
-				mainStack.push(val.getStr());
-			else if (val.type == CalcValue::NUM) {
-				char str[27];
-				snprintf(str, 26, "%*.*g", 10, 16, val.getNum());
-				mainStack.push(trimStr(str));
+			mainStack.push(val.toString(var_nodes).c_str());
 
-				// c++ solutions don't always work as desired :P
-				//mainStack.push(std::to_string(val.getNum()).c_str());
-			}
 			// convert to list
 		} else if (strcmp(p, "list") == 0) {
 			ASSERT_NOT_EMPTY(p);
@@ -1505,7 +1459,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: floor expected a number\n");
 			}
 
-			// returns size of list at top of stak
+		// returns size of list at top of stak
 		} else if (strcmp(p, "list_size") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -1515,7 +1469,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.pop();
 			mainStack.push((double) tmp);
 
-			// initialize a list
+		// initialize a list
 		} else if (*p == '(') {
 
 			char* newLine = NULL, * p_tmp = ++p;
@@ -1569,10 +1523,10 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			rpnln = p;
 
-			// initialize a strStack
+		// initialize a strStack
 		} else if (*p == '{') {
 
-			char* newLine = NULL, * tmp = ++p;
+			char* tmp = ++p;
 
 			while (*tmp) {
 				tmp++;
@@ -1584,29 +1538,23 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			char* heap_str;
 			StrStack* execArr = macro::getMacro(p, codeFeed, heap_str);
 			freeable.push_back((void*) heap_str);
-			//free(heap_str);
 
-			//free's mem allocated for line
-			free(newLine);
 
 			if (execArr) {
 				mainStack.push(*execArr);
 				delete execArr;
 			} else {
 				PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
-				//strcpy(pInit, p);
-				//free(p);
-				//return pInit;
 			}
 
 			rpnln = p;
 
 
-			// ummm hopefully the user actually fucked up and it's not my fault...
+		// ummm hopefully the user actually fucked up and it's not my fault...
 		} else if (*p == '}') {
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
 
-			// making a lambda/anonymous function
+		// making a lambda/anonymous function
 		} else if (strcmp(p, "lambda") == 0 || strcmp(p, "lam") == 0) {
 			if (mainStack.size() < 2 || (elseStatement && mainStack.size() < 3)) {
 				PASS_ERROR("\aERROR: lambda expected a body and a list of parameters\n" <<std::endl);
@@ -1984,7 +1932,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				std::stack<CalcValue> fxnStack;
 
 				// run the lambda/tmpfile
-				macro::ret_t ret = runFile(statement, var_nodes, showErrors, fxnStack, elseStatement, freeable);
+				macro::ret_t ret = runFile(statement, var_nodes, showErrors, fxnStack, elseStatement);
 
 				// check return value (why did the lambda finish?)
 				if (ret == macro::ERROR) {

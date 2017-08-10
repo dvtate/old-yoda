@@ -1,6 +1,7 @@
 #ifndef RPN_UTILS_H
 #define RPN_UTILS_H
 
+/// This file really should be called ADHD_tools.h since it's a completely disorganized array of random shit
 
 #include <iostream>
 #include <stdlib.h>
@@ -165,15 +166,15 @@ bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes){
 				std::cout << " =";
 
 			for (size_t i = 1; i < val.list->size(); i++) {
-				std::cout << ",";
+				std::cout << ", ";
 				if (val.list->at(i).type == CalcValue::REF)
-					std::cout << "$" << val.list->at(0).string << ' ';
+					std::cout << "$" << val.list->at(i).string << ' ';
 				printCalcValue(val.list->at(i), var_nodes);
 				if (val.list->at(i).type == CalcValue::REF)
 					std::cout << " =";
 			}
 		}
-		std::cout <<")";
+		std::cout <<" )";
 	}
 
 	return 0;
@@ -211,7 +212,9 @@ bool printCalcValueRAW(CalcValue& val, std::vector<UserVar>& var_nodes){
 			ret = &val;
 
 		std::cerr <<"\aERROR: broken reference to `$" <<(ret->string) <<"`.\n";
+
 		return 1;
+
 	} else if (val.type == CalcValue::ARR) {
 		std::cout <<"(";
 		if (val.list->size()) {
@@ -220,15 +223,15 @@ bool printCalcValueRAW(CalcValue& val, std::vector<UserVar>& var_nodes){
 			else
 				printCalcValueRAW(val.list->at(0), var_nodes);
 			for (size_t i = 1; i < val.list->size(); i++) {
-				std::cout << ",";
+				std::cout << ", ";
 
-				if (val.list->at(0).type == CalcValue::STR || val.list->at(0).type == CalcValue::ARR)
+				if (val.list->at(i).type == CalcValue::STR || val.list->at(i).type == CalcValue::ARR)
 					printCalcValue(val.list->at(i), var_nodes);
 				else
 					printCalcValueRAW(val.list->at(i), var_nodes);
 			}
 		}
-		std::cout <<")";
+		std::cout <<" )";
 	}
 
 	return 0;
@@ -426,4 +429,13 @@ const char* CVtypename(CalcValue val) {
 		return "lambda";
 	else return "WTF";
 }
+
+template <class T>
+void freeAll(std::vector<T*>& ptrs) {
+	for (auto p : ptrs)
+		free(p);
+	ptrs.clear();
+
+}
+
 #endif

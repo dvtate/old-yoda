@@ -166,7 +166,7 @@ make_new_var:
 
 	}
 
-	CalcValue *valueAtVar(std::vector<UserVar> &vars, const char name[USERVAR_NAME_MAXLENGTH]) {
+	CalcValue *valueAtVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]) {
 		UserVar *var = findVar(vars, name);
 
 		if (var) {

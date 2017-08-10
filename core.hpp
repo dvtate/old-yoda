@@ -154,13 +154,13 @@ namespace macro {
 }
 */
 macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReporting,
-			 std::stack<CalcValue>& mainStack, bool& elseStatement, std::vector<void*>& freeable
+			 std::stack<CalcValue>& mainStack, bool& elseStatement
 ) {
 
 	if (!prog_file)
 		return macro::ERROR;
 
-	std::vector<void*> freeable2;
+	std::vector<void*> freeable;
 
 	size_t local_line = 0;
 
@@ -175,7 +175,7 @@ macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& err
 
 		rpnln = rpnln_head;
 		if (getline(&rpnln, &lineLen, prog_file) == -1) {
-			for (auto x : freeable2)
+			for (void* x : freeable)
 				free(x);
 			free(rpnln);
 			return macro::SUCCESS; // EOF
@@ -186,13 +186,13 @@ macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& err
 		char* errorToken = NULL;
 		// process the line
 		if ((errorToken =
-					 processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, prog_file, freeable2))
+					 processLine(mainStack, var_nodes, errorReporting, rpnln, elseStatement, prog_file, freeable))
 			&& errorReporting
 				) {
 
 			if (errorToken == lambda_finish) {
 				// prevent memory leaks...
-				for (auto x : freeable2)
+				for (auto x : freeable)
 					free(x);
 				free(rpnln_head);
 				if (rpnln == lambda_finish)
@@ -222,7 +222,7 @@ macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& err
 
 
 			// prevent memory leaks...
-			for (auto x : freeable2)
+			for (void* x : freeable)
 				free(x);
 			free(rpnln_head);
 			return macro::ERROR;

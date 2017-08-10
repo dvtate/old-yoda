@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <string>
 #include <vector>
 
 #include "string_stack.hpp"
@@ -22,6 +23,9 @@ namespace vars {
 	extern UserVar* findVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]);
 	extern UserVar* findVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]);
 }
+
+// utils.h
+extern char* trimStr(char* string);
 
 
 // this will be used for list indexes
@@ -291,16 +295,16 @@ public:
 			return NULL;
 	}
 
-	CalcValue* valAtRef(UserVar* first){
+	CalcValue* valAtRef(std::vector<UserVar>& vars){
 		if (type == REF)
-			return vars::valueAtVar(first, string);
+			return vars::valueAtVar(vars, string);
 		else
 			return this;
 	}
 
-	CalcValue* valAtRef(std::vector<UserVar>& vars){
+	CalcValue* valAtRef(UserVar* first){
 		if (type == REF)
-			return vars::valueAtVar(vars, string);
+			return vars::valueAtVar(first, string);
 		else
 			return this;
 	}
@@ -407,6 +411,69 @@ public:
 
 		ret->list->erase(ret->list->begin() + elem_index[elem_index.size() - 1]);
 		return true;
+
+	}
+
+	std::string toString(std::vector<UserVar>& var_nodes){
+
+		std::string ret;
+
+		// null
+		if (isNull())
+			return "null";
+
+			// macro
+		else if (type == CalcValue::BLK) {
+			size_t len = 50;
+			char* str = (char*) malloc(len);
+			block->toString(&str, &len);
+			ret = str;
+			free(str);
+			return ret;
+
+			// number
+		} else if (type == CalcValue::NUM) {
+			char str[27];
+			snprintf(str, 26, "%*.*g", 10, 16, getNum());
+			return trimStr(str);
+
+			// already a string
+		} else if (type == CalcValue::STR)
+			return string;
+
+			// a variable
+		else if (type == CalcValue::REF) {
+			CalcValue* val = valAtRef(var_nodes);
+			while (val && val->type == CalcValue::REF)
+				val = val->valAtRef(var_nodes);
+			if (val)
+				return val->toString(var_nodes);
+			else
+				return "reference_error";
+
+			// list printing a list
+		} else if (type == CalcValue::ARR) {
+			ret += "(";
+			if (list->size()) {
+				if (list->at(0).type == CalcValue::STR)
+					ret += '"';
+				ret += list->at(0).toString(var_nodes);
+				if (list->at(0).type == CalcValue::STR)
+					ret += '"';
+				for (size_t i = 1; i < list->size(); i++) {
+					ret += ", ";
+					if (list->at(i).type == CalcValue::STR)
+						ret += '"';
+					ret += list->at(i).toString(var_nodes);
+					if (list->at(i).type == CalcValue::STR)
+						ret += '"';
+				}
+			}
+			ret+= " )";
+		}
+
+		return ret;
+
 
 	}
 };
