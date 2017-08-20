@@ -871,6 +871,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					mainStack.push(list);
 				}
 			}
+
 			// replace substring
 		} else if (strcmp(p, "str_replace") == 0) {
 			if (mainStack.size() < 3) {
@@ -1406,21 +1407,19 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				mainStack.top().list->push_back(val);
 			}
 
-			// random number on [0,1]
+		// random number on [0,1]
 		} else if (strcmp(p, "random") == 0) {
 			mainStack.push((double) rand() / RAND_MAX);
 
-			// convert to string
+		// convert to string
 		} else if (strcmp(p, "str") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
-			CalcValue val = mainStack.top();
-			mainStack.pop();
 
-			mainStack.push(val.toString(var_nodes).c_str());
+			mainStack.top().setValue(mainStack.top().toString(var_nodes).c_str());
 
-			// convert to list
+		// convert to list
 		} else if (strcmp(p, "list") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -1435,7 +1434,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 			mainStack.push(tmp);
 
-			// convert to number
+		// convert to number
 		} else if (strcmp(p, "num") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -1583,7 +1582,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 		// making a lambda/anonymous function
 		} else if (strcmp(p, "lambda") == 0 || strcmp(p, "lam") == 0) {
-			if (mainStack.size() < 2 || (elseStatement && mainStack.size() < 3)) {
+			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: lambda expected a body and a list of parameters\n" <<std::endl);
 			}
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -2058,6 +2057,10 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			} else if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: if expected a condition and a block of code (takes 2 arguments)\n");
 			}
+
+			bool els = elseStatement;
+			elseStatement = false;
+
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
 
@@ -2065,7 +2068,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.pop();
 
 			// branching for else statements and the condition
-			if (elseStatement) // { } else { } condition if
+			if (els) // { } else { } condition if
 				if (condition) {
 					CalcValue runTrue = mainStack.top();
 					mainStack.pop(); mainStack.pop();
