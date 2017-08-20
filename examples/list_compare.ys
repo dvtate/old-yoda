@@ -1,0 +1,63 @@
+
+# is the value $query in the list $list
+{ # in_list
+	{
+		{ # if its in list then ret true
+			true return
+		} $elem $query == if
+	} $list $elem foreach
+
+	# wasn't found in list so its not there
+	false return
+
+} ($list, $query) lam $in_list =
+
+
+
+# get the friends lists
+$a_friends "a_friends.txt" file_get_contents ";" split =
+$b_friends "b_friends.txt" file_get_contents ";" split =
+
+$mutual () =
+$a_unique () =
+$b_unique () =
+
+# find mutual friends and find those unique to a
+{ # for each friend of a
+
+	{ # friend of a but not b
+		$a_unique $friend ~ push_back		
+	} else { # friend of both a and b
+		$mutual $friend ~ push_back
+	} ($b_friends, $friend) $in_list @ if
+
+} $a_friends $friend foreach
+
+
+# find friends unique to b
+{
+	{ # friend of b but not a
+		$b_unique $friend ~ push_back
+	} ($mutual, $friend) $in_list @ if
+
+} $b_friends $friend foreach
+
+
+#####
+# output to file
+#####
+
+{ # formatting and file output
+	$out "" =
+	{ # separate each friend with an empty line
+		$out $friend +=
+		$out "\n\n" +=
+	} $list $friend foreach
+	$out $file_name file_put_contents
+} ($file_name, $list) lam $output_to_file =
+
+("mutual.txt", $mutual) $output_to_file @
+("a_unique.txt", $a_unique) $output_to_file @
+("b_unique.txt", $b_unique) $output_to_file @
+
+
