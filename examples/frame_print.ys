@@ -1,53 +1,55 @@
-{ # returns length of the longest word in a list
-	$ret 0 =
-	{
-		{
-			$ret $word strlen =
-		} $word strlen $ret > if
-	} $words $word foreach
+{ # returns length of the longest string in a list
 
+	# returns -1 if given an empty list
+	$ret -1 =
+
+
+	{ # for each string str
+		{ # if it's the new biggest str, set $ret to it's length
+			$ret $str strlen =
+		} $str strlen $ret > if
+	} $strs $str foreach
+
+	# return longest length
 	$ret return
 
-} ($words) lam $longest_len = 
+} ($strs) lam $longest_len = 
 
 
 
-{ # print words in a frame
-	# example
+{ # print words in a frame of *'s
+
+	# example:
 	# *********
 	# * henlo *
 	# * fren  *
 	# *********
 
-	
-	$len ($words) $longest_len @ 1 + =
+	# set frame width ($len) to one more than the length of the longest line
+	$len ($lines) $longest_len @ 1 + =
 	
 	# print top border
-	"**" print
-	{
-		"*" print
-	} 0 $len range $x foreach
+	"***" print
+	{ "*" print } $len repeat
 	
 	# print each line of text with borders on the sides
-	"*" println
 	{
-		"* " $word + print
+		"\n* " $line + print
 
-		{ " " print	} 0 $len $word strlen - range $x foreach
+		{ " " print	} $len $line strlen - repeat
 
-		"*" println
+		"*" print
 
-	} $words $word foreach
+	} $lines $line foreach
 	
 	# print bottom border
-	"**" print
-	{
-		"*" print
-	} 0 $len range $x foreach
-	"*" println
+	"\n***" print
+	{ "*" print	} $len repeat
 
+	# make sure it actually printed, end with \n	
+	"" println
 
-} ( ($words) ) lam $print_frame =
+} ( ($lines) ) lam $print_frame =
 
 # print some yoda quotes in frames
 
