@@ -329,12 +329,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 						else
 							mainStack.push(1.0);
 					} else {
-						PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit and) expected a boolean expression/macro\n");
+						PASS_ERROR("\aERROR: `" <<p <<"` (and) expected a boolean expression (or macro for shortcircuit)\n");
 					}
 				}
 
 			} else if (v1.type == CalcValue::BLK) {
-
 				std::stack<CalcValue> condStack;
 
 				RUN_STR_STK(*v1.block, condStack);
@@ -361,15 +360,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					}
 				}
 
-
-
 			} else {
 				PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit or) expected a boolean expression/macro\n");
 			}
 
-
-
-			// short-circuit ||
+		// short-circuit ||
 		} else if (strcmp(p, "||") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: `" << p << "` (short-circuit or) expected 2 boolean expressions/macros\n");
@@ -2103,7 +2098,24 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				} // else, it's a value that should stay at the top of the stack
 			} // else, don't do anything as there isn't an else clause
 
-			// errs if stack top is false
+		// 恶心特你的的similar to a switch statment
+		} else if (strcmp(p, "cond") == 0 || strcmp(p, "condition") == 0) {
+			if (mainStack.empty() || mainStack.top().type != CalcValue::BLK) {
+				PASS_ERROR("\aERROR: extended condition expected a macro.\n");
+			}
+			std::stack<CalcValue> condStk;
+			RUN_STR_STK(*mainStack.top().block, condStk);
+			mainStack.pop();
+
+			if (condStk.empty()) {
+				PASS_ERROR("\aERROR: condition without body\n");
+			}
+
+			bool hasElse = (condStk.size() % 2 != 0);
+
+
+
+		// errs if stack top is false
 		} else if (strcmp(p, "assert") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
