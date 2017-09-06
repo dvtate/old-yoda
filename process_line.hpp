@@ -2578,7 +2578,7 @@ cond_end:;
 
 		// show version info
 		else if (strcmp(p, "__version") == 0)
-			printVersionInfo();
+			mainStack.push(YODA_LANG_VERSION); // defined in lolcat_version.h
 
 		// delete a variable
 		else if (strcmp(p, "delete") == 0) {
