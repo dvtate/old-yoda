@@ -2098,21 +2098,55 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				} // else, it's a value that should stay at the top of the stack
 			} // else, don't do anything as there isn't an else clause
 
-		// 恶心特你的的similar to a switch statment
+		// extended contitionals -- 恶心特你的的similar to a switch statment
 		} else if (strcmp(p, "cond") == 0 || strcmp(p, "condition") == 0) {
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
 			if (mainStack.empty() || mainStack.top().type != CalcValue::BLK) {
 				PASS_ERROR("\aERROR: extended condition expected a macro.\n");
 			}
-			std::stack<CalcValue> condStk;
-			RUN_STR_STK(*mainStack.top().block, condStk);
+			std::stack<CalcValue> condStack;
+			RUN_STR_STK(*mainStack.top().block, condStack);
 			mainStack.pop();
 
-			if (condStk.empty()) {
-				PASS_ERROR("\aERROR: condition without body\n");
+			if (condStack.empty()) {
+				PASS_ERROR("\aERROR: extended condition without body\n");
 			}
 
-			bool hasElse = (condStk.size() % 2 != 0);
+			bool hasElse = (condStack.size() % 2 != 0);
 
+			// for each clause
+			while (condStack.size() > 1) {
+				CONVERT_INDEX(condStack, var_nodes);
+				CONVERT_REFS(condStack, var_nodes);
+
+				if (condStack.top().type != CalcValue::NUM) {
+					PASS_ERROR("\aERROR: in extended contition: expected condition, recieved value of type: "
+							           <<CVtypename(condStack.top()) <<'\n');
+				}
+				if (condStack.top().getNum() != 0) {
+					condStack.pop();
+
+					CONVERT_INDEX(condStack, var_nodes);
+					CONVERT_REFS(condStack, var_nodes);
+
+					if (condStack.top().type != CalcValue::BLK)
+						mainStack.push(condStack.top());
+					else {
+						RUN_STR_STK(*condStack.top().block, mainStack);
+					}
+					goto cond_end;
+				} else {
+					condStack.pop();condStack.pop();
+				}
+			}
+
+			// else statement
+			if (!condStack.empty()) {
+				RUN_STR_STK(*condStack.top().block, mainStack);
+			}
+
+cond_end:;
 
 
 		// errs if stack top is false
@@ -2408,7 +2442,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		else if (strcmp(p, "__file") == 0)
 			mainStack.push(progName);
 
-			// typeof function
+		// typeof function
 		else if (strcmp(p, "typeof") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -2512,7 +2546,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 
 
-			// is the given variable/reference defined?
+		// is the given variable/reference defined?
 		} else if (strcmp(p, "is_defined") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -2543,7 +2577,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 
 		// show version info
-		else if (strcmp(p, "version") == 0)
+		else if (strcmp(p, "__version") == 0)
 			printVersionInfo();
 
 		// delete a variable
