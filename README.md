@@ -333,7 +333,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `__errors`: returns 1 if errors are on and 0 if off
   - `syscall`: calls `system()` on the given string. (for running system shell commands)
   - `__file`: returns the name of the main file being run
-  - `__version`: prints version info
+  - `__version`: returns version string
 
 # Related Repos & Gists
   When I develop the interpreter I like to develop different portions separately and then add them to my code-base once I've rigorously tested them. If you want to contribute to a particular sub-system, I'd reccomend editing these repos instead of this one. Eventually these will primarily be external libararies
