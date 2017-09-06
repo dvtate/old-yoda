@@ -420,7 +420,7 @@ const char* CVtypename(CalcValue val) {
 		return "reference";
 
 	else if (val.type == CalcValue::BLK) // string_stack
-		return "executable array";
+		return "macro";
 
 	else if (val.type == CalcValue::ARR) // list
 		return "list";
