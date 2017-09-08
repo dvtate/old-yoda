@@ -14,6 +14,9 @@
 // this is the class used in our stack
 #include "calc_value.hpp"
 
+// custom types
+#include "user_types.hpp"
+
 // user defined variables
 #include "user_variables.hpp"
 

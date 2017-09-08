@@ -427,7 +427,11 @@ const char* CVtypename(CalcValue val) {
 
 	else if (val.type == CalcValue::LAM) // lambda
 		return "lambda";
-	else return "WTF";
+
+	else if (val.type == CalcValue::OBJ) // object
+		return "object";
+
+	return "WTF";
 }
 
 #endif

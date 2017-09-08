@@ -10,11 +10,13 @@
 
 #include "string_stack.hpp"
 #include "lambda.hpp"
+#include "user_types.hpp"
 
 #define USERVAR_NAME_MAXLENGTH 20
 
 // to be defined later
 class CalcValue;
+class UserType;
 class UserVar;
 
 namespace vars {
@@ -37,7 +39,10 @@ public:
 	ssize_t index;
 	index_t(const ssize_t& in):
 			index(in){ }
+	index_t& operator=(const index_t& in)
+		{ index = in.index; return *this;}
 };
+
 
 /// a temporary value to hold user data in
 class CalcValue {
@@ -51,7 +56,9 @@ public:
 			BLK,	// Block of code (StrStack) (subroutine) (executable array)
 			ARR,    // vector
 			INX,    // index of an array, type made for
-			LAM     // lambda
+			LAM,    // lambda
+			MEM,    // member request
+			OBJ     // custom type
 	} type;
 
 	// contains the data
@@ -59,9 +66,11 @@ public:
 		double		number;
 		char*		string;
 		StrStack*	block;
-		std::vector<CalcValue>* list;
+		std::vector<CalcValue>*   list;
 		ssize_t     index;
 		Lambda*     lambda;
+		std::vector<std::string>* request;
+		UserType*   object;
 	};
 
 
@@ -80,6 +89,10 @@ public:
 			delete list;
 		else if (type == LAM)
 			delete lambda;
+		else if (type == OBJ)
+			delete object;
+		else if (type == MEM)
+			delete request;
 	}
 
 	// Null object
@@ -88,7 +101,12 @@ public:
 
 	CalcValue (double val):	type(NUM) {
 		number = val;
-		type = NUM;
+	}
+
+	CalcValue (const UserType& obj):
+		type(OBJ)
+	{
+		object = new UserType(obj);
 	}
 
 
@@ -336,6 +354,9 @@ public:
 				return true;
 			} else if (type == INX) {
 				return (index == cv2.index);
+			} else if (type == OBJ) {
+				// TODO: implement this
+				return false;
 			}
 		}
 
@@ -361,7 +382,8 @@ public:
 		{ return type == BLK; }
 	bool isArr()
 		{ return type == ARR; }
-
+	bool isObj()
+		{ return type == OBJ; }
 
 
 	// list accessor
@@ -371,13 +393,13 @@ public:
 
 		CalcValue* ret = this;
 
-		for (ssize_t i : elem_index) {
-			if ((ssize_t) ret->list->size() <= i || (ssize_t) ret->list->size() < abs(i)) {
+		for (int16_t i = elem_index.size() - 1; i >= 0; i--) {
+			if ((ssize_t) ret->list->size() <= elem_index[i] || (ssize_t) ret->list->size() < abs(elem_index[i])) {
 				return NULL;
 			}
-			ret = i < 0 ?
-			      &ret->list->at(ret->list->size() + i) :
-			      &ret->list->at(i);
+			ret = elem_index[i] < 0 ?
+			      &ret->list->at(ret->list->size() + elem_index[i]) :
+			      &ret->list->at(elem_index[i]);
 		}
 
 		return ret;
@@ -399,7 +421,7 @@ public:
 			return false;
 
 		CalcValue* ret = this;
-		for (uint16_t i = 0; i < elem_index.size() - 1; i++) {
+		for (int16_t i = elem_index.size() - 1; i >= 0; i--) {
 			if ((ssize_t) ret->list->size() <= elem_index[i] || (ssize_t) ret->list->size() < abs(elem_index[i])) {
 				return false;
 			}
@@ -423,7 +445,7 @@ public:
 		if (isNull())
 			return "null";
 
-			// macro
+		// macro
 		else if (type == CalcValue::BLK) {
 			size_t len = 50;
 			char* str = (char*) malloc(len);
@@ -432,7 +454,7 @@ public:
 			free(str);
 			return ret;
 
-			// number
+		// number
 		} else if (type == CalcValue::NUM) {
 			char str[27];
 			snprintf(str, 26, "%*.*g", 10, 16, getNum());
@@ -452,7 +474,7 @@ public:
 			else
 				return "reference_error";
 
-			// list printing a list
+		// list printing a list
 		} else if (type == CalcValue::ARR) {
 			ret += "(";
 			if (list->size()) {
@@ -471,10 +493,11 @@ public:
 				}
 			}
 			ret+= " )";
+		} else if (type == CalcValue::OBJ) {
+			return "<CV::OBJ.toString not implemented yet>";
 		}
 
 		return ret;
-
 
 	}
 };
