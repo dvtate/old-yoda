@@ -295,8 +295,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
 
-			mainStack.push(mainStack.top().getNum() == 0);
-			mainStack.pop();
+			mainStack.top().setValue(mainStack.top().getNum() == 0.0);
 
 		// short-circuit &&
 		} else if (strcmp(p, "&&") == 0) {
@@ -1255,6 +1254,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 
 			FILE *output_file = fopen(mainStack.top().string, "w");
+			if (!output_file) {
+				PASS_ERROR("\aERROR: couldn't create or open file (!fopen())\n");
+			}
 			mainStack.pop();
 
 			CONVERT_INDEX(mainStack, var_nodes);
