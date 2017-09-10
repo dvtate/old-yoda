@@ -471,7 +471,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			var_val->number += *p == '+' ? 1 : -1;
 
 
-			// modified assignment '*'= += *= /= -= %=
+		// modified assignment '*'= += *= /= -= %=
 		} else if ((strlen(p) == 2 && (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '%') && *(p + 1) == '=')
 				   || (strlen(p) == 3 && (*p == '<' || *p == '>') && *p == *(p + 1) && *(p + 2) == '=')) {
 			// not enough data
@@ -1295,7 +1295,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			// we're now done with the file
 			fclose(statement);
 
-			// get the value at the specific index of an array
+		// get the value at the specific index of an array
 		} else if (strcmp(p, "get") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: `get` expected a list and a numerical index\n\n");
@@ -1311,7 +1311,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					CalcValue val = (*mainStack.top().list)[index];
 					mainStack.top() = val;
 				} else {
-					PASS_ERROR("\aERROR: `get` expected a list and a numerical index\n\n");
+					PASS_ERROR("\aERROR: `get` expected a list for the numerical index (recieved \" <<CVtypename(mainStack.top()) <<\")\n\n");
 				}
 			} else if (mainStack.top().type == CalcValue::ARR) {
 				std::vector<CalcValue> list = *mainStack.top().list;
@@ -1320,30 +1320,44 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					CalcValue val = list[(size_t) round(abs(mainStack.top().getNum()))];
 					mainStack.top() = val;
 				} else {
-					PASS_ERROR("\aERROR: `get` expected a list and a numerical index\n\n");
+					PASS_ERROR("\aERROR: `get` expected a numerical index for the list (recieved \" <<CVtypename(mainStack.top()) <<\")\n\n");
 				}
 			} else if (mainStack.top().type == CalcValue::INX) {
 				CONVERT_INDEX(mainStack, var_nodes);
 			} else {
-				PASS_ERROR("\aERROR: `get` expected a list and a numerical index\n\n");
+				PASS_ERROR("\aERROR: `get` expected a list and a numerical index (recieved " <<CVtypename(mainStack.top()) <<")\n\n");
+
 			}
 
-			// index of a list (bracket operator)
-		} else if (*p == ']' && *(p + 1) == '\0') {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_INDEX(mainStack, var_nodes); // is this right?
-			CONVERT_REFS(mainStack, var_nodes);
+		// index of a list (bracket operator)
+		} else if (*p == ']') {
+			char* tmp = ++p;
 
-			if (mainStack.top().type != CalcValue::NUM) {
-				PASS_ERROR("\aERROR: non-numerical index\n");
-			}
-			CalcValue tmp;
-			tmp.type = CalcValue::INX;
-			tmp.index = (ssize_t) mainStack.top().getNum();
-			mainStack.pop();
-			mainStack.push(tmp);
+			while (*tmp)
+				tmp++;
+			if (lineLen - (tmp - pInit) > 2)
+				*tmp = ' ';
 
-			// push a value onto a list
+			do {
+				ASSERT_NOT_EMPTY(p);
+				CONVERT_INDEX(mainStack, var_nodes); // is this right?
+				CONVERT_REFS(mainStack, var_nodes);
+
+				if (mainStack.top().type != CalcValue::NUM) {
+					PASS_ERROR("\aERROR: non-numerical index. (" <<CVtypename(mainStack.top())<<")\n");
+				}
+				CalcValue tmp;
+				tmp.type = CalcValue::INX;
+				tmp.index = (ssize_t) mainStack.top().getNum();
+				mainStack.pop();
+				mainStack.push(tmp);
+				p++;
+			} while (*p == ']');
+
+			//printf("p=%s\n",p);
+			rpnln = p;
+
+		// push a value onto a list
 		} else if (strcmp(p, "push_back") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: `push_back` expected a list and a numerical index\n\n");
@@ -1572,7 +1586,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			} else {
 				PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
 			}
-
 			rpnln = p;
 
 
