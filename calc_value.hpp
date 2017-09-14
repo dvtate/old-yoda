@@ -57,7 +57,7 @@ public:
 			ARR,    // vector
 			INX,    // index of an array, type made for
 			LAM,    // lambda
-			MEM,    // member request
+			REQ,    // member request
 			OBJ     // custom type
 	} type;
 
@@ -91,7 +91,7 @@ public:
 			delete lambda;
 		else if (type == OBJ)
 			delete object;
-		else if (type == MEM)
+		else if (type == REQ)
 			delete request;
 	}
 
@@ -130,14 +130,13 @@ public:
 	CalcValue(StrStack* codeBlock): type(BLK)
 		{ block = new StrStack(*codeBlock); }
 
-	CalcValue(const std::vector<CalcValue> in_list):
-		type(ARR)
-	{
-		list = new std::vector<CalcValue>();
-		for (CalcValue elem : in_list)
-			list->push_back(elem);
+	CalcValue(const std::vector<CalcValue>& in_list):
+		type(ARR), list(new std::vector<CalcValue>(in_list))
+	{}
 
-	}
+	CalcValue(const std::vector<std::string>& in_list):
+		type(REQ), request(new std::vector<std::string>(in_list))
+	{}
 
 	CalcValue(const index_t in_index):
 			type(INX), index(in_index.index)
@@ -218,7 +217,8 @@ public:
 			index = in.index;
 		else if (type == LAM)
 			lambda = new Lambda(*in.lambda);
-
+		else if (type == REQ)
+			request = new std::vector<std::string>(*in.request);
 
 	}
 
@@ -245,6 +245,7 @@ public:
 		*(string + 1) = '\0';
 
 	}
+
 	void setValue(double val){
 
 		clear();
@@ -259,8 +260,16 @@ public:
 
 		type = ARR;
 		list = new std::vector<CalcValue>();
-		for (const CalcValue elem : arr)
-			list->push_back(elem);
+		*list = arr;
+	}
+
+	void setValue(const std::vector<std::string>& req) {
+		// del old val
+		clear();
+
+		type == REQ;
+		request = new std::vector<std::string>();
+		*request = req;
 	}
 
 	void setValue(const bool in)
@@ -352,9 +361,9 @@ public:
 						return false;
 
 				return true;
-			} else if (type == INX) {
+			} else if (type == INX)
 				return (index == cv2.index);
-			} else if (type == OBJ) {
+			else if (type == OBJ) {
 				// TODO: implement this
 				return false;
 			}
@@ -363,6 +372,10 @@ public:
 		return false;
 
 
+	}
+
+	bool operator!=(const CalcValue& vs) {
+		return !operator==(vs);
 	}
 
 	// A Null value
@@ -422,9 +435,9 @@ public:
 
 		CalcValue* ret = this;
 		for (int16_t i = elem_index.size() - 1; i >= 0; i--) {
-			if ((ssize_t) ret->list->size() <= elem_index[i] || (ssize_t) ret->list->size() < abs(elem_index[i])) {
+			if ((ssize_t) ret->list->size() <= elem_index[i] || (ssize_t) ret->list->size() < abs(elem_index[i]))
 				return false;
-			}
+
 			ret = elem_index[i] < 0 ?
 			      &ret->list->at(ret->list->size() + elem_index[i]) :
 			      &ret->list->at(elem_index[i]);
@@ -495,8 +508,76 @@ public:
 			ret+= " )";
 		} else if (type == CalcValue::OBJ) {
 			return "<CV::OBJ.toString not implemented yet>";
+		} else if (type == CalcValue::REQ) {
+			return "<CV::REQ.toString not implemented yet>";
 		}
 
+		return ret;
+
+	}
+
+	CalcValue* requestMember(std::vector<UserVar>& var_nodes) {
+		if (request->at(0) == " ")
+			return NULL;
+
+		CalcValue* ret = CalcValue()
+							.setRef(request->at(0).c_str())
+								.valAtRef(var_nodes);
+		if (!ret)
+			return NULL;
+
+		for (uint16_t i = 1; i < request->size(); i++) {
+			if (ret->type != CalcValue::OBJ)
+				return NULL;
+
+			// if the object doesn't have a member with that name
+			if (! (ret = ret->object->getMember(request->at(i))))
+				return NULL;
+
+		}
+		return ret;
+
+	}
+
+	CalcValue* requestMember(UserVar* first_node) {
+		if (request->at(0) == " ")
+			return NULL;
+
+		CalcValue* ret = CalcValue()
+				.setRef(request->at(0).c_str())
+				.valAtRef(first_node);
+		if (!ret)
+			return NULL;
+
+		for (uint16_t i = 1; i < request->size(); i++) {
+			if (ret->type != CalcValue::OBJ)
+				return NULL;
+
+			// if the object doesn't have a member with that name
+			if (! (ret = ret->object->getMember(request->at(i))))
+				return NULL;
+
+		}
+		return ret;
+
+	}
+
+	CalcValue* requestMember(std::vector<std::string>& req) {
+		if (req.at(0) == " ") {
+			return NULL;
+		}
+
+		CalcValue* ret = this;
+
+		for (uint16_t i = 1; i < req.size(); i++) {
+			if (ret->type != CalcValue::OBJ)
+				return NULL;
+
+			// if the object doesn't have a member with that name
+			if (! (ret = ret->object->getMember(req[i])))
+				return NULL;
+
+		}
 		return ret;
 
 	}

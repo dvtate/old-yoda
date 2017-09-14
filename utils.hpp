@@ -431,7 +431,7 @@ const char* CVtypename(CalcValue val) {
 	else if (val.type == CalcValue::OBJ) // object
 		return "object";
 
-	else if (val.type == CalcValue::MEM) // member request type
+	else if (val.type == CalcValue::REQ) // member request type
 		return "memeber";
 
 	else if (val.type == CalcValue::INX) // list index type

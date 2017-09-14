@@ -44,11 +44,6 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
                             std::stack<CalcValue>& mainStack, bool& elseStatement);
 
 
-// error's if the stack is empty
-#define ASSERT_NOT_EMPTY(OPERATOR)\
-	if (mainStack.empty()) {\
-		PASS_ERROR("\aERROR: not enough data for `" <<OPERATOR <<"`.\n")\
-	}
 
 // closes with an error
 #define PASS_ERROR(MSG) \
@@ -56,15 +51,10 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 		std::cerr <<"(#" <<__LINE__ <<") " <<MSG;\
 	return p;
 
-#define GET_LIST_INDEX(MAINSTACK, VAR_NODES, ASSIGN_TO)\
-	if (MAINSTACK.top().type == CalcValue::INX) {\
-		while (!MAINSTACK.empty() && MAINSTACK.top().type == CalcValue::INX) {\
-			ASSIGN_TO.push_back(MAINSTACK.top().index);\
-			MAINSTACK.pop();\
-		}\
-		if (MAINSTACK.empty()) {\
-			PASS_ERROR("\aERROR: index without list\n");\
-		}\
+// error's if the stack is empty
+#define ASSERT_NOT_EMPTY(OPERATOR)\
+	if (mainStack.empty()) {\
+		PASS_ERROR("\aERROR: not enough data for `" <<OPERATOR <<"`.\n")\
 	}
 
 // makes the top() value an actual Value as opposed to a reference
@@ -76,6 +66,18 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 			MAINSTACK.top().setValue(*val);\
 		else {\
 			PASS_ERROR("\aERROR: broken reference to $" <<MAINSTACK.top().string <<'\n');\
+		}\
+	}
+
+
+#define GET_LIST_INDEX(MAINSTACK, VAR_NODES, ASSIGN_TO)\
+	if (MAINSTACK.top().type == CalcValue::INX) {\
+		while (!MAINSTACK.empty() && MAINSTACK.top().type == CalcValue::INX) {\
+			ASSIGN_TO.push_back(MAINSTACK.top().index);\
+			MAINSTACK.pop();\
+		}\
+		if (MAINSTACK.empty()) {\
+			PASS_ERROR("\aERROR: index without list\n");\
 		}\
 	}
 
@@ -94,6 +96,19 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
         }\
 		MAINSTACK.top().setValue(*cv);\
 	}
+
+#define GET_REQUEST(MAINSTACK, VAR_NODES, ASSIGN_TO)\
+	if (MAINSTACK.top().type == CalcValue::INX) {\
+		while (!MAINSTACK.empty() && MAINSTACK.top().type == CalcValue::INX) {\
+			ASSIGN_TO.push_back(MAINSTACK.top().index);\
+			MAINSTACK.pop();\
+		}\
+		if (MAINSTACK.empty()) {\
+			PASS_ERROR("\aERROR: index without list\n");\
+		}\
+	}
+
+
 
 // evals a block
 #define RUN_STR_STK(STRSTK, STACK) {\
@@ -132,13 +147,16 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 
 #define CLEAR_STACK(STACK) while (!STACK.empty()) STACK.pop();
 
+#include "top_modifiers.hpp"
+
+
 /// returns: location/source of error or NULL
 /// params: environment/operation variables
 /// this function runs the user's code, most essential part of the interpreter
 /// go ahead and hate on the fact its over 200 lines long... but it works tho :)
 char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
                   bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
-                  std::vector<void*> freeable
+                  std::vector<void*>& freeable
 ){
 
 	//std::cout <<"\nCurrent Line: " << rpnln <<"\n";
@@ -229,7 +247,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if (*p == '+' && *(p + 1) == '\0') {
 
 			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: Not enough data to satisfy `+` operator." <<std::endl);
+				PASS_ERROR("\aERROR: Not enough data to satisfy `+` operator." << std::endl);
 			}
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
@@ -248,7 +266,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			else if (a.isEmpty() && b.isEmpty()) // null + null
 				mainStack.push(a);
 
-
 			// 1 + 1
 			else if (a.type == CalcValue::NUM && b.type == CalcValue::NUM)
 				mainStack.push(a.getNum() + b.getNum());
@@ -260,6 +277,13 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			} else {
 				PASS_ERROR("\aERROR: incompatable types for operator +.\n");
 			}
+
+		} else if (strcmp(p, "conv") == 0) {
+			CalcValue* cv = conv_top(mainStack, var_nodes, showErrors, freeable);
+			if (!cv) {
+				PASS_ERROR("\aERROR: during lazy evaluation\n");
+			}
+			mainStack.push(*cv);
 
 		} else if (strcmp(p, "==") == 0) {
 			if (mainStack.size() < 2) {
@@ -1354,8 +1378,17 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				p++;
 			} while (*p == ']');
 
-			//printf("p=%s\n",p);
 			rpnln = p;
+
+		// returns size of list at top of stak
+		} else if (strcmp(p, "list_size") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_INDEX(mainStack, var_nodes);
+			CONVERT_REFS(mainStack, var_nodes);
+
+			auto tmp = mainStack.top().list->size();
+			mainStack.pop();
+			mainStack.push((double) tmp);
 
 		// push a value onto a list
 		} else if (strcmp(p, "push_back") == 0) {
@@ -1463,7 +1496,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atof(val.getStr()));
 
-			// convert to an integer
+		// convert to an integer
 		} else if (strcmp(p, "int") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
@@ -1496,15 +1529,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: floor expected a number\n");
 			}
 
-		// returns size of list at top of stak
-		} else if (strcmp(p, "list_size") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_INDEX(mainStack, var_nodes);
-			CONVERT_REFS(mainStack, var_nodes);
-
-			auto tmp = mainStack.top().list->size();
-			mainStack.pop();
-			mainStack.push((double) tmp);
 
 		// initialize a list
 		} else if (*p == '(') {
@@ -1592,6 +1616,26 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		// ummm hopefully the user actually fucked up and it's not my fault...
 		} else if (*p == '}') {
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
+
+		// member access statement
+		} else if (*p == ':' && *(p + 1)) {
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_INDEX(mainStack, var_nodes);
+
+			if (mainStack.top().type == CalcValue::REQ) {
+				mainStack.top().request->push_back(p);
+			} else if (mainStack.top().type == CalcValue::REF) {
+				mainStack.top().setValue(std::vector<std::string>({mainStack.top().string, p}));
+			} else {
+				mainStack.push(std::vector<std::string>({" "}));
+			}
+
+		// make an object
+		} else if (strcmp(p, "object") == 0 || strcmp(p, "obj") == 0) {
+			// TODO: finish implementation
+			ASSERT_NOT_EMPTY(p);
+			mainStack.pop();
+			mainStack.push(UserType());
 
 		// making a lambda/anonymous function
 		} else if (strcmp(p, "lambda") == 0 || strcmp(p, "lam") == 0) {
@@ -2487,9 +2531,38 @@ cond_end:;
 				system(mainStack.top().getStr()); // gets run in shell
 
 			else if (mainStack.top().type == CalcValue::NUM) {
-				PASS_ERROR("\aERROR: cannot make a system call with a number...\n" <<std::endl);
+				PASS_ERROR("\aERROR: cannot make a system call with a number...\n" << std::endl);
 			}
 			mainStack.pop();
+
+		//
+		} else if (strcmp(p, "eqs") == 0) {
+			size_t freeable_size = freeable.size();
+
+			bool var1, var2;
+			CalcValue *v1, *v2;
+
+			// a literal would be stored in freeable for garbage collection
+			v2 = conv_top(mainStack, var_nodes, showErrors, freeable);
+			var2 = freeable.size() == freeable_size;
+			freeable_size = freeable.size();
+
+			printf("size=%d\n", mainStack.size());
+
+			v1 = conv_top(mainStack, var_nodes, showErrors, freeable);
+			var1 = freeable.size() == freeable_size;
+
+			printf("1:%d, 2:%d\n", v1, v2);
+			if (!v1 || !v2) {
+				PASS_ERROR("\aERROR: `=`:  error in lazy evaluation")
+			}
+			if (var1) {
+				*v1 = *v2;
+			} else if (var2) {
+				*v2 = *v1;
+			} else {
+				PASS_ERROR("\aERROR: invalid use of assignment operator, no assignable term given.");
+			}
 
 		// assignment operator
 		} else if (*p == '=' && *(p + 1) == '\0') { // variable assignment
