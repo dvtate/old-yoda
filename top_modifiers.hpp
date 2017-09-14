@@ -102,13 +102,17 @@ CalcValue* get_top(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_n
 
 		}
 		// $variable :scope :scope
-		// TODO: make anything that isnt there already...
-		ret = mainStack.top().requestMember(var_nodes);
-		if (!ret) {
-			PASS_ERROR("\aERROR: object member not found\n");
-		}
+		UserVar* var = vars::findVar(var_nodes, mainStack.top().request->at(0).c_str());
+		if (!var)
+			var = vars::assignNewVar(var_nodes, mainStack.top().request->at(0).c_str(), UserType());
+
+		ret = var->val.requestMember(*mainStack.top().request);
+		if (!ret)
+			var->val.object->addMember(*mainStack.top().request, CalcValue());
+
 		mainStack.pop();
 		return ret;
+
 	}
 	ret = new CalcValue(mainStack.top());
 	freeable.push_back(ret);

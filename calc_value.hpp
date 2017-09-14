@@ -517,7 +517,7 @@ public:
 	}
 
 	CalcValue* requestMember(std::vector<UserVar>& var_nodes) {
-		if (request->at(0) == " ")
+		if (type != REQ && request->at(0) == " ")
 			return NULL;
 
 		CalcValue* ret = CalcValue()
@@ -540,7 +540,7 @@ public:
 	}
 
 	CalcValue* requestMember(UserVar* first_node) {
-		if (request->at(0) == " ")
+		if (type != REQ &&request->at(0) == " ")
 			return NULL;
 
 		CalcValue* ret = CalcValue()

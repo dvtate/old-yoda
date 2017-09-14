@@ -2543,13 +2543,13 @@ cond_end:;
 			CalcValue *v1, *v2;
 
 			// a literal would be stored in freeable for garbage collection
-			v2 = conv_top(mainStack, var_nodes, showErrors, freeable);
+			v2 = get_top(mainStack, var_nodes, showErrors, freeable);
 			var2 = freeable.size() == freeable_size;
 			freeable_size = freeable.size();
 
 			printf("size=%d\n", mainStack.size());
 
-			v1 = conv_top(mainStack, var_nodes, showErrors, freeable);
+			v1 = get_top(mainStack, var_nodes, showErrors, freeable);
 			var1 = freeable.size() == freeable_size;
 
 			printf("1:%d, 2:%d\n", v1, v2);

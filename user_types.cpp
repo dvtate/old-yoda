@@ -17,7 +17,7 @@ void UserType::addMember(const std::string nMem, const CalcValue nVal){
 
 void UserType::addMember(std::vector<std::string> loc, const CalcValue nVal){
 	UserType* obj = this;
-	for (uint16_t i = 0; i < loc.size() - 1; i++) {
+	for (uint16_t i = 1; i < loc.size() - 1; i++) {
 		obj->addMember(loc[i], UserType());
 		obj = obj->getMember(loc[i])->object;
 	}
