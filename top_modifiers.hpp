@@ -21,7 +21,7 @@ CalcValue* conv_top(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_
 			PASS_ERROR("\aERROR: index without list\n");
 		} else {
 			ret = cv->getListElem(inx);
-			if (!cv) {
+			if (!ret) {
 				PASS_ERROR("\aERROR: list index out of bounds\n");
 			}
 			return ret;

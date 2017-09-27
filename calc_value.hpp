@@ -175,6 +175,8 @@ public:
 			index = in.index;
 		else if (type == LAM)
 			lambda = new Lambda(*in.lambda);
+		else if (type == OBJ)
+			object = new UserType(*in.object);
 
 	}
 
@@ -219,7 +221,14 @@ public:
 			lambda = new Lambda(*in.lambda);
 		else if (type == REQ)
 			request = new std::vector<std::string>(*in.request);
+		else if (type == OBJ)
+			object = new UserType(*in.object);
+	}
 
+	void setValue(const UserType in) {
+		clear();
+		object = new UserType(in);
+		type = OBJ;
 	}
 
 	void setValue(const char* const str){

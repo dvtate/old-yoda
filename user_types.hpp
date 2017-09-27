@@ -5,6 +5,7 @@
 #include <algorithm> // find()
 #include <string>
 
+
 class CalcValue;
 
 
@@ -15,9 +16,11 @@ public:
 
 	UserType(){};
 
-	UserType(const UserType& in):
-		members(in.members),
-		values(in.values) {}
+	UserType(const UserType& in){
+		members = in.members;
+		values = in.values;
+	}
+
 
 	// attempts to add a member, if already there, then change value
 	void addMember(const std::string nMem, const CalcValue nVal);
@@ -41,6 +44,7 @@ public:
 	UserType& operator=(const UserType& in) {
 		members = in.members;
 		values = in.values;
+		return *this;
 	}
 
 

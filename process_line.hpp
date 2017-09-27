@@ -1634,8 +1634,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if (strcmp(p, "object") == 0 || strcmp(p, "obj") == 0) {
 			// TODO: finish implementation
 			ASSERT_NOT_EMPTY(p);
-			mainStack.pop();
-			mainStack.push(UserType());
+			mainStack.top().setValue(UserType());
 
 		// making a lambda/anonymous function
 		} else if (strcmp(p, "lambda") == 0 || strcmp(p, "lam") == 0) {
@@ -2535,7 +2534,7 @@ cond_end:;
 			}
 			mainStack.pop();
 
-		//
+		// experimental assignment operator
 		} else if (strcmp(p, "eqs") == 0) {
 			size_t freeable_size = freeable.size();
 
@@ -2543,7 +2542,7 @@ cond_end:;
 			CalcValue *v1, *v2;
 
 			// a literal would be stored in freeable for garbage collection
-			v2 = get_top(mainStack, var_nodes, showErrors, freeable);
+			v2 = conv_top(mainStack, var_nodes, showErrors, freeable);
 			var2 = freeable.size() == freeable_size;
 			freeable_size = freeable.size();
 
@@ -2556,11 +2555,11 @@ cond_end:;
 			if (!v1 || !v2) {
 				PASS_ERROR("\aERROR: `=`:  error in lazy evaluation")
 			}
-			if (var1) {
-				*v1 = *v2;
-			} else if (var2) {
-				*v2 = *v1;
-			} else {
+			if (var1)
+				v1->setValue(*v2);
+			else if (var2)
+				v2->setValue(*v1);
+			else {
 				PASS_ERROR("\aERROR: invalid use of assignment operator, no assignable term given.");
 			}
 
