@@ -1,6 +1,7 @@
 #include "user_types.hpp"
 #include "calc_value.hpp"
 
+
 void UserType::addMember(const std::string nMem, const CalcValue nVal){
 	std::vector<std::string>::iterator loc = find(members.begin(), members.end(), nMem);
 
@@ -9,6 +10,7 @@ void UserType::addMember(const std::string nMem, const CalcValue nVal){
 		members.push_back(nMem);
 		values.push_back(nVal);
 
+		printf("type=%s\n",CVtypename(values[values.size() - 1].type == CalcValue::OBJ));
 	// already a member
 	} else {
 		values[loc - members.begin()] = nVal;

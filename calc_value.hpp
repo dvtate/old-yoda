@@ -177,6 +177,8 @@ public:
 			lambda = new Lambda(*in.lambda);
 		else if (type == OBJ)
 			object = new UserType(*in.object);
+		else if (type == REQ)
+			request = new std::vector<std::string>(*in.request);
 
 	}
 
@@ -268,8 +270,7 @@ public:
 		clear();
 
 		type = ARR;
-		list = new std::vector<CalcValue>();
-		*list = arr;
+		list = new std::vector<CalcValue>(arr);
 	}
 
 	void setValue(const std::vector<std::string>& req) {
@@ -277,8 +278,8 @@ public:
 		clear();
 
 		type == REQ;
-		request = new std::vector<std::string>();
-		*request = req;
+		request = new std::vector<std::string>(req);
+
 	}
 
 	void setValue(const bool in)
@@ -549,7 +550,7 @@ public:
 	}
 
 	CalcValue* requestMember(UserVar* first_node) {
-		if (type != REQ &&request->at(0) == " ")
+		if (type != REQ || request->at(0) == " ")
 			return NULL;
 
 		CalcValue* ret = CalcValue()
@@ -571,30 +572,40 @@ public:
 
 	}
 
-	CalcValue* requestMember(std::vector<std::string>& req) {
-		if (req.at(0) == " ") {
+	CalcValue* requestMember(std::vector<std::string>& req, std::vector<UserVar>* var_nodes = NULL) {
+		if (req.at(0) != " ") {
 			return NULL;
 		}
 
+
 		CalcValue* ret = this;
+		printf("reqMem:%s\n", ret->toString(*var_nodes).c_str());
 
 		for (uint16_t i = 1; i < req.size(); i++) {
+
+			printf("reqMem:%s\n", ret->toString(*var_nodes).c_str());
+
+			// request expected an object where there is none...
 			if (ret->type != CalcValue::OBJ)
 				return NULL;
 
 			// if the object doesn't have a member with that name
-			if (! (ret = ret->object->getMember(req[i])))
+			if (!(ret = ret->object->getMember(req[i])))
 				return NULL;
 
 		}
+
 		return ret;
 
 	}
 };
 
-
-
 #define NULL_CALCVAL_OBJECT CalcValue((char*) NULL)
+
+
+// string form of the typename
+const char* CVtypename(CalcValue val);
+
 
 
 #endif

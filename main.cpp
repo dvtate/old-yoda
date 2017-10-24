@@ -5,7 +5,7 @@
 #include <signal.h>
 
 // re-implemented getline()
-#include "fuck_windows.h"
+#include "win_supp.h"
 
 #include "string_stack.hpp"
 
