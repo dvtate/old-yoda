@@ -5,17 +5,20 @@
 CalcValue* conv_top(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes, const bool showErrors, std::vector<void*>& freeable){
 	CalcValue* p = NULL, *ret = NULL;
 
+	//printf("conv: %s\n", mainStack.top().typeName());
+
+	// variable reference
 	if (mainStack.top().type == CalcValue::REF) {
 		ret = mainStack.top().valAtRef(var_nodes);
 		mainStack.pop();
 		return ret;
 	}
+
+	// list index
 	if (mainStack.top().type == CalcValue::INX) {
 		std::vector <ssize_t> inx;
 		GET_LIST_INDEX(mainStack, var_nodes, inx);
 		CalcValue* cv = conv_top(mainStack, var_nodes, showErrors, freeable);
-		if (!cv)
-			printf("fml\n");
 		if (!cv || cv->type != CalcValue::ARR) {
 			PASS_ERROR("\aERROR: index without list\n");
 		} else {
@@ -26,11 +29,15 @@ CalcValue* conv_top(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_
 			return ret;
 		}
 	}
+
+	// object member request
 	if (mainStack.top().type == CalcValue::REQ) {
+
 		// <literal> :scope :scope
 		if (mainStack.top().request->at(0) == " ") {
 			std::vector<std::string> request = *mainStack.top().request;
 			mainStack.pop();
+
 			CalcValue* cv = conv_top(mainStack, var_nodes, showErrors, freeable);
 			if (cv->type != CalcValue::OBJ) {
 				PASS_ERROR("\aERROR: member request without object\n");
@@ -42,7 +49,7 @@ CalcValue* conv_top(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_
 
 			return ret;
 
-			// $variable :scope :scope
+		// $variable :scope :scope
 		} else {
 			ret = mainStack.top().requestMember(var_nodes);
 			if (!ret) {
@@ -51,7 +58,10 @@ CalcValue* conv_top(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_
 			mainStack.pop();
 			return ret;
 		}
+
 	}
+
+	// const
 	ret = new CalcValue(mainStack.top());
 	freeable.push_back(ret);
 	mainStack.pop();

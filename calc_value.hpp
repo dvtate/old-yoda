@@ -50,7 +50,8 @@ class CalcValue {
 public:
 
 	// which type is represented by the data union
-	enum {  NUM,	// number/boolean
+	enum base_type {
+			NUM,	// number/boolean
 			STR,	// string
 			REF,	// reference to a variable
 			BLK,	// Block of code (StrStack) (subroutine) (executable array)
@@ -277,7 +278,7 @@ public:
 		// del old val
 		clear();
 
-		type == REQ;
+		type = REQ;
 		request = new std::vector<std::string>(req);
 
 	}
@@ -579,11 +580,11 @@ public:
 
 
 		CalcValue* ret = this;
-		printf("reqMem:%s\n", ret->toString(*var_nodes).c_str());
+		//printf("reqMem:%s\n", ret->toString(*var_nodes).c_str());
 
 		for (uint16_t i = 1; i < req.size(); i++) {
 
-			printf("reqMem:%s\n", ret->toString(*var_nodes).c_str());
+			//printf("reqMem:%s\n", ret->toString(*var_nodes).c_str());
 
 			// request expected an object where there is none...
 			if (ret->type != CalcValue::OBJ)
@@ -598,13 +599,46 @@ public:
 		return ret;
 
 	}
+
+	// string form of type
+	const char* typeName() {
+		if (isNull()) // NULL string pointer
+			return "NULL_VAL";
+
+		else if (type == CalcValue::STR) // string-type
+			return "string"; // STR
+
+		else if (type == CalcValue::NUM) // number-type
+			return "number/boolean"; // NUM/BLN
+
+		else if (type == CalcValue::REF) // variable reference
+			return "reference";
+
+		else if (type == CalcValue::BLK) // string_stack
+			return "macro";
+
+		else if (type == CalcValue::ARR) // list
+			return "list";
+
+		else if (type == CalcValue::LAM) // lambda
+			return "lambda";
+
+		else if (type == CalcValue::OBJ) // object
+			return "object";
+
+		else if (type == CalcValue::REQ) // member request type
+			return "memeber";
+
+		else if (type == CalcValue::INX) // list index type
+			return "index";
+
+		return "WTF";
+	}
 };
 
+
+
 #define NULL_CALCVAL_OBJECT CalcValue((char*) NULL)
-
-
-// string form of the typename
-const char* CVtypename(CalcValue val);
 
 
 

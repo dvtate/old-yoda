@@ -1,8 +1,33 @@
+
 #include "user_types.hpp"
 #include "calc_value.hpp"
 
 
-void UserType::addMember(const std::string nMem, const CalcValue nVal){
+CalcValue* UserType::getMember(const std::string query) {
+
+	//printf("ut.getmem(%s)\n", query.c_str());
+	for (unsigned i = 0; i < members.size(); i++)
+		if (members[i] == query)
+			return &values[i];
+		//else printf("ut.gl != %s\n", members[i].c_str());
+
+	return NULL;
+
+	/*
+	auto tmp = find(members.begin(), members.end(), query);
+	printf("UT.getMember(%d):%s\n", tmp - members.begin(), values[tmp - members.begin()].typeName());
+	if (tmp == members.end()) {
+		return NULL;
+	}
+
+	return &values[tmp - members.begin()];
+	*/
+}
+
+
+UserType&UserType::addMember(std::string nMem, CalcValue nVal){
+	//printf("UT.am(%s)", nMem.c_str());
+
 	std::vector<std::string>::iterator loc = find(members.begin(), members.end(), nMem);
 
 	// not yet a member
@@ -10,20 +35,21 @@ void UserType::addMember(const std::string nMem, const CalcValue nVal){
 		members.push_back(nMem);
 		values.push_back(nVal);
 
-		printf("type=%s\n",CVtypename(values[values.size() - 1].type == CalcValue::OBJ));
 	// already a member
 	} else {
 		values[loc - members.begin()] = nVal;
 	}
+
+	return *this;
 }
 
-void UserType::addMember(std::vector<std::string> loc, const CalcValue nVal){
+UserType& UserType::addMember(std::vector<std::string> loc, const CalcValue nVal){
 	UserType* obj = this;
 	for (uint16_t i = 1; i < loc.size() - 1; i++) {
 		obj->addMember(loc[i], UserType());
 		obj = obj->getMember(loc[i])->object;
 	}
-	obj->addMember(loc[loc.size() - 1], nVal);
+	return obj->addMember(loc[loc.size() - 1], nVal);
 }
 
 bool UserType::operator==(const UserType& vs){

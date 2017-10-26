@@ -224,6 +224,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 							mainStack.push(0.0);
 						else
 							mainStack.push(1.0);
+
 					} else if (v2.type == CalcValue::BLK) {
 						std::stack<CalcValue> condStack;
 
@@ -1187,7 +1188,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					CalcValue val = (*mainStack.top().list)[index];
 					mainStack.top() = val;
 				} else {
-					PASS_ERROR("\aERROR: `"<<p <<"` expected a list for the numerical index (recieved \" <<CVtypename(mainStack.top()) <<\")\n\n");
+					PASS_ERROR("\aERROR: `"<<p <<"` expected a list for the numerical index (recieved " <<mainStack.top().typeName() <<")\n\n");
 				}
 			} else if (mainStack.top().type == CalcValue::ARR) {
 				std::vector<CalcValue> list = *mainStack.top().list;
@@ -1196,12 +1197,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					CalcValue val = list[(size_t) round(abs(mainStack.top().getNum()))];
 					mainStack.top() = val;
 				} else {
-					PASS_ERROR("\aERROR: `"<<p <<"` expected a numerical index for the list (recieved \" <<CVtypename(mainStack.top()) <<\")\n\n");
+					PASS_ERROR("\aERROR: `"<<p <<"` expected a numerical index for the list (recieved " <<mainStack.top().typeName() <<")\n\n");
 				}
 			} else if (mainStack.top().type == CalcValue::INX) {
 				CONVERT_INDEX(mainStack, var_nodes);
 			} else {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a list and a numerical index (recieved " <<CVtypename(mainStack.top()) <<")\n\n");
+				PASS_ERROR("\aERROR: `"<<p <<"` expected a list and a numerical index (recieved " <<mainStack.top().typeName() <<")\n\n");
 
 			}
 
@@ -1220,7 +1221,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				CONVERT_REFS(mainStack, var_nodes);
 
 				if (mainStack.top().type != CalcValue::NUM) {
-					PASS_ERROR("\aERROR: non-numerical index. (" <<CVtypename(mainStack.top())<<")\n");
+					PASS_ERROR("\aERROR: non-numerical index. (" <<mainStack.top().typeName()<<")\n");
 				}
 				CalcValue tmp;
 				tmp.type = CalcValue::INX;
@@ -1478,15 +1479,15 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			// colapse request objects
 			if (mainStack.top().type == CalcValue::REQ) {
-				mainStack.top().request->push_back(p);
+				mainStack.top().request->push_back(p + 1);
 
 				// if requesting from a variable, start with its label
 			} else if (mainStack.top().type == CalcValue::REF) {
-				mainStack.top().setValue(std::vector<std::string>({mainStack.top().string, p}));
+				mainStack.top().setValue(std::vector<std::string>({mainStack.top().string, p + 1}));
 
 				// if requesting from value below us on stack start with space
 			} else {
-				mainStack.push(std::vector<std::string>({" ", p}));
+				mainStack.push(std::vector<std::string>({" ", p + 1}));
 			}
 
 			// make an object
@@ -1496,9 +1497,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			mainStack.top().setValue(UserType());
 
 		} else if (strcmp(p, "exobj") == 0) {
-			UserType obj;
-			obj.addMember("devil", CalcValue(666));
-			mainStack.push(obj);
+			mainStack.push( UserType().addMember("devil", 666) );
 
 
 			// making a lambda/anonymous function
@@ -2048,7 +2047,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				if (condStack.top().type != CalcValue::NUM) {
 					PASS_ERROR("\aERROR: in extended contition: expected condition, recieved value of type: "
-							           <<CVtypename(condStack.top()) <<'\n');
+							           <<condStack.top().typeName() <<'\n');
 				}
 				if (condStack.top().getNum() != 0) {
 					condStack.pop();
@@ -2382,7 +2381,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CalcValue val = mainStack.top();
 			mainStack.pop();
 
-			mainStack.push(CVtypename(val));
+			mainStack.push(val.typeName());
 
 			// system call
 		} else if (strcmp(p, "system") == 0) {

@@ -6,11 +6,14 @@
 #include <string>
 
 
-class CalcValue;
 
+class CalcValue;
 
 class UserType {
 public:
+
+	// what a wonderful place I could have used an assiciative array...
+	// ... if only I wasn't so lazy
 	std::vector<std::string> members; // I have given up on performance.. :(
 	std::vector<CalcValue>   values;
 
@@ -23,19 +26,14 @@ public:
 
 
 	// attempts to add a member, if already there, then change value
-	void addMember(const std::string nMem, const CalcValue nVal);
-	void addMember(std::vector<std::string> loc, const CalcValue nVal);
+	UserType& addMember(std::string nMem, CalcValue nVal);
+	UserType& addMember(std::vector<std::string> loc, const CalcValue nVal);
 
 	bool hasMember(const std::string name) {
 		return find(members.begin(), members.end(), name) != members.end();
 	}
 
-	CalcValue* getMember(const std::string& query) {
-		auto tmp = find(members.begin(), members.end(), query);
-		if (tmp == members.end())
-			return NULL;
-		return &values[tmp - members.begin()];
-	}
+	CalcValue* getMember(const std::string query);
 
 	bool operator==(const UserType& vs);
 	bool operator!=(const UserType& vs)
