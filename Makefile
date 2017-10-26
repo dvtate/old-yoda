@@ -1,11 +1,5 @@
 CPP := g++
-SOURCES := \
-	main.cpp \
-	string_stack.cpp \
-	terminal_colors.cpp \
-	user_variables.cpp \
-	termio.cpp \
-	user_types.cpp
+SOURCES := *.cpp
 
 .PHONY: all clean install uninstall
 
