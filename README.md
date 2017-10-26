@@ -48,6 +48,9 @@ YodaScript is a stack-based language based on reverse polish notation.
 * List: `("comma-separated","values",)`: an organized container of values (no value = null)
 * Index (Intermediate type): `5 ]`: these are a part of the lazy-evaluation of list indicies.
 * Lambdas: `{ } ($param1,$param2) lambda`: lambdas are first class functions and can be treated as normal data
+* UserType: `{} object`: agregated data (lambdas are data) more commonly known as objects
+* Member Request (Intermediate type): `:getName`: these are used to access object members
+
 
 # How to use (note- may be out of date)
  - <b>Comments:</b>
@@ -307,7 +310,7 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `reset_color`, `resetFgColor`, `resetBgColor`: resets background and/or forground colors and effects
 
 * File operators:
-  -  `file_get_contents`, `file_put_contents`: convert between files and strings
+  - `file_get_contents`, `file_put_contents`: convert between files and strings
 
 * Lambda and Macro Operators:
   - `@`, `eval`: runs the given macro or string as code (also accepts strings)
@@ -325,6 +328,9 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `cond`, `condition`: an if elseif...elseif else statement similar to a switch
   - `repeat`, `while`, `foreach`: looping operators
 
+* Timing:
+  - `sleep`: pauses interpretation for the given number of miliseconds (microsecond accuracy)
+  
 * Interpreter Commands
   - `q`, `exit`, `quit`: stops interpretation of the script
   - `help`: displays help message
