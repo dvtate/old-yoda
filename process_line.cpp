@@ -2410,14 +2410,15 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			var2 = freeable.size() == freeable_size;
 			freeable_size = freeable.size();
 
-			printf("size=%d\n", mainStack.size());
-
 			v1 = get_top(mainStack, var_nodes, showErrors, freeable);
 			var1 = freeable.size() == freeable_size;
 
 			printf("1:%d, 2:%d\n", v1, v2);
-			if (!v1 || !v2) {
-				PASS_ERROR("\aERROR: `=`:  error in lazy evaluation")
+			if (!v2) {
+				PASS_ERROR("\aERROR: `=`: v2 undefined; error in lazy evaluation")
+			}
+			if (!v1) {
+				PASS_ERROR("\aERROR: `=`: v1 undefined; error in lazy evaluation.\n");
 			}
 			if (var1)
 				v1->setValue(*v2);

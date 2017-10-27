@@ -25,7 +25,7 @@ CalcValue* UserType::getMember(const std::string query) {
 }
 
 
-UserType&UserType::addMember(std::string nMem, CalcValue nVal){
+UserType& UserType::addMember(std::string nMem, CalcValue nVal){
 	//printf("UT.am(%s)", nMem.c_str());
 
 	std::vector<std::string>::iterator loc = find(members.begin(), members.end(), nMem);
@@ -44,12 +44,21 @@ UserType&UserType::addMember(std::string nMem, CalcValue nVal){
 }
 
 UserType& UserType::addMember(std::vector<std::string> loc, const CalcValue nVal){
+	printf("ut.addmem: adding ");
+	for (std::string s : loc) {
+		printf(":%s", s.c_str());
+	}
+	printf("\n");
+
+
 	UserType* obj = this;
-	for (uint16_t i = 1; i < loc.size() - 1; i++) {
+	for (uint16_t i = 1; i < loc.size(); i++) {
 		obj->addMember(loc[i], UserType());
 		obj = obj->getMember(loc[i])->object;
 	}
-	return obj->addMember(loc[loc.size() - 1], nVal);
+
+	//return obj->addMember(loc[loc.size() - 1], nVal);
+	return *this;
 }
 
 bool UserType::operator==(const UserType& vs){
