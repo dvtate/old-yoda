@@ -1328,15 +1328,15 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				}
 
 
-				if (!tmpStack.empty()) {
-					// eval element
-					CONVERT_INDEX(tmpStack, var_nodes);
-					CalcValue* tmp = conv_top_keep_refs(mainStack,var_nodes,showErrors,freeable);
+				// eval element
+				if (tmpStack.size() > 1) {
+					CalcValue *tmp = conv_top_keep_refs(mainStack, var_nodes, showErrors, freeable);
 					if (!tmp) {
-						PASS_ERROR("\aERROR: error during lazy evaluation\n");
+						PASS_ERROR("\aERROR: error during lazy evaluation of list element\n");
 					}
-					mainStack.push(*tmp);
+					tmpStack.push(*tmp);
 				}
+
 				// put element into the list
 				arr.push_back(tmpStack.empty() ? CalcValue() : tmpStack.top());
 
@@ -1476,7 +1476,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 
 			mainStack.pop();
-
 			CONVERT_TOP(mainStack, var_nodes, freeable);
 
 			if (mainStack.top().type != CalcValue::BLK) {

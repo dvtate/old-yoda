@@ -795,11 +795,11 @@ const unsigned char ver_inf_txt[9247] = {
 };
 
 
-
+//
 void printVersionInfo(){
 
 	// if you want features, use a real OS (ie- Linux)
-	printf("\x1B[1mYodaScript - " YODA_LANG_VERSION "\x1B[0m\n");
+	printf("\x1B[1mYodaScript - v" YODA_LANG_VERSION "\x1B[0m\n");
 	printf("Compiled: %s\n", __DATE__);
 
 	// Windows 10 is the only windows OS to support ANSI color codes...

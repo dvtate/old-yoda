@@ -14,6 +14,9 @@ CalcValue* conv_top(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_
 	// variable reference
 	if (mainStack.top().type == CalcValue::REF) {
 		ret = mainStack.top().valAtRef(var_nodes);
+		if (!ret) {
+			PASS_ERROR("\aERROR: broken reference to $" <<mainStack.top().string <<std::endl);
+		}
 		mainStack.pop();
 		return ret;
 	}
@@ -151,7 +154,7 @@ CalcValue* conv_top_keep_refs(std::stack<CalcValue>& mainStack, std::vector<User
 	}
 
 	// const
-	ret = new CalcValue(mainStack.top());
+	ret = new CalcValue(mainStack.top()); // a waste of memory...
 	freeable.push_back(ret);
 	mainStack.pop();
 	return ret;

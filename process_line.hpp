@@ -105,7 +105,16 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 	}
 
 #define CONVERT_TOP(MAINSTACK, VAR_NODES, FREEABLE)\
-		MAINSTACK.push(*conv_top(MAINSTACK, VAR_NODES, showErrors, FREEABLE));
+	if (!MAINSTACK.empty()) {\
+		unsigned fsize = FREEABLE.size();\
+		CalcValue* tmp = conv_top(MAINSTACK, VAR_NODES, showErrors, FREEABLE);\
+		if (!tmp) {\
+			PASS_ERROR("\aERROR: error in lazy evaluation\n");\
+		}\
+		MAINSTACK.push(*tmp);\
+		if (fsize != FREEABLE.size())\
+			free(FREEABLE[FREEABLE.size() - 1]);\
+	}
 
 
 #define GET_REQUEST(MAINSTACK, VAR_NODES, ASSIGN_TO)\

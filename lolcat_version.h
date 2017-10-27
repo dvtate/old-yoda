@@ -6,7 +6,7 @@
 // ansi colors not supported on windows < 10
 #include "win_supp.h"
 
-#define YODA_LANG_VERSION "v0.1.3-beta"
+#define YODA_LANG_VERSION "0.1.5-beta"
 
 
 // I got this value from `$ lolcat -f -S 27 -F 0.27 ver_info.txt > color.txt && xxd -i color.txt > version_info.h && rm color.txt`

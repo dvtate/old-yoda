@@ -258,6 +258,8 @@ bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes){
 			}
 		}
 		std::cout <<" )";
+	} else if (val.type == CalcValue::REQ && val.request->at(0) != " ") {
+		printCalcValue(*val.requestMember(var_nodes), var_nodes);
 	}
 
 	return 0;
@@ -315,6 +317,8 @@ bool printCalcValueRAW(CalcValue& val, std::vector<UserVar>& var_nodes){
 			}
 		}
 		std::cout <<" )";
+	} else if (val.type == CalcValue::REQ && val.request->at(0) != " ") {
+		printCalcValueRAW(*val.requestMember(var_nodes), var_nodes);
 	}
 
 	return 0;
