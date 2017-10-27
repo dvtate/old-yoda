@@ -44,7 +44,7 @@ UserType& UserType::addMember(std::string nMem, CalcValue nVal){
 }
 
 UserType& UserType::addMember(std::vector<std::string> loc, const CalcValue nVal){
-	printf("ut.addmem: adding ");
+	//printf("ut.addmem: adding ");
 	for (std::string s : loc) {
 		printf(":%s", s.c_str());
 	}

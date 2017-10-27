@@ -104,6 +104,10 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 		MAINSTACK.top().setValue(*cv);\
 	}
 
+#define CONVERT_TOP(MAINSTACK, VAR_NODES, FREEABLE)\
+		MAINSTACK.push(*conv_top(MAINSTACK, VAR_NODES, showErrors, FREEABLE));
+
+
 #define GET_REQUEST(MAINSTACK, VAR_NODES, ASSIGN_TO)\
 	if (MAINSTACK.top().type == CalcValue::INX) {\
 		while (!MAINSTACK.empty() && MAINSTACK.top().type == CalcValue::INX) {\

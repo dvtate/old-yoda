@@ -33,6 +33,8 @@ public:
 		return find(members.begin(), members.end(), name) != members.end();
 	}
 
+	// TODO: add removeMember()
+
 	CalcValue* getMember(const std::string query);
 
 	bool operator==(const UserType& vs);
