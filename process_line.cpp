@@ -2314,6 +2314,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (!v1) {
 				PASS_ERROR("\aERROR: `=`: LHS invalid; error in lazy evaluation.\n");
 			}
+
 			if (var1)
 				v1->setValue(*v2);
 			else if (var2)

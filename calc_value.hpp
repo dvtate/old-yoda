@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+
 #include "string_stack.hpp"
 #include "lambda.hpp"
 #include "user_types.hpp"
@@ -301,12 +302,15 @@ public:
 		// memory leaks are pretty bad
 		clear();
 
+		// set type
+		type = REF;
+
+		// create buffer
 		string = (char*) malloc(strlen(str) + 1);
 
 		// write the string to the buffer
 		strcpy(string, str);
 
-		type = REF;
 
 		return *this;
 	}

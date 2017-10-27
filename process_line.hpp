@@ -104,6 +104,7 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 		MAINSTACK.top().setValue(*cv);\
 	}
 
+// unfortunately I don't think perfomance is better with this system...
 #define CONVERT_TOP(MAINSTACK, VAR_NODES, FREEABLE)\
 	if (!MAINSTACK.empty()) {\
 		unsigned fsize = FREEABLE.size();\
@@ -112,8 +113,10 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 			PASS_ERROR("\aERROR: error in lazy evaluation\n");\
 		}\
 		MAINSTACK.push(*tmp);\
-		if (fsize != FREEABLE.size())\
-			free(FREEABLE[FREEABLE.size() - 1]);\
+		if (fsize != FREEABLE.size()) {\
+            free(FREEABLE[FREEABLE.size() - 1]);\
+            FREEABLE.pop_back();\
+        }\
 	}
 
 
