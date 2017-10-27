@@ -561,7 +561,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if (strcmp(p, "abs") == 0) { // absolute value
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(std::abs(mainStack.top().getNum()));
+			mainStack.push(fabs(mainStack.top().getNum()));
 			mainStack.pop();
 
 			// find length of a string
@@ -999,7 +999,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 #ifdef _WIN32
 					getch()
 #else
-					termio::getch()
+					terminp::getch()
 #endif
 					, '\0'};
 			mainStack.push(tmp);
@@ -1009,12 +1009,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 #ifdef _WIN32
 					getche()
 #else
-					termio::getche()
+					terminp::getche()
 #endif
 					, '\0'};
 			mainStack.push(tmp);
-		} else if (strcmp(p, "get_pass") == 0) {
-			mainStack.push(getpass(""));
+
+
 			// load the contents of a file into a string
 		} else if (strcmp(p, "file_get_contents") == 0) {
 

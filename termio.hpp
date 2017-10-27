@@ -4,29 +4,25 @@
 	#ifdef _WIN32
 		#include <conio.h>
 
-		namespace termio {
+		namespace terminp {
 
 			// read 1 character without echo
-			inline char getch(void) {
-				return getch();
-			}
+			inline char getch(void);
 
 			// read 1 character with echo
-			inline char getche(void){
-				return getche();
-			}
+			inline char getche(void);
 		}
 	#else
-	// not sure if this will work on OSX or not...
+		// not sure if this will work on OSX or not...
 
-	namespace termio {
+		namespace terminp {
 
-		// read 1 character without echo
-		extern char getch(void);
+			// read 1 character without echo
+			extern char getch(void);
 
-		// read 1 character with echo
-		extern char getche(void);
-	}
+			// read 1 character with echo
+			extern char getche(void);
+		}
 
 	#endif
 
