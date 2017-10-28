@@ -1,2 +1,6 @@
-"Hello World XDDDDDDDDDDDDD" print
+
+# this is a comment
+
+# yodascript is posfix, and thus the opperator comes after the data
+"Hello World XDDDDDDDDDDDDD" println
 

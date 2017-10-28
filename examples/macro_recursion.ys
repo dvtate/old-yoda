@@ -1,8 +1,8 @@
 # macros modify the scope and substitute code
 # in most cases it's better to use lambdas
-{
+$recTest {
 	# kindof a parameter...
-	num $param =
+	num $param swap =
 
 	# print param
 	$param println
@@ -15,7 +15,7 @@
 	} $param 1 > if
 
 # store macro in a variable
-} $recTest =
+} =
 
 
 # call macro

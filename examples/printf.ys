@@ -1,6 +1,8 @@
 
-{
+# prints a string, replacing % chars with values provided in later other arguments
+$printf {
 
+		$items print
 	# index of the current item
 	$item 0 =
 	# was the last char a %?
@@ -9,12 +11,12 @@
 	{
 		# print item
 		{
-			{ 
+			{
 				("\n\aERROR: $printf: not enough arguments for format string\n")$printf @ 
 				exit
 			} $item $items list_size == if
 			$items $item ] print # print item
-			$item $item 1 + = # next next
+			$item ++ # next item
 		} $prev ~ "%" == $c ~ "%" != && if
 
 		# not special character
@@ -39,13 +41,12 @@
 			("\n\aERROR: $printf: not enough arguments for format string\n")$printf @ 
 			exit
 		} $item $items list_size == if
-		
-		$items $item ] print # print item
-		$item $item 1 + = # next next	
+
+		$items $item ] ~ print # print item
 	} $prev "%" == if
 
 # $items becomes a list containing any args after $format
-} ($format, ($items)) lambda $printf =
+} ($format, ($items)) lambda =
 
 
 ("Hello, World!\n") $printf @

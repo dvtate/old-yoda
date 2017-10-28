@@ -2,7 +2,7 @@
 # factorial example
 # 2017.6.17
 
-{ # returns factorial of $n
+$fac { # returns factorial of $n
 
 	{ # recursion
 		$n ($n 1 -) $fac @ * return
@@ -10,10 +10,10 @@
 		1 return
 	} $n 0 == if
 
-} ($n) lambda $fac = 
+} ($n) lambda = 
 
 {
 	$val "! = " + print 	# print "2! = "
-	($val) $fac @ println	# print $fac of $val + newline
+	($val) $fac ~ @ println	# print $fac of $val + newline
 # for each $val on the range [0,9]	
 } 0 20 range $val foreach 

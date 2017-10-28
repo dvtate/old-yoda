@@ -6,17 +6,17 @@
 # just a prompt
 "Plz gimme monies OvO\n" println
 
-"kwarterz plz: " print  # prompt
-input num $quarters =   # get numerical input
+"kwarterz plz:\t" print  # prompt
+$quarters input num =   # get numerical input
 
-"daims plz: " print
-input num $dimes =
+"daims plz:\t" print
+$dimes input num =
 
-"nikels plz: " print 
-input num $nickels =
+"nikels plz:\t" print 
+$nickels input num =
 
-"penees plz: " print 
-input num $pennies =
+"penees plz:\t" print 
+$pennies input num =
 
 
 "Total monies = $" print

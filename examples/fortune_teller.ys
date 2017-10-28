@@ -8,12 +8,18 @@
 "So, what is your name? " print
 
 # get the name from the user
-$name input str =
+# input is recieved as a string
+$name input =
 
 "My records show there is more than one " $name + ". So, how old are you? " + print
+
+# notice we converted it into a number
 $age input num =
 
-"Well " $name + ", I can assure you that in 10 years you will be " + $age 10 + + "." + println
+
+# notice the + operator is overloaded
+"Well " $name + ", I can assure you that in 10 years you will be " +
+	$age 10 + + " years old." + println
 
 
 

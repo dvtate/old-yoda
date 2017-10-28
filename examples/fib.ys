@@ -2,16 +2,16 @@
 ## This demonstrates how poor the performance of the language is
 # 2017.7.24
 
-{ # recursive fibonacci fxn
+$fib { # recursive fibonacci fxn
 	{ # need to calculate
 		($n 1 -) $fib @ ($n 2 -) $fib @ + return
 	} else { # first and second terms are 1
 		1 return
 	} $n 2 <= if
-} ($n) lam $fib =
+} ($n) lam =
 
 "Fibonacci sequence:" println
 "Notice how processing time increases as more recursion is required." println
 {
-	$num print ":" ($num) $fib @ + println
-} 1 30 range $num foreach
+	$num print ":" print ($num) $fib @ println
+} 1 31 range $num foreach

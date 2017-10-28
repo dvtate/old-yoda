@@ -26,7 +26,7 @@ $used_letters () =
 
 
 # is the value $query in the list $list
-{ # in_list
+$in_list {
 	{
 		{ # if its in list then ret true
 			true return
@@ -36,11 +36,11 @@ $used_letters () =
 	# wasn't found in list so its not there
 	false return
 
-} ($list, $query) lam $in_list =
+} ($list, $query) lam =
 
 
 # print the word only filling in the letters already used
-{ # print_word
+$print_word { # print_word
 	{ # for each letter in the word
 		{ # if the letter is chosen print it, else print a blank
 			"_" print
@@ -50,10 +50,10 @@ $used_letters () =
 		" " print
 	} $word "" split $c foreach
 
-} ($word, $used_letters) lam $print_word =
+} ($word, $used_letters) lam =
 
 # clear the screen and draw the game board
-{ # draw_game
+$draw_game {
 
 	#PLANNING: drawing the figure
 
@@ -137,11 +137,11 @@ $used_letters () =
 	"    next guess: " print # prompt
 	
 
-} ($word, $used_letters, $tries) lam $draw_game =
+} ($word, $used_letters, $tries) lam =
 
 
 # have we figured out the word yet?
-{ # is_solved
+$is_solved {
 	# if there is a letter in the word that hasn't been picked then the word hasn't
 	# been solved
 	{
@@ -150,7 +150,14 @@ $used_letters () =
 		} ($used_letters, $ch) $in_list @ ! if 
 	} $word "" split $ch foreach
 	true return
-} ($word, $used_letters) lam $is_solved = 
+} ($word, $used_letters) lam = 
+
+
+
+
+
+
+
 
 
 # this gets run until the game is over (win/loose)
@@ -159,7 +166,7 @@ $used_letters () =
 	($word ~, $used_letters ~, $tries ~) $draw_game @
 
 	# get the user's choice
-	input 0 char_at $choice =
+	$choice input 0 char_at =
 	$used_letters $choice push_back
 	
 	# if the choice isn't in the word they used one of their tries
@@ -178,7 +185,7 @@ $used_letters () =
 
 
 
-# say goodbye
+# GG
 {
 	"Oh no, you died." println
 	"the word was: " $word + println

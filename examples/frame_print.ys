@@ -1,4 +1,4 @@
-{ # returns length of the longest string in a list
+$longest_len { # returns length of the longest string in a list
 
 	# returns -1 if given an empty list
 	$ret -1 =
@@ -11,13 +11,13 @@
 	} $strs $str foreach
 
 	# return longest length
-	$ret return
+	$ret ~ return
 
-} ($strs) lam $longest_len = 
+} ($strs) lam = 
 
 
 
-{ # print words in a frame of *'s
+$print_frame { # print words in a frame of *'s
 
 	# example:
 	# *********
@@ -49,7 +49,7 @@
 	# make sure it actually printed, end with \n	
 	"" println
 
-} ( ($lines) ) lam $print_frame =
+} ( ($lines) ) lam =
 
 # print some yoda quotes in frames
 

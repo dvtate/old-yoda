@@ -1,6 +1,6 @@
 
 # is the value $query in the list $list
-{ # in_list
+$in_list {
 	{
 		{ # if its in list then ret true
 			true return
@@ -10,7 +10,7 @@
 	# wasn't found in list so its not there
 	false return
 
-} ($list, $query) lam $in_list =
+} ($list, $query) lam =
 
 
 

@@ -1,5 +1,5 @@
 # returns true if prime; false if not
-{
+$isPrime? {
 	{
 		($num, $i 1 -) $isPrime? @ return
 	} else { 
@@ -8,7 +8,7 @@
 		true return
 	} $i 1 == if
 
-} ($num , $i) lambda $isPrime? =
+} ($num , $i) lambda =
 
 
 {
@@ -17,4 +17,4 @@
 	} else {
 		$number " is prime." + println
 	} ($number, $number 1 - int) $isPrime? @ if
-} 2 20 range $number for-each
+} 2 21 range $number for-each
