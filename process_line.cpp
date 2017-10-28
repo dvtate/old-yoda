@@ -303,34 +303,21 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if (strlen(p) == 2 && (*p == '+' || *p == '-') && *(p + 1) == *p) {
 			ASSERT_NOT_EMPTY(p);
 
-			CalcValue* var_val;
-			if (mainStack.top().type == CalcValue::REF) {
-				//PASS_ERROR("\aERROR: increment/decrement operator expected a reference\n");
-				var_val = mainStack.top().valAtRef(var_nodes);
-				mainStack.pop();
-			} else if (mainStack.top().type == CalcValue::INX) {
-				std::vector<ssize_t> index;
-				GET_LIST_INDEX(mainStack, var_nodes, index);
+			unsigned fsize = freeable.size();
+			CalcValue* val = conv_top(mainStack, var_nodes, showErrors, freeable);
 
-				CalcValue list = mainStack.top();
-				mainStack.pop();
+			if (!val) {
+				PASS_ERROR("\aERROR: during lazy evaluation\n");
+			}
 
-				if (list.type == CalcValue::REF) {
-					var_val = list.valAtRef(var_nodes)->getListElem(index);
-					if (!var_val) {
-						PASS_ERROR("\aERROR: $"<< list.string <<" undefined or inaccessable.\n");
-					}
-				} else {
-					PASS_ERROR("\aERROR: invalid use of list assignment\n");
-				}
+			if (val->type != CalcValue::NUM) {
+				PASS_ERROR("\aERROR: `" <<p <<"` expected a number\n");
 			}
-			if (!var_val) {
-				PASS_ERROR("\aERRORL broken reference to $" <<mainStack.top().string <<std::endl);
-			}
-			if (var_val->type != CalcValue::NUM) {
-				PASS_ERROR("\aIncrement/decrememnt expected a numerical variable\n");
-			}
-			var_val->number += *p == '+' ? 1 : -1;
+			val->number += *p == '+' ? 1 : -1;
+
+			// incrementing a constant pushes back onto the stack
+			if (freeable.size() != fsize)
+				mainStack.push(*val);
 
 
 			// modified assignment '*'= += *= /= -= %=
@@ -1800,7 +1787,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				// reverse order of stack
 				std::stack<CalcValue> tmpStack;
 				while (!fxnStack.empty()) {
-					CONVERT_TOP(mainStack, var_nodes, freeable);
+					CONVERT_TOP(tmpStack, var_nodes, freeable);
 					tmpStack.push(fxnStack.top());
 					fxnStack.pop();
 				}
@@ -1940,9 +1927,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: extended condition without body\n");
 			}
 
-			bool hasElse = (condStack.size() % 2 != 0);
-
-			// for each clause
+			// for each if/elseif clause
 			while (condStack.size() > 1) {
 				CONVERT_TOP(mainStack, var_nodes, freeable);
 
@@ -1971,6 +1956,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				RUN_STR_STK(*condStack.top().block, mainStack);
 			}
 
+			// the condition was satisfied
 			cond_end:;
 
 
@@ -2309,7 +2295,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			var1 = freeable.size() == freeable_size;
 
 			if (!v2) {
-				PASS_ERROR("\aERROR: `=`: RHS undefined; error in lazy evaluation")
+				PASS_ERROR("\aERROR: `=`: RHS undefined; error in lazy evaluation\n")
 			}
 			if (!v1) {
 				PASS_ERROR("\aERROR: `=`: LHS invalid; error in lazy evaluation.\n");

@@ -50,12 +50,13 @@ extern const char* lambda_finish;
 extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReporting,
                             std::stack<CalcValue>& mainStack, bool& elseStatement);
 
-
+// converts from full to relative path
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
 // closes with an error
 #define PASS_ERROR(MSG) \
 	if (showErrors)	\
-		std::cerr <<"(#" <<__LINE__ <<") " <<MSG;\
+		std::cerr <<'(' <<__FILENAME__ <<'#'<<__LINE__ <<") " <<MSG;\
 	return p;
 
 // error's if the stack is empty

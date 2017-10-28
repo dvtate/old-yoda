@@ -45,20 +45,19 @@ UserType& UserType::addMember(std::string nMem, CalcValue nVal){
 
 UserType& UserType::addMember(std::vector<std::string> loc, const CalcValue nVal){
 	//printf("ut.addmem: adding ");
-	for (std::string s : loc) {
+	/*for (std::string s : loc) {
 		printf(":%s", s.c_str());
 	}
-	printf("\n");
+	printf("\n");*/
 
 
 	UserType* obj = this;
-	for (uint16_t i = 1; i < loc.size(); i++) {
+	for (uint16_t i = 1; i < loc.size() - 1; i++) {
 		obj->addMember(loc[i], UserType());
 		obj = obj->getMember(loc[i])->object;
 	}
+	return obj->addMember(loc[loc.size() - 1], nVal);
 
-	//return obj->addMember(loc[loc.size() - 1], nVal);
-	return *this;
 }
 
 bool UserType::operator==(const UserType& vs){
