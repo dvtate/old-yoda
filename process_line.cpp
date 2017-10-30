@@ -1369,18 +1369,18 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			rpnln = p;
 
 
-			// ummm hopefully the user actually fucked up and it's not my fault...
+		// ummm hopefully the user actually fucked up and it's not my fault...
 		} else if (*p == '}') {
 			PASS_ERROR("\aERROR: `}` without previous `{`\n\n");
 
-			// member access statement
+		// member access statement
 		} else if (*p == ':' && *(p + 1)) {
 			ASSERT_NOT_EMPTY(p);
-			if (mainStack.top().type != CalcValue::REQ && mainStack.top().type != CalcValue::REF) {
+			/*if (mainStack.top().type != CalcValue::REQ && mainStack.top().type != CalcValue::REF) {
 				CONVERT_TOP(mainStack, var_nodes, freeable);
-			}
+			}*/
 
-			// colapse request objects
+			// collaps request objects
 			if (mainStack.top().type == CalcValue::REQ) {
 				mainStack.top().request->push_back(p + 1);
 
@@ -1393,7 +1393,50 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				mainStack.push(std::vector<std::string>({" ", p + 1}));
 			}
 
-			// make an object
+		// $obj "member" :
+		} else if (*p == ':') {
+			// TODO: repeat this code for ] operator
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: `" << p << "` expected an object and member name to access\n");
+			}
+			CONVERT_TOP(mainStack, var_nodes, freeable);
+			if (mainStack.top().type != CalcValue::STR || !mainStack.top().string) {
+				PASS_ERROR(
+						"\aERROR: member request must be string\n (recieved: " << mainStack.top().typeName() << ")\n");
+			}
+
+			char req[strlen(mainStack.top().string)];
+			strcpy(req, mainStack.top().string);
+			mainStack.pop();
+
+			// collaps request objects
+			if (mainStack.top().type == CalcValue::REQ) {
+				mainStack.top().request->push_back(req + 1);
+
+				// if requesting from a variable, start with its label
+			} else if (mainStack.top().type == CalcValue::REF) {
+				mainStack.top().setValue(std::vector<std::string>({mainStack.top().string, req + 1}));
+
+				// if requesting from value below us on stack start with space
+			} else {
+				mainStack.push(std::vector<std::string>({" ", req + 1}));
+			}
+
+			// list of an object's members
+		} else if (strcmp(p, "obj_mems") == 0) {
+			// TODO: delete when finished with obj print
+			ASSERT_NOT_EMPTY(p);
+			CONVERT_TOP(mainStack, var_nodes, freeable);
+
+			std::vector<CalcValue> mems;
+			for (std::string mem : mainStack.top().object->members)
+				mems.push_back(CalcValue(mem.c_str()));
+
+			mainStack.pop();
+			mainStack.push(mems);
+
+
+		// make an object
 		} else if (strcmp(p, "object") == 0 || strcmp(p, "obj") == 0) {
 			// TODO: finish implementation
 			ASSERT_NOT_EMPTY(p);
@@ -1403,11 +1446,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			// making a lambda/anonymous function
 		} else if (strcmp(p, "lambda") == 0 || strcmp(p, "lam") == 0) {
 			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a body and a list of parameters\n" <<std::endl);
+				PASS_ERROR("\aERROR: `"<<p <<"` expected a body and a list of parameters\n");
 			}
 			CONVERT_TOP(mainStack, var_nodes, freeable);
 			if (mainStack.top().type != CalcValue::ARR) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a body and a list of parameters\n" <<std::endl);
+				PASS_ERROR("\aERROR: `"<<p <<"` expected a body and a list of parameters\n");
 			}
 			Lambda lam;
 
@@ -1418,7 +1461,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				if (val.type == CalcValue::REF)
 					lam.params.push_back(val.isNull() ? "" : val.string);
 				else if (val.isNull()) {
-					PASS_ERROR("\aERROR: null parameter");
+					PASS_ERROR("\aERROR: null parameter\n");
 				}
 
 				else if (val.type == CalcValue::ARR) {
