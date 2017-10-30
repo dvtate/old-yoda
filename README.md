@@ -2,7 +2,8 @@
 A YodaScript (.ys) interpreter which is now turing complete! The language is dynamically typed, and although it has a rather unique syntax, those familiar to RPN may prefer it to other languages. This is just a side project of mine suggestions and help are welcome. Using the shell, it can be used as a calculator by those familiar with RPN.
 
 # Build and Run [![Build Status](https://travis-ci.org/dvtate/yoda.svg?branch=master)](https://travis-ci.org/dvtate/yoda/)
-If you are a Windows user and don't know anything about C++ compilers, you can download this outdated executable
+For Arch Linux users there is an [AUR package](https://aur.archlinux.org/packages/ys-git/) for this.
+If you are a Windows user and are slightly confused, you can download this outdated executable
 http://dvtate.github.io/dls/yoda.exe [updated 2017.6.4]
 - Compiling:
 `yoda $ make`
