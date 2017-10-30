@@ -1,8 +1,8 @@
-# RPN Shell / Yoda-Script
-A Yoda-Script (.ys) interpreter which is now turing complete! The language is dynamically typed, and although it has a rather unique syntax, those familiar to RPN may prefer it to other languages. This is just a side project of mine suggestions and help are welcome. Using the shell, it can be used as a calculator by those familiar with reverse polish notation (RPN). It is already useful, but it still has a ways to go to become a practical language for develolpers.
+# Yoda-Script / RPN Shell
+A Yoda-Script (.ys) interpreter which is now turing complete! The language is dynamically typed, and although it has a rather unique syntax, those familiar to RPN may prefer it to other languages. This is just a side project of mine suggestions and help are welcome. Using the shell, it can be used as a calculator by those familiar with RPN.
 
 # Build and Run [![Build Status](https://travis-ci.org/dvtate/yoda.svg?branch=master)](https://travis-ci.org/dvtate/yoda/)
-If you are a Windows user and don't know anything about C++ compilers, you can download this precompiled executable  <b>Warning</b>, I cross-compiled this on Linux, it hasn't been tested on a native installation<br/>
+If you are a Windows user and don't know anything about C++ compilers, you can download this outdated executable
 http://dvtate.github.io/dls/yoda.exe [updated 2017.6.4]
 - Compiling:
 `yoda $ make`
@@ -18,6 +18,7 @@ After installing, you can run yoda as you would any other program from the termi
 # About YodaScript
 YodaScript is a stack-based language based on reverse polish notation.
 - Features:
+  + OOP via the :member operator
   + Lists (and all methods from std::vector are included)
   + Macros (better than executable arrays in postscript)
   + conditionals (using else-ifelse-if statements)
@@ -29,11 +30,11 @@ YodaScript is a stack-based language based on reverse polish notation.
   + optional parameters and va_args
   
 - Some features which I plan on implementing (top to bottom):
-  + OOP (using an intermediate scoping type similar to the `CalcValue::INX` type)
+  + Object definition (`object` command)(similar to `{}` in js)
   + extending the language using C++ (using .so's and perhapse remote repos)
   + concurrency (if possible) (perhaps w/ std::thread)
-  + dictionaries
-  + proper string manipulation funcitons and regular expressions (possibly ext. lib)
+  + dictionaries (perhapse via same infastructure as objects)
+  + regular expressions (possibly ext. lib)
   
 
 - Some features I do not plan on implementing (yet):
@@ -98,7 +99,7 @@ YodaScript is a stack-based language based on reverse polish notation.
 >>> $b $a ~ = # now they are both references to the number 8
 ```
  - <b>Strings:</b>
-  This is a loosely-typed language. Strings are enclosed in double quotes `"` and only need a closing `"` if it would change the meaning without it. (ie - end-of-line automatically adds a '\n' and ends the quote)
+  This is a loosely-typed language. Strings are enclosed in double quotes `"`
  ```tcl
  >>> "hello " "there" + $a = # notice that the `+` operator is overloaded
  >>> $a print
@@ -171,7 +172,7 @@ YodaScript is a stack-based language based on reverse polish notation.
  - <b>Lambdas:</b>
   Lambdas are equivalent to functions in javascript.
   ```tcl
-  >>> { $a print } ($a) lambda $fxn =
+  >>> $fxn { $a print } ($a) lambda =
   >>> ("hello") $fxn @ # calling the lambda
   hello
   >>> # parameters are optional
@@ -185,12 +186,12 @@ YodaScript is a stack-based language based on reverse polish notation.
   - <b>Missing handlers:</b>
    These will run a macro if the parameter isn't provided as an argument. 
    ```tcl
-   >>> {
+   >>> $echo {
         { $msg println } 
             $msg is_defined if
    } (($msg, {
        "missing $msg" println 
-   })) lambda $echo =
+   })) lambda =
 
    >>> ("hi") $echo @
    hi
@@ -202,17 +203,28 @@ YodaScript is a stack-based language based on reverse polish notation.
   - <b>Variable Arguments list:</b>
    If you have a function which needs to accept a variable number of arguments (ie - [printf](examples/printf.ys)), you can end your parameters list with a variable enclosed in a list, denoting a variable arguments list. If not called on anything, the variable is assigned to an empty list. 
    ```tcl
-   >>> {
+   >>> $sum {
         $total 0 = 
         { $total $n += } 
             $vals $n foreach
         $total return
-    }  (($vals)) lambda $sum =
+    } (($vals)) lambda =
     >>> (1,2,3) $sum @
     6
     >>> $sum @
     0
 ```
+
+ - OOP:
+  - Making an Object:
+   You can use the equals sign to define objects. The variable doesn't have to be defined in order to start adding members. The `:` operator is used to access object members. The object will be made around the member.
+   ```tcl
+   >>> $myObj :name "bob" =
+   >>> $myObj :name print
+   bob
+   >>> # {} object makes an empty object constant
+   >>> $myObj {} object =
+   ```
    
 
 
@@ -278,7 +290,8 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `int`: converts to a integer (rounding)
   - `floor`: static casts to an int (truncation)
   - `list`: puts values on stack into a list
-  - `lambda`: make a lambda (creation not conversion)
+  - `lambda`, `lam`: make a lambda (creation not conversion)
+  - `object`, `obj`: make an object (creation not conversion)
   - `~`: copy operator, replaces a reference with the basic value it points to
 
 * Variables/References
@@ -322,6 +335,10 @@ YodaScript is a stack-based language based on reverse polish notation.
   - `split`: pushes all the elements of a list onto the stack
   - `n ]`: index for given list, evaluates to that element in the list (behavior similar to reference type)
   - `push_back`: pushes a value onto the end of a list, or creates a list containing the original and added value
+  
+* OOP:
+  - `:member`, `"member" :`: member accessors
+  - `object`, `obj`: constuction
   
 * Structure-Equivalent Operators:
   - `else`, `elseif`, `if`: conditional operators
