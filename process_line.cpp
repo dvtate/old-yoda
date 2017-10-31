@@ -1422,7 +1422,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				mainStack.push(std::vector<std::string>({" ", req + 1}));
 			}
 
-			// list of an object's members
+		// list of an object's members
 		} else if (strcmp(p, "obj_mems") == 0) {
 			// TODO: delete when finished with obj print
 			ASSERT_NOT_EMPTY(p);
@@ -2260,13 +2260,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 						// variable is a list (print contents of list)
 					else if (var->val.type == CalcValue::ARR) {
 						std::cout << "[ARR] @ " << var <<": $" <<var->name <<" has "
-						          <<var->val.list->size() <<(var->val.list->size() == 1 ? "element" : " elements\n");
+						          <<var->val.list->size() <<(var->val.list->size() == 1 ? "element" : " elements");
 						//printCalcValue(var->val, var_nodes);
 						std::cout <<" =\n";
-					}
 
-					else if (var->val.type == CalcValue::LAM) {
-						std::cout << "[LAM] @ " <<var <<": (";
+					} else if (var->val.type == CalcValue::LAM) {
+						std::cout << "[LAM] @ " <<var <<": {...} (";
 						bool hasParams =var->val.lambda->params.size() && var->val.lambda->params[0] != "";
 						if (hasParams) {
 							std::cout <<"$" <<var->val.lambda->params[0];
@@ -2275,6 +2274,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 							}
 						}
 						std::cout <<") $"<< var->name <<std::endl;
+					} else if (var->val.type == CalcValue::OBJ) {
+						std::cout <<"[OBJ] @ " <<var <<": $" <<var->name <<' ';
+						printCalcValue(var->val, var_nodes);
+						putchar('\n');
+
 					}
 					var = var->next;
 				}

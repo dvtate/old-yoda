@@ -258,8 +258,17 @@ bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes){
 			}
 		}
 		std::cout <<" )";
+
 	} else if (val.type == CalcValue::REQ && val.request->at(0) != " ") {
 		printCalcValue(*val.requestMember(var_nodes), var_nodes);
+
+	} else if (val.type == CalcValue::OBJ) {
+		putchar('{');
+		for (unsigned i = 0; i < val.object->members.size(); i++) {
+			std::cout <<" :" <<val.object->members[i] <<' ';
+			printCalcValue(val.object->values[i], var_nodes);
+		}
+		printf(" } object");
 	}
 
 	return 0;
@@ -301,7 +310,7 @@ bool printCalcValueRAW(CalcValue& val, std::vector<UserVar>& var_nodes){
 		return 1;
 
 	} else if (val.type == CalcValue::ARR) {
-		std::cout <<"(";
+		putchar('(');
 		if (val.list->size()) {
 			if (val.list->at(0).type == CalcValue::STR || val.list->at(0).type == CalcValue::ARR)
 				printCalcValue(val.list->at(0), var_nodes);
@@ -316,9 +325,18 @@ bool printCalcValueRAW(CalcValue& val, std::vector<UserVar>& var_nodes){
 					printCalcValueRAW(val.list->at(i), var_nodes);
 			}
 		}
-		std::cout <<" )";
+		putchar(')');
+
 	} else if (val.type == CalcValue::REQ && val.request->at(0) != " ") {
 		printCalcValueRAW(*val.requestMember(var_nodes), var_nodes);
+
+	} else if (val.type == CalcValue::OBJ) {
+		putchar('{');
+		for (unsigned i = 0; i < val.object->members.size(); i++) {
+			std::cout <<"\n :" <<val.object->members[i] <<' ';
+			printCalcValue(val.object->values[i], var_nodes);
+		}
+		printf(" } object");
 	}
 
 	return 0;
