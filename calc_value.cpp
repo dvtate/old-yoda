@@ -74,7 +74,7 @@ std::string CalcValue::toString(std::vector<UserVar>& var_nodes){
 
 		// already a string
 	} else if (type == CalcValue::STR)
-		return string;
+		return  "\"" + std::string(string) + "\"";
 
 		// a variable
 	else if (type == CalcValue::REF) {
@@ -90,25 +90,30 @@ std::string CalcValue::toString(std::vector<UserVar>& var_nodes){
 	} else if (type == CalcValue::ARR) {
 		ret += "(";
 		if (list->size()) {
-			if (list->at(0).type == CalcValue::STR)
-				ret += '"';
 			ret += list->at(0).toString(var_nodes);
-			if (list->at(0).type == CalcValue::STR)
-				ret += '"';
-			for (size_t i = 1; i < list->size(); i++) {
-				ret += ", ";
-				if (list->at(i).type == CalcValue::STR)
-					ret += '"';
-				ret += list->at(i).toString(var_nodes);
-				if (list->at(i).type == CalcValue::STR)
-					ret += '"';
-			}
+			for (size_t i = 1; i < list->size(); i++)
+				ret += ", " + list->at(i).toString(var_nodes);
 		}
 		ret+= " )";
+
+		// an object
 	} else if (type == CalcValue::OBJ) {
-		return "<CV::OBJ.toString not implemented yet>";
+		ret += "{";
+		for (unsigned i = 0; i < object->members.size(); i++) {
+			ret += "\n :" + object->members[i] + " ";
+			ret += object->values[i].toString(var_nodes);
+		}
+		ret += " } object";
+
 	} else if (type == CalcValue::REQ) {
-		return "<CV::REQ.toString not implemented yet>";
+		if (request->at(0) == " ")
+			ret += "__";
+		else
+			ret += "$" + request->at(0);
+
+		for (unsigned i = 1; i < request->size(); i++)
+			ret += " :" + request->at(i);
+
 	}
 
 	return ret;

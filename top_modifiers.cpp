@@ -23,7 +23,7 @@ CalcValue* conv_top(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_
 	if (mainStack.top().type == CalcValue::REQ && mainStack.top().object->members.at(0) != " "){
 		ret = mainStack.top().requestMember(var_nodes);
 		if (!ret) {
-			PASS_ERROR("\aERROR: object member not found\n");
+			PASS_ERROR("\aERROR: object member `" <<mainStack.top().toString(var_nodes) <<"` not found\n");
 		}
 		mainStack.pop();
 		return ret;

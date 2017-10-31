@@ -1409,17 +1409,18 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			strcpy(req, mainStack.top().string);
 			mainStack.pop();
 
+
 			// collaps request objects
 			if (mainStack.top().type == CalcValue::REQ) {
-				mainStack.top().request->push_back(req + 1);
+				mainStack.top().request->push_back(req);
 
 				// if requesting from a variable, start with its label
 			} else if (mainStack.top().type == CalcValue::REF) {
-				mainStack.top().setValue(std::vector<std::string>({mainStack.top().string, req + 1}));
+				mainStack.top().setValue(std::vector<std::string>({ mainStack.top().string, req }));
 
 				// if requesting from value below us on stack start with space
 			} else {
-				mainStack.push(std::vector<std::string>({" ", req + 1}));
+				mainStack.push(std::vector<std::string>({" ", req }));
 			}
 
 		// list of an object's members
