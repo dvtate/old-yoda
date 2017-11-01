@@ -101,7 +101,7 @@ public:
 	CalcValue(): type(STR), string(NULL) {}
 
 
-	CalcValue (double val):	type(NUM) {
+	CalcValue (const double val):	type(NUM) {
 		number = val;
 	}
 
@@ -110,7 +110,6 @@ public:
 	{
 		object = new UserType(obj);
 	}
-
 
 	CalcValue(const char* const str): type(STR) {
 
@@ -129,7 +128,7 @@ public:
 	CalcValue(const StrStack& codeBlock): type(BLK)
 		{ block = new StrStack(codeBlock); }
 
-	CalcValue(StrStack* codeBlock): type(BLK)
+	CalcValue(const StrStack* codeBlock): type(BLK)
 		{ block = new StrStack(*codeBlock); }
 
 	CalcValue(const std::vector<CalcValue>& in_list):

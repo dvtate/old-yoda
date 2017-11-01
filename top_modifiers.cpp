@@ -69,7 +69,7 @@ CalcValue* get_top(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_n
 			}
 			ret = cv->requestMember(request, &var_nodes);
 			if (!ret) {
-				PASS_ERROR("\aERROR: invalid member request");
+				PASS_ERROR("\aERROR: invalid member request\n");
 			}
 			return ret;
 

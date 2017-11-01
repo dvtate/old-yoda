@@ -1441,11 +1441,44 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if (strcmp(p, "object") == 0 || strcmp(p, "obj") == 0) {
 			// TODO: finish implementation
 			ASSERT_NOT_EMPTY(p);
-			mainStack.top().setValue(UserType());
+			CONVERT_TOP(mainStack, var_nodes, freeable);
+			if (mainStack.top().type != CalcValue::BLK) {
+				PASS_ERROR("\aERROR: `" <<p <<"` expected an object definition enclosed in a macro\n");
+			}
+			std::stack<CalcValue> tmpStack;
+			tmpStack.push(CalcValue()); // push a null to make : op work
 
+			// exec definition
+			RUN_STR_STK(*mainStack.top().block, tmpStack);
+			mainStack.pop();
+
+			// this will be our object
+			CalcValue ret = UserType();
+
+			if (tmpStack.size() == 2) {
+				PASS_ERROR("\aERROR: invalid Object definition only contained one data element\n");
+			} if (tmpStack.size() == 0) {
+				PASS_ERROR("\aERROR: when using `" <<p <<"` take care when using ; operator and never use ... operator");
+			}
+
+			while (tmpStack.size() > 2) {
+
+				CalcValue m_val = *conv_top(tmpStack, var_nodes, showErrors, freeable);
+				if (tmpStack.size() <= 1) {
+					PASS_ERROR("\aERROR: invalid object definition, missing :member name\n");
+				}
+				if (tmpStack.top().type != CalcValue::REQ) {
+					PASS_ERROR("\aERROR: `" <<p <<"` expected a :member name instead received \"" <<tmpStack.top().typeName()
+					           <<"\"\n\tsee: `" <<tmpStack.top().toString(var_nodes)<<"`\n");
+				}
+				ret.object->addMember(*tmpStack.top().request, m_val);
+				tmpStack.pop();
+
+			}
+			mainStack.push(ret);
 
 			// making a lambda/anonymous function
-		} else if (strcmp(p, "lambda") == 0 || strcmp(p, "lam") == 0) {
+		} else if (strcmp(p, "lam") == 0 || strcmp(p, "lambda") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: `"<<p <<"` expected a body and a list of parameters\n");
 			}

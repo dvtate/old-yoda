@@ -103,8 +103,9 @@ std::string CalcValue::toString(std::vector<UserVar>& var_nodes){
 			ret += "\n :" + object->members[i] + " ";
 			ret += object->values[i].toString(var_nodes);
 		}
-		ret += " } object";
+		ret += "\n} object";
 
+		// a member request
 	} else if (type == CalcValue::REQ) {
 		if (request->at(0) == " ")
 			ret += "__";
