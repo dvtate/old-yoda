@@ -118,7 +118,10 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				// "x" + y = "xy"
 			else if (a.type == CalcValue::STR || b.type == CalcValue::STR) {
-				const std::string combined = a.toString(var_nodes) + b.toString(var_nodes);
+				// string .toString enclosed in quotes which is undesireable
+				const std::string combined =
+						(a.type == CalcValue::STR ? a.string : a.toString(var_nodes)) +
+						(b.type == CalcValue::STR ? b.string : b.toString(var_nodes));
 				mainStack.push(combined.c_str());
 			} else {
 				PASS_ERROR("\aERROR: incompatable types for operator +.\n");
@@ -1843,6 +1846,10 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				// put the string in a temp file
 				FILE* statement = tmpfile();
+				if (!statement) {
+
+				}
+
 				fputs(buff, statement);
 				rewind(statement);
 				free(buff);
@@ -1909,7 +1916,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			if (elseStatement) {
 				if (mainStack.top().type != CalcValue::BLK) {
-					PASS_ERROR("\aERROR: `else` expected macro");
+					PASS_ERROR("\aERROR: `else` expected macro\n");
 				}
 				StrStack elseifBlock = *mainStack.top().block;
 				mainStack.pop();
@@ -1917,7 +1924,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				CONVERT_TOP(mainStack, var_nodes, freeable);
 
 				if (mainStack.top().type != CalcValue::BLK) {
-					PASS_ERROR("\aERROR: `else` expected macro");
+					PASS_ERROR("\aERROR: `else` expected macro\n");
 				}
 				StrStack elseBlock = *mainStack.top().block;
 				mainStack.pop();
@@ -2617,17 +2624,27 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			// let's try and figure out what this could be...
 		else {
+
 			// parse input
-			double number = atof(p);
+			char* num_end;
+			double number = strtof(p, &num_end);
+
+			char* tmp = num_end;
+			while (*tmp)
+				tmp++;
+
+			if (lineLen - (p - pInit) > 2)
+				*tmp = ' ';
 
 			// the user is still learning
-			if (number == 0 && *p != '0' && (*p != '-' && *(p + 1) != '0')) {
-				PASS_ERROR("\aSYNTAX ERROR: near `" <<p <<"`\nfirst token = `" <<pInit <<"`\nstklen = "
-				                                    <<mainStack.size() <<"\nrpnln=\"" <<rpnln <<"\"\n");
+			if (p == num_end) {
+				PASS_ERROR("\aSYNTAX ERROR: invalid token near `" <<p <<"`\nfirst token: `" <<pInit <<"`\nstklen: "
+							<<mainStack.size() <<"\nrpnln: \"" <<rpnln <<"\"\nscope: " <<var_nodes.size()
+							<<std::endl);
+			}
 
-				// the user has given us a number
-			} else
-				mainStack.push(number);
+			mainStack.push(number);
+			rpnln = num_end;
 		}
 
 		// get next token
