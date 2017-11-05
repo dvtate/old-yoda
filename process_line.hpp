@@ -169,6 +169,9 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 		fclose(statement);\
 	}
 
+
+//void runMacro(StrStack* macro, std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nodes, std::vector<void*>& freeable, bool showErrors, bool elseStatement, )
+
 #define CLEAR_STACK(STACK) while (!STACK.empty()) STACK.pop();
 
 #include "top_modifiers.hpp"
