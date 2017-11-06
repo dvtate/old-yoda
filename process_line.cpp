@@ -1995,7 +1995,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 						mainStack.push(top);
 
 				} // else, it's a value that should stay at the top of the stack
-			} // else, don't do anything as there isn't an else clause
+			} else // no else clause just pop condition body
+				mainStack.pop();
 
 			// extended contitionals -- 恶心特你的的similar to a switch statment
 		} else if (strcmp(p, "cond") == 0 || strcmp(p, "condition") == 0) {
