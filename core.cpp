@@ -2,8 +2,11 @@
 
 // will be the error code given when a function return successfully
 // this content is set so that if they use it out of context they are still told so
-const char* lambda_finish = "\aERROR: use of `return` or `break` out of context :/\n";
+const char* lambda_finish = "\aERROR: use of `return` or `break` out of context\n";
 
+
+// this gets returned from runMacro() on error
+const char* macro_error = "\aERROR: in macro execution\n";
 
 FILE* program = stdin;
 char* progName = NULL;
@@ -85,7 +88,7 @@ void runFile(char* programFile, bool& errorReporting){
 			setTermEffect();
 
 			// print the problem statement
-			color_fprintf(stderr, 255, 0, 0, "\t%s", getLineFromFile(programFile, line));
+			color_fprintf(stderr, 255, 0, 0, "\t%s", fileutils::getLineFromFile(programFile, line));
 
 			// point to the problem area
 			//for (uint16_t i = 0; i < errorToken - rpnln_head; i++)
@@ -181,7 +184,7 @@ macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& err
 			// print the problem statement
 			rewind(prog_file);
 			color_fprintf(stderr, 255, 0, 0, "\t%s\t",
-			              getLineFromFile(prog_file, local_line));
+			              fileutils::getLineFromFile(prog_file, local_line));
 
 /*
 			// point to the problem area
@@ -372,5 +375,48 @@ char* qtok(char* str, char** next){
 
 	//return unescapeToken(start);
 	return start;
+
+}
+
+
+char* runMacro(StrStack* macro, std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nodes, std::vector<void*>& freeable, bool showErrors, bool elseStatement) {
+	size_t buff_size = 500;
+	char* buff = (char*) malloc(buff_size);
+	macro->toString(&buff, &buff_size);
+
+	// put the string in a temp file
+	//FILE* statement = fileutils::mktmpfile();
+	FILE* statement = tmpfile();
+	if (!statement) {
+		if (showErrors) {
+			printf("\aERROR: tmpfile() returned null. This isn't your fault. :/\n");
+			return (char*) macro_error;
+		}
+	}
+	fputs(buff, statement);
+	rewind(statement);
+	freeable.push_back(buff);
+
+
+	// add layer to scope
+	UserVar first_node(NULL, " ", 0.0);
+	var_nodes.push_back(first_node);
+
+
+	// run the temp file
+	macro::ret_t ret = runFile(statement, var_nodes, showErrors, (mainStack), elseStatement);\
+	if (ret == macro::ERROR) {
+		vars::clearScope(var_nodes);
+		fclose(statement);
+		return (char*) macro_error;
+
+	} else if (ret == macro::RETURN || ret == macro::BREAK) {
+		// variables go out of scope
+		vars::clearScope(var_nodes);
+		fclose(statement);
+		return (char*) lambda_finish;
+	}
+
+
 
 }

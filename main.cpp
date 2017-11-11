@@ -2,6 +2,9 @@
 #include <stack>
 #include <string.h>
 #include <math.h>
+#include <time.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <signal.h>
 
 // re-implemented getline()
@@ -112,7 +115,7 @@ int main(int argc, char** argv){
 void handle_sigint_file(int){
 	printf("In file: %s On line: %d\n", progName, --line);
 
-	char* ln = getLineFromFile(progName, line);
+	char* ln = fileutils::getLineFromFile(progName, line);
 	if (ln)
 		color_fprintf(stderr, 255, 0, 0, ln);
 	else

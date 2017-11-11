@@ -6,6 +6,8 @@
 #include <string.h>
 #include <inttypes.h>
 
+/// NOTE: String-Stack = Block = Executable array = Macro
+///       there were a variety of names for this type before I decided on calling them macros
 
 
 class CalcValue;

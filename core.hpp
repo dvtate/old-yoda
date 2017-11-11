@@ -68,8 +68,15 @@ void runShell(std::vector<UserVar>& var_nodes, bool& errorReporting,
 			  std::stack<CalcValue>& mainStack, bool& elseStatement, std::vector<void*> freeable
 );
 
+
+
+char* runMacro(StrStack* macro, std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nodes, std::vector<void*>& freeable, bool showErrors, bool elseStatement);
+
+
 // Returns the start of the token/string-constant
 // manages escape-sequences within string-constants
 char* qtok(char* str, char** next);
+
+
 
 #endif

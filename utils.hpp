@@ -13,8 +13,10 @@
 
 #include "calc_value.hpp"
 #include "terminal_colors.hpp"
+#include "win_supp.h"
 
 
+extern char* progName;
 
 // print help monologue
 void displayHelp();
@@ -46,11 +48,16 @@ namespace strutils {
 	char* str_replace(char *orig, const char *rep, const char *with);
 }
 
+namespace fileutils {
 
-// remember to free()
-char* getLineFromFile(const char* filename, size_t lineNumber);
-char* getLineFromFile(FILE* file, size_t lineNumber);
+	// remember to free()
+	char* getLineFromFile(const char* filename, size_t lineNumber);
+	char* getLineFromFile(FILE* file, size_t lineNumber);
 
+	char* mktmpPrefix();
+	FILE* mktmpfile();
+
+}
 // strings in quotes (debug)
 bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes);
 // no quotes on strings (prod)

@@ -142,67 +142,83 @@ namespace strutils {
 }
 
 
-
-char* getLineFromFile(const char* filename, size_t lineNumber){
-	FILE *file = fopen(filename, "r");
-
-	size_t count = 1;
-	if (file != NULL) {
-
-		char* line = (char*) malloc(200);
-		size_t lineLen = 200;
+namespace fileutils {
 
 
-		while (getline(&line, &lineLen, file) != -1)
-			if (count == lineNumber)
-				break;
-			else
-				count++;
+	char *getLineFromFile(const char *filename, size_t lineNumber) {
+		FILE *file = fopen(filename, "r");
 
-		if (count) {
-			fclose(file);
-			return line;
+		size_t count = 1;
+		if (file != NULL) {
+
+			char *line = (char *) malloc(200);
+			size_t lineLen = 200;
+
+
+			while (getline(&line, &lineLen, file) != -1)
+				if (count == lineNumber)
+					break;
+				else
+					count++;
+
+			if (count) {
+				fclose(file);
+				return line;
+			} else {
+				std::cerr << "\autils.h: getLineFromFile(): line index not found";
+				fclose(file);
+				return (char *) NULL;
+			}
+
 		} else {
-			std::cerr <<"\autils.h: getLineFromFile(): line index not found";
-			fclose(file);
-			return (char*) NULL;
+			std::cerr << "\aDAFUQ: fopen(\"" << filename << "\", \"r\") == NULL\n"
+			          << __FILE__ << ':' << __LINE__ << std::endl;
+			return (char *) NULL;
 		}
 
-	} else {
-		std::cerr <<"\aDAFUQ: fopen(\"" <<filename <<"\", \"r\") == NULL\n"
-		          <<__FILE__ <<':' <<__LINE__ <<std::endl;
-		return (char*) NULL;
 	}
 
+	char *getLineFromFile(FILE *file, size_t lineNumber) {
+
+		size_t count = 1;
+		if (file != NULL) {
+
+			char *line = (char *) malloc(200);
+			size_t lineLen = 200;
+
+
+			while (getline(&line, &lineLen, file) != -1)
+				if (count == lineNumber) break;
+				else count++;
+
+			if (count) {
+				fclose(file);
+				return line;
+			} else {
+				std::cerr << "\autils.h: getLineFromFile(): line index not found";
+				fclose(file);
+				return (char *) NULL;
+			}
+
+		} else
+			return (char *) NULL;
+
+	}
+
+	// make the prefix/template for tmpfiles to follow
+	char* mktmpPrefix() {
+		const unsigned int len = progName ? strlen(progName) : 4; // "yoda" has 4 chars
+		char* ret = (char*) malloc(len + 1); // not safe to free
+		strcpy(ret, progName ? progName : "yoda"); // blah.ysXXXXXX | yodaXXXXXX
+		return ret;
+	}
+
+	//
+	FILE* mktmpfile() {
+		static char* prefix = mktmpPrefix();
+		return fdopen(mkstemps(prefix, 10), "w+b");
+	}
 }
-
-char* getLineFromFile(FILE* file, size_t lineNumber){
-
-	size_t count = 1;
-	if (file != NULL) {
-
-		char* line = (char*) malloc(200);
-		size_t lineLen = 200;
-
-
-		while (getline(&line, &lineLen, file) != -1)
-			if (count == lineNumber) break;
-			else count++;
-
-		if (count) {
-			fclose(file);
-			return line;
-		} else {
-			std::cerr <<"\autils.h: getLineFromFile(): line index not found";
-			fclose(file);
-			return (char*) NULL;
-		}
-
-	} else
-		return (char*) NULL;
-
-}
-
 bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes){
 
 	if (val.isNull())

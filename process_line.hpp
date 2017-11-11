@@ -47,6 +47,10 @@ extern FILE* program;
 extern const char* lambda_finish;
 
 
+// this gets returned from runMacro() on error
+extern const char* macro_error;
+
+
 extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bool& errorReporting,
                             std::stack<CalcValue>& mainStack, bool& elseStatement);
 
@@ -169,8 +173,6 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 		fclose(statement);\
 	}
 
-
-//void runMacro(StrStack* macro, std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nodes, std::vector<void*>& freeable, bool showErrors, bool elseStatement, )
 
 #define CLEAR_STACK(STACK) while (!STACK.empty()) STACK.pop();
 

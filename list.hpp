@@ -2,6 +2,8 @@
 #define YODA_LIST_HPP
 
 #include "calc_value.hpp"
+#include "win_supp.h"
+
 
 extern int line;
 

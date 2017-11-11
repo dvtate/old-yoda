@@ -1,5 +1,5 @@
 #include "process_line.hpp"
-
+#include "core.hpp"
 
 
 /// returns: location/source of error or NULL
@@ -1566,7 +1566,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			bool elseStatement_cpy = elseStatement;
 			elseStatement = false;
 			if (top.type == CalcValue::BLK) {
-				RUN_STR_STK(*top.block, mainStack);
+
+				char* tmp = runMacro(top.block, mainStack, var_nodes, freeable, showErrors, elseStatement);
+				if (tmp)
+					return tmp;
+
 			} else if (top.type == CalcValue::STR) {
 				char* err = processLine(mainStack, var_nodes, showErrors, top.string, elseStatement, codeFeed, freeable);
 				if (err) {
