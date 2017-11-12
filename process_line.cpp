@@ -2627,8 +2627,15 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		else if (*p == '$' && *(p + 1) != '\0') // user must use '$' prefix to access the variables
 			mainStack.push(CalcValue().setRef(p + 1)); // simplest line in this file?
 
+		else if (strcmp(p, "_$") == 0) {
+			CONVERT_TOP(mainStack, var_nodes, freeable);
+			if (mainStack.top().type != CalcValue::STR) {
+				PASS_ERROR("\aERROR: improper use of deprecated _$ operator")
+			}
+			mainStack.top().type = CalcValue::REF;
+
 			// let's try and figure out what this could be...
-		else {
+		} else {
 
 			// parse input
 			char* num_end;
