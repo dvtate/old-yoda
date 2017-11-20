@@ -57,6 +57,10 @@ namespace fileutils {
 	char* mktmpPrefix();
 	FILE* mktmpfile();
 
+	extern std::vector<char*> tmp_files;
+	void delTmpFiles();
+
+
 }
 // strings in quotes (debug)
 bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes);

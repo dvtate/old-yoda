@@ -213,11 +213,29 @@ namespace fileutils {
 		return ret;
 	}
 
+
 	//
 	FILE* mktmpfile() {
-		static char* prefix = mktmpPrefix();
-		return fdopen(mkstemps(prefix, 10), "w+b");
+		char tmpl[] = ".yodaXXXXXXXX";
+		mkstemp(tmpl);
+		FILE* ret = fopen(tmpl, "w+b");
+		remove(tmpl);
+		return ret;
 	}
+
+	std::vector<char*> tmp_files;
+	void delTmpFiles(){
+		for (char* c : tmp_files) {
+			remove(c);
+			free(c);
+		}
+	}
+
+/*
+	std::string tempdir() {
+		char nameTemplate[] = "yodaXXXXXXXX";
+		printf(mkdtemp(nameTemplate));
+	}*/
 }
 bool printCalcValue(CalcValue& val, std::vector<UserVar>& var_nodes){
 

@@ -1,3 +1,4 @@
+#include <thread>
 #include "process_line.hpp"
 #include "core.hpp"
 
@@ -19,6 +20,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 	// get first token from the input
 	char* p = qtok(rpnln, &rpnln);
+
 
 	// empty string/whitespace input
 	if (p == NULL)
@@ -1086,22 +1088,51 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			CONVERT_TOP(mainStack, var_nodes, freeable);
 
 			if (mainStack.top().type != CalcValue::STR || mainStack.top().isEmpty()) {
-				PASS_ERROR("\aERROR: `" <<p <<"` expected a string for the file name")
+				PASS_ERROR("\aERROR: `" << p << "` expected a string for the file name")
 			}
-			FILE* statement = fopen(mainStack.top().string, "r");
+			FILE *statement = fopen(mainStack.top().string, "r");
 			if (!statement) {
-				PASS_ERROR("\aERROR: "<<p <<": \""<<mainStack.top().string <<"\" couldn't be found.\n");
+				PASS_ERROR("\aERROR: " << p << ": \"" << mainStack.top().string << "\" couldn't be found.\n");
 			}
 			mainStack.pop();
 
 			// run the file
 			macro::ret_t ret = runFile(statement, var_nodes, showErrors, mainStack, elseStatement);
 			if (ret == macro::ERROR) {
-				PASS_ERROR("\aERROR: error in file added with `"<<p <<"`\n");
+				PASS_ERROR("\aERROR: error in file added with `" << p << "`\n");
 			}
 
 			// we're now done with the file
 			fclose(statement);
+
+
+		} else if (strcmp(p, "def") == 0 || strcmp(p, "define") == 0) {
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: `" <<p <<"` expected a value and a handle\n");
+			}
+			CONVERT_TOP(mainStack, var_nodes, freeable);
+			if (mainStack.top().type != CalcValue::STR) {
+				PASS_ERROR("\aERROR:  `" <<p <<"` expected a string for the handle, instead recieved " <<mainStack.top().typeName() <<std::endl);
+			}
+
+			// make a new global variable which can't be accesed with normal $references
+			char* v_name = mutilate::mutilateVarName(mainStack.top().string);
+			mainStack.pop();
+			vars::assignNewVar(&var_nodes[0], v_name, *conv_top_keep_refs(mainStack, var_nodes, showErrors, freeable));
+
+			// make a string stack which accesses it
+			StrStack definition;
+			char line[strlen(v_name) + 8];
+			line[0] = '"';
+			line[1] = 0;
+			strcat(line, v_name);
+			strcat(line, "\" _$ ~");
+
+			definition.push(line);
+			mainStack.push(definition);
+
+
+			/// TODO: finish implementation
 
 			// get the value at the specific index of an array
 		} else if (strcmp(p, "get") == 0) {
@@ -1567,18 +1598,19 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			elseStatement = false;
 			if (top.type == CalcValue::BLK) {
 
-				char* tmp = runMacro(top.block, mainStack, var_nodes, freeable, showErrors, elseStatement);
+				char *tmp = runMacro(top.block, mainStack, var_nodes, freeable, showErrors, elseStatement);
 				if (tmp)
 					return tmp;
 
 			} else if (top.type == CalcValue::STR) {
-				char* err = processLine(mainStack, var_nodes, showErrors, top.string, elseStatement, codeFeed, freeable);
+				char *err = processLine(mainStack, var_nodes, showErrors, top.string, elseStatement, codeFeed,
+				                        freeable);
 				if (err) {
-					PASS_ERROR("\aERROR in block near `" <<err <<"`. Called here:\n");
+					PASS_ERROR("\aERROR in block near `" << err << "`. Called here:\n");
 				}
 
 				// note: after adding va_args and missing handlers, lambda execution performance has decreased significantly
-			}  else if (top.type == CalcValue::LAM) {
+			} else if (top.type == CalcValue::LAM) {
 
 				//ASSERT_NOT_EMPTY(p);
 				if (!mainStack.empty()) {
@@ -1613,9 +1645,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				bool hasArgs = top.lambda->params.size() && paramBindings.size();
 				if (paramBindings.size() && paramBindings[0] == -1) {
 					if (top.lambda->requiredArgs() < 0) {
-						PASS_ERROR("\aERROR: `"<<p <<"` expected at least "<< (int) -top.lambda->requiredArgs() <<" arguments\n");
+						PASS_ERROR("\aERROR: `" << p << "` expected at least " << (int) -top.lambda->requiredArgs()
+						                        << " arguments\n");
 					} else {
-						PASS_ERROR("\aERROR: `"<<p <<"` expected " << (int) top.lambda->requiredArgs() <<" arguments\n");
+						PASS_ERROR("\aERROR: `" << p << "` expected " << (int) top.lambda->requiredArgs()
+						                        << " arguments\n");
 					}
 				}
 
@@ -1668,7 +1702,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 							strcpy(var_name, top.lambda->params[paramBindings[i]].c_str() + 1);
 
 							// delete handler from cpy
-							char* tmp = var_name;
+							char *tmp = var_name;
 							while (*tmp && *tmp != ' ')
 								tmp++;
 							if (*tmp)
@@ -1685,7 +1719,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 
 
-								UserVar* end = vars::findVar(var_nodes, mainStack.top().list->at(i).string);
+								UserVar *end = vars::findVar(var_nodes, mainStack.top().list->at(i).string);
 								if (!end) {
 									mainStack.push(mainStack.top().list->at(i));
 									CONVERT_REFS(mainStack, var_nodes); // this will error and exit
@@ -1698,12 +1732,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 								//	CONVERT_REFS(mainStack, var_nodes); // this will error and exit
 								//}
 
-								char* ref_name = end->name;
+								char *ref_name = end->name;
 
 								// var->val isn't escaped
 								if (end->name[0] != ' ') {
 									// set it to a reference to an identical and safer variable
-									char* v_name = mutilate::mutilateVarName(end->name);
+									char *v_name = mutilate::mutilateVarName(end->name);
 									vars::assignNewVar(end->first, v_name, end->val);
 									end->val.setRef(v_name);
 									free(v_name);
@@ -1730,7 +1764,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 								// set ($a) = ref"$ a"
 
 
-								UserVar* end = vars::findVar(var_nodes, mainStack.top().list->at(i).string);
+								UserVar *end = vars::findVar(var_nodes, mainStack.top().list->at(i).string);
 								if (!end) {
 									mainStack.push(mainStack.top().list->at(i));
 									CONVERT_REFS(mainStack, var_nodes); // this will error and exit
@@ -1743,12 +1777,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 									CONVERT_REFS(mainStack, var_nodes); // this will error and exit
 								}*/
 
-								char* ref_name = end->name;
+								char *ref_name = end->name;
 
 								// var->val isn't escaped
 								if (end->name[0] != ' ') {
 									// set it to a reference to an identical and safer variable
-									char* var_name = mutilate::mutilateVarName(end->name);
+									char *var_name = mutilate::mutilateVarName(end->name);
 									vars::assignNewVar(end->first, var_name, end->val);
 									end->val.setRef(var_name);
 									free(var_name);
@@ -1783,17 +1817,18 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 							if (top.lambda->countSpaces(i) == 2) {
 								// variable doesnt get defined here but handler gets run
 
-								char* tmp = (char*) malloc(strlen(top.lambda->params[i].c_str()));
+								char *tmp = (char *) malloc(strlen(top.lambda->params[i].c_str()));
 								strcpy(tmp, top.lambda->params[i].c_str() + 1);
 
 								unsigned int c = 0;
 								while (tmp[c] != ' ') c++;
 								tmp[c] = '\0';
 
-								char* tmp2 = tmp + c + 1;
-								char* err = processLine(mainStack, var_nodes, showErrors, tmp2, elseStatement, codeFeed, freeable);
+								char *tmp2 = tmp + c + 1;
+								char *err = processLine(mainStack, var_nodes, showErrors, tmp2, elseStatement, codeFeed,
+								                        freeable);
 								if (err) {
-									PASS_ERROR("\aERROR: in optional variable handler `" <<err <<"`. Called here:\n");
+									PASS_ERROR("\aERROR: in optional variable handler `" << err << "`. Called here:\n");
 								}
 								free(tmp);
 
@@ -1817,17 +1852,18 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 						if (top.lambda->countSpaces(i) == 2) {
 							// variable doesnt get defined here but handler gets run
 
-							char* tmp = (char*) malloc(strlen(top.lambda->params[i].c_str()));
+							char *tmp = (char *) malloc(strlen(top.lambda->params[i].c_str()));
 							strcpy(tmp, top.lambda->params[i].c_str() + 1);
 
 							unsigned int c = 0;
 							while (tmp[c] != ' ') c++;
 							tmp[c] = '\0';
 
-							char* tmp2 = tmp + c + 1;
-							char* err = processLine(mainStack, var_nodes, showErrors, tmp2, elseStatement, codeFeed, freeable);
+							char *tmp2 = tmp + c + 1;
+							char *err = processLine(mainStack, var_nodes, showErrors, tmp2, elseStatement, codeFeed,
+							                        freeable);
 							if (err) {
-								PASS_ERROR("\aERROR: in optional variable handler `" <<err <<"`. Called here:\n");
+								PASS_ERROR("\aERROR: in optional variable handler `" << err << "`. Called here:\n");
 							}
 							free(tmp);
 
@@ -1845,11 +1881,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				// put the statement in a string
 				size_t buff_size = 500;
-				char* buff = (char*) malloc(buff_size);
+				char *buff = (char *) malloc(buff_size);
 				top.lambda->src.toString(&buff, &buff_size);
 
 				// put the string in a temp file
-				FILE* statement = tmpfile();
+				FILE *statement = tmpfile();
 				if (!statement) {
 
 				}
@@ -1865,7 +1901,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				// check return value (why did the lambda finish?)
 				if (ret == macro::ERROR) {
-					PASS_ERROR("\aERROR: macro execution failed (`"<<p <<"`)\n");
+					PASS_ERROR("\aERROR: macro execution failed (`" << p << "`)\n");
 				}
 				fclose(statement);
 
@@ -1888,9 +1924,23 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 
 			} else {
-				PASS_ERROR("\aERROR: `"<<p <<"` (execution operator) only accepts strings and executable arrays\n");
+				PASS_ERROR("\aERROR: `" << p << "` (execution operator) only accepts strings and executable arrays\n");
 			}
 			elseStatement = elseStatement_cpy;
+
+
+		} else if (strcmp(p, "spawn") == 0 ) {
+			CONVERT_TOP(mainStack, var_nodes, freeable);
+			if (mainStack.top().type != CalcValue::BLK) {
+				PASS_ERROR("\aERROR: spawn expected a macro to thread");
+			}
+
+			// this is a memory leak, but shouldn't be too bad unless they make hundreds of threads...
+			StrStack* macro = new StrStack(*mainStack.top().block);
+
+			char* runMacro(StrStack* macro, std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nodes, std::vector<void*>& freeable, bool showErrors, bool elseStatement);
+
+			std::thread* proc = new std::thread(runMacro, macro, mainStack, var_nodes, freeable, showErrors, elseStatement);
 
 			// conditionals::else
 		} else if (strcmp(p, "else") == 0) {

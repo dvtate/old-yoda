@@ -10,9 +10,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <inttypes.h>
+//#include <Windows.h>
+
 
 int getline(char** lineptr, size_t* n, FILE* stream);
 
+//int mkstemp(char*);
 
 #endif // _WIN32
 
