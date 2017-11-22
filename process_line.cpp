@@ -1928,7 +1928,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 			elseStatement = elseStatement_cpy;
 
-
+		// spawn a new thread
 		} else if (strcmp(p, "spawn") == 0 ) {
 			CONVERT_TOP(mainStack, var_nodes, freeable);
 			if (mainStack.top().type != CalcValue::BLK) {
@@ -1937,10 +1937,17 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			// this is a memory leak, but shouldn't be too bad unless they make hundreds of threads...
 			StrStack* macro = new StrStack(*mainStack.top().block);
+			mainStack.pop();
 
-			char* runMacro(StrStack* macro, std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nodes, std::vector<void*>& freeable, bool showErrors, bool elseStatement);
+			// copy stack so that threads don't start shitting on each other
+			std::stack<CalcValue>* stkcpy = new std::stack<CalcValue>(mainStack);
 
-			std::thread* proc = new std::thread(runMacro, macro, mainStack, var_nodes, freeable, showErrors, elseStatement);
+			// this is a memory leak
+			std::thread* proc = new std::thread(runMacro, macro, std::ref(*stkcpy), var_nodes, std::ref(freeable), showErrors, elseStatement);
+
+			// $t { { "ff" println } { 1 } while } =
+			// $t spawn { "gg" println } { 1 } while
+
 
 			// conditionals::else
 		} else if (strcmp(p, "else") == 0) {

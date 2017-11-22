@@ -339,7 +339,7 @@ bool printCalcValueRAW(CalcValue& val, std::vector<UserVar>& var_nodes){
 		else
 			ret = &val;
 
-		std::cerr <<"\aERROR: broken reference to `$" <<(ret->string) <<"`.\n";
+		std::cerr <<"\aERROR: broken reference to `$" <<ret->string <<"`.\n";
 
 		return 1;
 
