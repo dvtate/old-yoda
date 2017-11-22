@@ -395,7 +395,7 @@ char* runMacro(StrStack* macro, std::stack<CalcValue>& mainStack, std::vector<Us
 	}
 	fputs(buff, statement);
 	rewind(statement);
-	free(buff);
+	freeable.push_back(buff);
 
 
 	// add layer to scope
@@ -418,6 +418,7 @@ char* runMacro(StrStack* macro, std::stack<CalcValue>& mainStack, std::vector<Us
 	}
 
 
+	return NULL;
 
 }
 
@@ -426,7 +427,7 @@ char* spawnMacro(StrStack macro, std::stack<CalcValue> mainStack, std::vector<Us
 
 	size_t buff_size = 500;
 	char* buff = (char*) malloc(buff_size);
-	macro->toString(&buff, &buff_size);
+	macro.toString(&buff, &buff_size);
 
 	// put the string in a temp file
 	FILE* statement = fileutils::mktmpfile();
@@ -462,5 +463,5 @@ char* spawnMacro(StrStack macro, std::stack<CalcValue> mainStack, std::vector<Us
 	}
 
 
-
+	return NULL;
 }
