@@ -16,33 +16,11 @@ http://dvtate.github.io/dls/yoda.exe [updated 2017.6.4]
 
 After installing, you can run yoda as you would any other program from the terminal.
 
-# About YodaScript
-YodaScript is a stack-based language based on reverse polish notation.
-- Features:
-  + OOP via the :member operator
-  + Lists (and all methods from std::vector are included)
-  + Macros (better than executable arrays in postscript)
-  + conditionals (using else-ifelse-if statements)
-  + loops (`while`, `repeat`, `for-each`)
-  + variables/references
-  + dynamically typed, dynamically scoped
-  + ANSI terminal color functions (soon to be an external library) 
-  + lambdas (first-class functions) through the lambda keyword
-  + optional parameters and va_args
-  
-- Some features which I plan on implementing (top to bottom):
-  + Object definition (`object` command)(similar to `{}` in js)
-  + extending the language using C++ (using .so's and perhapse remote repos)
-  + concurrency (if possible) (perhaps w/ std::thread)
-  + dictionaries (perhapse via same infastructure as objects)
-  + regular expressions (possibly ext. lib)
-  
-
-- Some features I do not plan on implementing (yet):
-  + goto's: Although I both support and use goto's in C/C++, it would be difficult to make gotos (with lables) work in YodaScript.
+# Features
+For an up to date features list click [here](https://plus.google.com/+Tatetesta/posts/XqoHQkATify).
     
-# Supported Types/Literals:
-* Strings: `"literal enclosed in quotes"` : text
+# Types/Literals:
+* Strings: `"literal enclosed in quotes"`: text
 * Numbers: `1 1.0 inf 1e-4`: numerical values, or `true`=1/`false`=0
 * Null: `null`: a placeholder for a lack of a value
 * Reference: `$var`: a reference to another piece of data (or another reference)
