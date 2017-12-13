@@ -204,7 +204,7 @@ void fsetFgColor(FILE* file, const char* ccolor){
 
 			if (token == NULL || *token == ')') {
 				fprintf(stderr, "\aERROR: \"rgb(r,g,b)\" expected 3 arguments, "
-						"%d provided\n", i + 1);
+						"%d provided\n", i);
 				break;
 			}
 			vals[i] = atoi(token);
@@ -324,7 +324,7 @@ void fsetBgColor(FILE* file, const char* ccolor){
 
 			if (token == NULL || *token == ')') {
 				fprintf(stderr, "\aERROR: \"rgb(r,g,b)\" expected 3 arguments, "
-						"%d provided\n", i + 1);
+						"%d provided\n", i);
 				break;
 			}
 			vals[i] = atoi(token);
@@ -509,7 +509,7 @@ void color_fprintf(FILE* file, const char* ccolor, const char* format, ...){
 
 			if (token == NULL || *token == ')') {
 				fprintf(stderr, "\aERROR: color_fprintf(): rgb() expected 3 "
-						"arguments, %d provided\n", i + 1);
+						"arguments, %d provided\n", i);
 				break;
 			}
 			vals[i] = atoi(token);
@@ -617,7 +617,7 @@ void color_printf(const char* ccolor, const char* format, ...){
 
 			if (token == NULL || *token == ')') {
 				fprintf(stderr, "\aERROR: color_printf(): rgb() expected 3 "
-						"arguments, %d provided\n", i + 1);
+						"arguments, %d provided\n", i);
 				break;
 			}
 			vals[i] = atoi(token);
