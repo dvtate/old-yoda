@@ -84,7 +84,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				case '>':
 					switch (*(p + 1)) {
-						case '>': mainStack.push((int) a << (int) b); break;
+						case '>': mainStack.push((int) a >> (int) b); break;
 						case '=': mainStack.push(a >= b); break;
 						case '\0': mainStack.push(a > b); break;
 					}
@@ -1246,6 +1246,14 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			mainStack.top().setValue(mainStack.top().toString(var_nodes).c_str());
 
+			// string containing reference label ($a -> "a")
+		} else if (strcmp(p, "refstr") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			if (mainStack.top().type != CalcValue::REF) {
+				PASS_ERROR("\aERROR: refstr expected a reference\n");
+			}
+			mainStack.top().type = CalcValue::STR;
+
 			// convert to list
 		} else if (strcmp(p, "list") == 0) {
 			ASSERT_NOT_EMPTY(p);
@@ -1258,6 +1266,19 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				mainStack.pop();
 			}
 			mainStack.push(tmp);
+
+			// create a global reference to the data given
+		} else if (strcmp(p, "global_ref") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			CalcValue* v = conv_top(mainStack, var_nodes, showErrors, freeable);
+			if (!v) {
+				PASS_ERROR("\aERROR: `" << p <<"`error during lazy evaluation");
+			}
+
+			char *v_name = mutilate::mutilateVarName("gref");
+			vars::assignNewVar(&var_nodes[0], v_name, *v);
+			mainStack.push(CalcValue().setRef(v_name));
+			free(v_name);
 
 			// convert to number
 		} else if (strcmp(p, "num") == 0) {
@@ -1736,7 +1757,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 								// var->val isn't escaped
 								if (end->name[0] != ' ') {
-									// set it to a reference to an identical and safer variable
+									// set it to reference an identical, safer variable
 									char *v_name = mutilate::mutilateVarName(end->name);
 									vars::assignNewVar(end->first, v_name, end->val);
 									end->val.setRef(v_name);
@@ -1927,7 +1948,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: `" << p << "` (execution operator) only accepts strings and executable arrays\n");
 			}
 			elseStatement = elseStatement_cpy;
-
+/*
 		// spawn a new thread
 		} else if (strcmp(p, "spawn") == 0 ) {
 			CONVERT_TOP(mainStack, var_nodes, freeable);
@@ -1943,11 +1964,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			std::stack<CalcValue>* stkcpy = new std::stack<CalcValue>(mainStack);
 
 			// this is a memory leak
-			std::thread* proc = new std::thread(runMacro, macro, std::ref(*stkcpy), var_nodes, std::ref(freeable), showErrors, elseStatement);
+			new std::thread(runMacro, macro, std::ref(*stkcpy), var_nodes, std::ref(freeable), showErrors, elseStatement);
 
 			// $t { { "ff" println } { 1 } while } =
-			// $t spawn { "gg" println } { 1 } while
-
+			// $t ~ spawn { "gg" println } { 1 } while
+*/
 
 			// conditionals::else
 		} else if (strcmp(p, "else") == 0) {
@@ -2326,7 +2347,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			line = 1;
 
 			// useful for debugging
-		} else if (strcmp(p, "vars") == 0 || strcmp(p, "ls_vars") == 0) {
+		} else if (strcmp(p, "vars") == 0) {
 			std::cout <<"Defined Variables:\nNote: variables with spaces after the `$` and a crunch-code at\nthe end are defined by the interpreter for safety.\n";
 			// for each scope
 			for (size_t i = 0; i < var_nodes.size(); i++) {
@@ -2368,7 +2389,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 						std::cout <<" =\n";
 
 					} else if (var->val.type == CalcValue::LAM) {
-						std::cout << "[LAM] @ " <<var <<": {...} (";
+						std::cout << "[LAM] @ " <<var <<": $" <<var->name <<" {...} (";
 						bool hasParams =var->val.lambda->params.size() && var->val.lambda->params[0] != "";
 						if (hasParams) {
 							std::cout <<"$" <<var->val.lambda->params[0];
@@ -2376,7 +2397,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 								std::cout <<", $" <<var->val.lambda->params[param];
 							}
 						}
-						std::cout <<") $"<< var->name <<std::endl;
+						std::cout <<") \n";
 					} else if (var->val.type == CalcValue::OBJ) {
 						std::cout <<"[OBJ] @ " <<var <<": $" <<var->name <<' ';
 						printCalcValue(var->val, var_nodes);
@@ -2432,23 +2453,21 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		// assignment operator
 		} else if (*p == '=' && *(p + 1) == '\0') { // variable assignment
 
-			bool var1, var2;
-			CalcValue *v1, *v2;
 
-			// a literal would be stored in freeable for garbage collection
+			// a literal would be stored in freeable for garbage collection, increasing freeable's size
 			size_t freeable_size = freeable.size();
-			v2 = conv_top(mainStack, var_nodes, showErrors, freeable);
-			var2 = freeable.size() == freeable_size;
+			CalcValue* v2 = conv_top_keep_refs(mainStack, var_nodes, showErrors, freeable); // simplify top to one term
+			bool var2 = freeable.size() == freeable_size; // is 2nd term assignable?
 			freeable_size = freeable.size();
 
-			v1 = get_top(mainStack, var_nodes, showErrors, freeable);
-			var1 = freeable.size() == freeable_size;
+			CalcValue* v1 = get_top(mainStack, var_nodes, showErrors, freeable);
+			bool var1 = freeable.size() == freeable_size;
 
-			if (!v2) {
-				PASS_ERROR("\aERROR: `=`: RHS undefined; error in lazy evaluation\n")
-			}
 			if (!v1) {
-				PASS_ERROR("\aERROR: `=`: LHS invalid; error in lazy evaluation.\n");
+				PASS_ERROR("\aERROR: `=`: LHS invalid/missing (error in lazy evaluation)\n");
+			}
+			if (!v2) {
+				PASS_ERROR("\aERROR: `=`: RHS undefined/missing (error in lazy evaluation)\n");
 			}
 
 			if (var1)
@@ -2456,9 +2475,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			else if (var2)
 				v2->setValue(*v1);
 			else {
-				PASS_ERROR("\aERROR: invalid use of assignment operator, no assignable term given.");
+				PASS_ERROR("\aERROR: invalid use of assignment operator, first term not assignable.");
 			}
-
 
 			/*
 			if (mainStack.size() < 2) {
@@ -2684,10 +2702,10 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		else if (*p == '$' && *(p + 1) != '\0') // user must use '$' prefix to access the variables
 			mainStack.push(CalcValue().setRef(p + 1)); // simplest line in this file?
 
-		else if (strcmp(p, "_$") == 0) {
+		else if (*p == '$' && *(p + 1) == '\0') {
 			CONVERT_TOP(mainStack, var_nodes, freeable);
 			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: improper use of deprecated _$ operator")
+				PASS_ERROR("\aERROR: improper use of $ operator")
 			}
 			mainStack.top().type = CalcValue::REF;
 

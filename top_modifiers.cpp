@@ -35,6 +35,10 @@ CalcValue* conv_top(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_
 CalcValue* get_top(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes, bool showErrors, std::vector<void*>& freeable){
 	CalcValue* p = NULL, *ret = NULL;
 
+
+	if (mainStack.empty())
+		return NULL;
+
 	if (mainStack.top().type == CalcValue::REF) {
 		ret = mainStack.top().valAtRef(var_nodes);
 		// if the variable doesn't exist, assign it to null
