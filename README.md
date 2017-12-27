@@ -216,116 +216,121 @@ For an up to date features list click [here](https://plus.google.com/+Tatetesta/
   - `ans`: only available in shell; Pushes value at top of stack
 
 * Mathematical operators:
-  - `+`: add (also concatenates when one or more of the arguments is a string)
-  - `-`: subtract
-  - `*`: multiply
-  - `/`: divide
-  - `%`: modulus/remainder
-  - `**`, `pow`: raise arg1 to arg2 power
-  - `sqrt`, `sqr`: square route
-  - `log`, `log10`: base 10 logarithm
-  - `ln`: natural logarithm
-  - `logbase`, `logBase`, `logBASE`: Logarithm of the given base
-  - `sin`, `cos`, `tan`: trigonometric funcitons (radians)
-  - `asin`, `acos`, `atan`: inverse trigonometric funcitons (radians)
-  - `sinh`, `cosh`, `tanh`: hyperbolic trigonometric functions (radians)
-  - `asinh`, `acosh`, `atanh`: inverse hyperbolic trigonometric functions (radians)
+  - `<v1> <v2> +`: add (also concatenates when one or more of the arguments is a string)
+  - `<minued> <subtrahend> -`: subtract
+  - `<v1> <v2> *`: multiply
+  - `<numerator> <denominator> /`: divide
+  - `<numerator> <denominator> %`: modulus/remainder
+  - `<base> <exp> **`, `pow`: raise arg1 to arg2 power
+  - `<radicand> sqrt`, `sqr`: square route
+  - `<logand> log`, `log10`: base 10 logarithm
+  - `<logand> ln`: natural logarithm
+  - `<logand> <base> logbase`: Logarithm of the given base
+  - `<angle> sin`, `cos`, `tan`: trigonometric funcitons (radians)
+  - `<value> asin`, `acos`, `atan`: inverse trigonometric funcitons (radians)
+  - `<angle> sinh`, `cosh`, `tanh`: hyperbolic trigonometric functions (radians)
+  - `<value> asinh`, `acosh`, `atanh`: inverse hyperbolic trigonometric functions (radians)
 
 * Logical operators: (0 is false everything else is true)
-  - `&&`: logical-and (use macro enclosed boolean expressions for short-circuit logic)
-  - `||`: logical-or (use macro enclosed boolean expressions for short-circuit logic)
-  - `!`: logical-not
-  - `!=`: logical-XOR
+  - `<cond1> <cond2> &&`: logical-and (use macro enclosed boolean expressions for short-circuit logic)
+  - `<cond1> <cond2> ||`: logical-or (use macro enclosed boolean expressions for short-circuit logic)
+  - `<cond> !`: logical-not
+  - `<cond1> <cond2> !=`: logical-XOR
 
 * Compairison operators:
-  - `==`, `?=`: equals-to
-  - `!=`: not equals-to
-  - `>`: greater than
-  - `<`: less than
-  - `>=`: greater than or equal to
-  - `<=`: less than or equal to
+  - `<v1> <v2> ==`, `?=`: equals-to
+  - `<v1> <v2> !=`: not equals-to
+  - `<v1> <v2> >`: greater than
+  - `<v1> <v2> <`: less than
+  - `<v1> <v2> >=`: greater than or equal to
+  - `<v1> <v2> <=`: less than or equal to
 
 * Bitwise operators:
-  - `|`: bitwise-or
-  - `&`: bitwise-and
-  - `^`: bitwise-XOR
-  - `<<`: bitshift left
-  - `>>`: bitshift right
+  - `<v1> <v2> |`: bitwise-or
+  - `<v1> <v2> &`: bitwise-and
+  - `<v1> <v2> ^`: bitwise-XOR
+  - `<integer> <offset> <<`: bitshift left
+  - `<integer> <offset> >>`: bitshift right
 
 * Stack/flow operators: these are useful in carrying values to their destination in the correct order
-  - `...`: empty stack
+  - `...`: clear the stack
   - `;`: pop top of stack
-  - `dup`: duplicates the value on the top of the stack (1 arg)
-  - `dupn`: performs `dup` n number or times (2 args)
-  - `swap`: swaps the top 2 elements in the stack
-  - `assert`: makes an error if top of stack is false
+  - `<value> dup`: duplicates the value on the top of the stack (1 arg)
+  - `<value> <n> dupn`: performs `dup` n number or times (2 args)
+  - `<v1> <v2> swap`: swaps the top 2 elements in the stack
+  - `<boolean> assert`: makes an error if top of stack is false
   - `stklen`: returns the size of the stack
   - `reverse_stack`: reverses the order of stack
-  - `range`: returns a list containing a range of numbers between the two given
+  - `<start> <end> range`: returns list of integers on interval \[start, end)
 
 * Types:
-  - `str`: converts to string
-  - `num`: converts to a number
-  - `int`: converts to a integer (rounding)
-  - `floor`: static casts to an int (truncation)
-  - `list`: puts values on stack into a list
-  - `lambda`, `lam`: make a lambda (creation not conversion)
-  - `object`, `obj`: make an object (creation not conversion)
-  - `~`: copy operator, replaces a reference with the basic value it points to
+  - `<value> str`: converts to string
+  - `<value> num`: converts to a number
+  - `<value> int`: converts to a integer (rounding)
+  - `<value> floor`: static casts to an int (truncation)
+  - `<value> list`: puts values on stack into a list
+  - `<body macro> <parameters list> lambda`, `lam`: make a lambda (creation not conversion)
+  - `<members macro> object`, `obj`: make an object (creation not conversion)
+  - `<reference> ~`: copy operator, replaces a reference with the value it points to
 
 * Variables/References
-  - `=`: assignment operator
-  - `delete`: deletes a variable/reference
-  - `is_defined`: returns whether or not the given variable is defined or not
-  - `vars`, `ls_vars`: prints list of variables in all scopes plus debugging info
-  - `typeof`: pushes string containing type of a value
-  - `+=`, `-=`, `*=`, `/=`, `<<=`, `>>=`: modified assignment operators
-  - `++`, `--`: increment/decrement operator
-
+  - `<reference> <value> =`: assignment operator (shallow copy by default, for deep combine with `~`)
+  - `<reference> delete`: deletes a variable/reference
+  - `<reference> is_defined`: returns whether or not the given variable is defined or not
+  - `vars`: prints list of variables in all scopes plus debugging info
+  - `<reference> typeof`: pushes string containing type of a value
+  - `<reference> <modifier> +=`, `-=`, `*=`, `/=`, `<<=`, `>>=`: modified assignment operators
+  - `<reference> ++`, `--`: increment/decrement operator
+  - `<reference> refstr`: returns a string containing the reference label
+  - `<label string> $`: makes a reference from a string containing the label (opposite of `refstr`)
+  - `<value> global_ref`: allocates a global reference with a mutilated name (call `delete` later)
+  
 * String operators:
-  - `strlen`: returns the length of a given string
-  - `strstr`: finds a sub-string in a string
-  - `stristr`: case-insensitive strstr
-  - `trim`: trims whitespace from start and end of the stringsubroutine
-  - `split`: splits a string using given delimiters (also splits list)
-  - `str_replace`: replaces all occurances of a substring with another substring
+  - `<string> strlen`: returns the length of a given string
+  - `<haystack string> <needle string> strstr`: finds a sub-string in a string (returns `null` otherwise)
+  - `<string> <substring> stristr`: case-insensitive strstr
+  - `<string> trim`: trims whitespace from start and end of the stringsubroutine
+  - `<string> <delims string> split`: splits a string using given delimiters (also splits list)
+  - `<string> <substr1> <substr2> str_replace`: replaces all occurances of a substring with another substring
 
 * I/O:
-  - `print`: prints previous value
-  - `println`: prints previous value and ends line (&flushes file)
-  - `print_blk`: prints the contents of a macro/block
+  - `<value> print`: prints previous value
+  - `<value> println`: prints previous value and ends line (&fflushes stdout)
   - `input`, `getline`: reads a line from terminal (returns a string)
   - `getchar`: reads a character from terminal (returns a string)
   - `color_print`: prints a value in a given HTML color in a string. The color should be come after value
-  - `setFgColor`, `setBgColor`: change text color to an html color, passing `null` resets color
+  - `<color string> setFgColor`, `setBgColor`: change text color to an html color, passing `null` resets color
       changes the terminal color to a given html color contained in a string
   - `reset_color`, `resetFgColor`, `resetBgColor`: resets background and/or forground colors and effects
 
 * File operators:
-  - `file_get_contents`, `file_put_contents`: convert between files and strings
+  - `<file string> file_get_contents`: read a file as a string
+  - `<contents string> <file string> file_put_contents`: write a string as a file
 
 * Lambda and Macro Operators:
-  - `@`, `eval`: runs the given macro or string as code (also accepts strings)
+  - `<macro/lambda/string> @`, `<macro/lambda/string> eval`: runs/calls the given macro, lambda or string as code
   - `return`: pushes the top value to the stack and exits the call
   - `break`: keeps the stack and exits the call
   
 * List Operators:
-  - `get`: pushes the value at the given index of the given list
-  - `split`: pushes all the elements of a list onto the stack
-  - `n ]`: index for given list, evaluates to that element in the list (behavior similar to reference type)
-  - `push_back`: pushes a value onto the end of a list, or creates a list containing the original and added value
+  - `<list> <index number> get`: pushes the value at the given index of the given list
+  - `<list> split`: pushes all the elements of a list onto the stack
+  - `<list> <index number> ]`: index for given list, lazy evaluates to that element in the list
+  - `<list> <value> push_back`: pushes a value onto the end of a list, or creates a list containing the original and added value
   
 * OOP:
-  - `:member`, `"member" :`: member accessors
-  - `object`, `obj`: constuction
+  - `<object> :member`, `<object> <member string> :`: member accessors
+  - `<members macro> object`, `obj`: object constuction/definition
   
 * Structure-Equivalent Operators:
-  - `else`, `elseif`, `if`: conditional operators
-  - `cond`, `condition`: an if elseif...elseif else statement similar to a switch
-  - `repeat`, `while`, `foreach`: looping operators
+  - `<macro> else`, `<macro> <condition> elseif`, `<macro> <condition> if`: conditional operators
+  - `<conditions macro> cond`, `condition`: an if elseif...elseif else statement similar to a switch
+  - `<body macro> <times number> repeat`: run `body` `times` times
+  - `<body macro> <condition macro> while`: run `body` while `condition` is true
+  - `<body macro> <elements list/macro> <iterator reference> foreach`: run `body` for each element of `elements` stored in `iterator`
 
 * Timing:
-  - `sleep`: pauses interpretation for the given number of miliseconds (microsecond accuracy)
+  - `<miliseconds number> sleep`: pauses interpretation for the given number of miliseconds (microsecond accuracy*)
   
 * Interpreter Commands
   - `q`, `exit`, `quit`: stops interpretation of the script
@@ -333,7 +338,7 @@ For an up to date features list click [here](https://plus.google.com/+Tatetesta/
   - `reset`: deletes all variables, stack, etc. (essentially restarts interpreter)
   - `__errors-on`, `__errors-off`: toggle error messages (on by default)
   - `__errors`: returns 1 if errors are on and 0 if off
-  - `syscall`: calls `system()` on the given string. (for running system shell commands)
+  - `<command string> syscall`: calls `system()` on the given string. (for running system shell commands)
   - `__file`: returns the name of the main file being run
   - `__version`: returns version string
 
