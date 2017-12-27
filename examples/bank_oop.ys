@@ -1,0 +1,74 @@
+$Bank {
+	##
+	# an object to make customers of abc bank
+	# each customer will have the following
+	#	:name - name of account holder
+	#	:balance - ammount of money customer has
+	#	:id - unique customer ID number
+	##
+
+	# id counter
+	:customers 0
+
+
+	# customer constructor
+	:new_customer {
+		# create customer object
+		$ret {
+			:balance $balance ~
+			:name $name ~
+			:id $self :customers ~
+
+
+			:deposit {
+				{ # prevent negative deposits
+					"ERROR: (Customer :deposit): you cannot deposit a debt" error
+				} $amount 0 < if
+
+				# add deposit to balance
+				$self :balance $amount +=
+
+			} ($self, $amount) lambda
+
+
+			:withdraw {
+				{ # overdraw
+					"ERROR: (Customer :withdraw): amount greater than balance" error
+				} $amount $self :balance > if
+		
+				# remove deposit from blance
+				$self :balance $amount -=
+
+			} ($self, $amount) lambda
+
+			:transfer {
+
+
+			} ($self, $destination, $ammount) lambda
+			
+		} object =
+		
+		# increment id counter for next customer
+		$self :customers ++
+
+		# return the customer we have just made				
+		$ret ~ return
+
+
+	} ($self, $name, 
+	   ($balance, { $balance 0 = })
+	) lambda
+
+} object =
+
+
+$new_acct 
+	($Bank, "Steve", 50)
+		$Bank :new_customer
+			@
+		=
+
+
+"$new_acct = " println
+$new_acct println
+
