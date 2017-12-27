@@ -1,11 +1,10 @@
 CPP := g++
 SOURCES := *.cpp
-CPP_FLAGS := -lpthread
 
 .PHONY: all clean install uninstall
 
 all:
-	$(CPP) $(SOURCES) -o yoda -g $(CPP_FLAGS)
+	$(CPP) $(SOURCES) -o yoda -g
 
 clean:
 	rm yoda
