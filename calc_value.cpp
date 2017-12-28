@@ -186,7 +186,7 @@ bool CalcValue::deleteListElem(const std::vector<ssize_t>& elem_index) {
 		return false;
 
 	CalcValue* ret = this;
-	for (int16_t i = elem_index.size() - 1; i >= 0; i--) {
+	for (int16_t i = elem_index.size() - 1; i > 0; i--) {
 		if ((ssize_t) ret->list->size() <= elem_index[i] || (ssize_t) ret->list->size() < abs(elem_index[i]))
 			return false;
 
@@ -197,7 +197,7 @@ bool CalcValue::deleteListElem(const std::vector<ssize_t>& elem_index) {
 	if (!ret || !ret->list)
 		return false;
 
-	ret->list->erase(ret->list->begin() + elem_index[elem_index.size() - 1]);
+	ret->list->erase(ret->list->begin() + elem_index[0]);
 	return true;
 
 }
