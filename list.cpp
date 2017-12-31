@@ -14,33 +14,48 @@ namespace list {
 	//      - returns false
 	//      - str's value is of no use
 	static bool endOfList(char*& str, uint16_t& depth){
+
 		// NULL string (safety first)
 		if (!str)
 			return false;
+
+
+		bool quoted = false;
 
 		// base indentation
 		if (depth == 0)
 			return true;
 		if (depth == 1 && *str == ')')
 			return true;
-		if (*str == '(')
-			depth++;
-
-		// the line is commented out, or end of string
-		if (*str == '#')
-			while (*(str + 1) && *str != '\n')
-				str++;
+		// end of string
 		if (!*str)
 			return false;
-		
+		if (*str == '(')
+			depth++;
+		else if (*str == ')')
+			depth--;
+		// the line is commented out
+		else if (*str == '#')
+			while (*(str + 1) && *(str + 1) != '\n')
+				str++;
+
+		// string
+		else if (*str == '\"')
+			quoted = true;
+
+
 		while (depth && *(++str))
 			if (*str == '(')
 				depth++;
 			else if (*str == ')')
 				depth--;
-			else if (*str == '#')
-				while (*(str + 1) && *str != '\n')
+			else if (!quoted && *str == '#')
+				while (*(str + 1) && *(str + 1) != '\n')
 					str++;
+			else if (*str == '\"')
+				if (!(quoted && *(str - 1) == '\\'))
+					quoted = !quoted;
+
 		return !depth;
 
 	}
@@ -100,6 +115,7 @@ namespace list {
 
 	// separate different parts of the list into sections
 	std::vector<std::string> split(std::string& str) {
+
 		ssize_t pos = 0, past = 0;
 		uint16_t ldepth = 0; // up to 65k dimensions
 		uint16_t sdepth = 0; // up to 65k layers of nested structures
@@ -135,7 +151,7 @@ namespace list {
 					if (!quoted) commented = true;
 					break;
 				case '\n':
-					commented = false;
+					commented = quoted = false;
 					break;
 				case ',':
 					if ( !quoted && !commented && ldepth <= 0  && sdepth <= 0) {

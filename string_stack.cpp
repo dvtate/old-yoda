@@ -144,7 +144,7 @@ extern unsigned int line;
 
 namespace macro {
 
-	static bool endOfStk(char*& str, int16_t& depth){
+	static bool endOfStk(char*& str, int16_t& depth) {
 		// NULL string (safety first)
 		if (!str)
 			return false;
@@ -154,28 +154,39 @@ namespace macro {
 		// base indentation
 		if (depth == 0)
 			return true;
+		if (!*str)
+			return false;
 		if (depth == 1 && *str == '}')
 			return true;
+
 		if (*str == '{')
 			depth++;
-		if (*str == '}')
+		else if (*str == '}')
 			depth--;
 		else if (*str == '\"')
 			quoted = true;
 
-		// the line is commented out, or end of string
-		else if (*str == '#' || !*str)
-			return false;
+			// the line is commented out
+		else if (*str == '#')
+			while (*(str + 1) && *(str + 1) != '\n')
+				str++;
 
-		while (depth && *(++str) != '#' && *str) {
+
+		while (depth && *(++str))
 			if (!quoted && *str == '{')
 				depth++;
 			else if (!quoted && *str == '}')
 				depth--;
-			else if (*str == '\"')
+			else if (!quoted && *str == '#')
+				while (*(str + 1) && *(str + 1) != '\n') {
+					str++;
+				}
+			else if (*str == '\"') {
 				if (!(quoted && *(str - 1) == '\\'))
 					quoted = !quoted;
-		}
+			} else if (*str == '\n')
+				quoted = false;
+
 		return !depth;
 
 	}
@@ -183,14 +194,14 @@ namespace macro {
 
 	// note, str is modified and this is used in processLine()
 	StrStack* getMacro(char*& str, FILE* codeFeed, char*& codeLine){
-
 		codeLine = str;
 		int16_t depth = 1; // shouldn't be >65000 levels of indentation...
 		StrStack* ret = new StrStack();
 		bool isEnd = endOfStk(str, depth);
-		if (!isEnd)
+		if (!isEnd) {
 			ret->push(codeLine);
-		else {
+			//ret->push("\n");
+		} else {
 			*str = '\0';
 			str++;
 			ret->push(codeLine);
@@ -216,11 +227,13 @@ namespace macro {
 
 			isEnd = endOfStk(str, depth);
 
-			if (!isEnd)
+			if (!isEnd) {
 				ret->push(codeLine);
-			else {
+				//ret->push("\n");
+			} else {
 				*str = '\0';
 				ret->push(codeLine);
+				//ret->push("\n");
 				*str = ' ';
 				//free(codeLine);
 				return ret;

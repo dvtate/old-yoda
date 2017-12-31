@@ -1327,17 +1327,21 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			// initialize a list
 		} else if (*p == '(') {
 
-			// this de-tokenizes the list
+			// this recombines the current token with the rest of rpnln
 			char* newLine = NULL, * p_tmp = ++p;
+
 			while (*p_tmp)
 				p_tmp++;
-			if (lineLen - (p_tmp - pInit) > 2)
-				*p_tmp = ' ';
+
+			if (lineLen - (p_tmp - pInit) >= 2)
+				*p_tmp = '\n';
 
 			std::string listBody = list::getList(p, codeFeed, freeable);
-			//std::cout <<"listbody=\"" <<listBody <<"\"\n";
+
+			//std::cout <<"lbody=(" <<listBody <<")\n";
+
 			if (listBody == "(") {
-				printf("%s",rpnln);
+				printf("%s", rpnln);
 				PASS_ERROR("\aERROR: invalid list, possible missing `)`\n");
 			}
 
@@ -1346,7 +1350,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			/*
 			for (int i = 0; i < elems.size(); i++) {
 				std::cout <<'[' <<i <<"] : \"" <<elems[i] <<"\"\n";
-			}*/
+			}
+			*/
 
 			std::stack<CalcValue> tmpStack;
 			std::vector<CalcValue> tmp;
@@ -1403,11 +1408,13 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			while (*tmp) {
 				tmp++;
 			}
-			if (lineLen - (tmp - pInit) > 2) {
-				*tmp = ' ';
+
+			if (lineLen - (tmp - pInit) >= 2) {
+				*tmp = '\n';
 			}
 
 			char* heap_str;
+
 			StrStack* execArr = macro::getMacro(p, codeFeed, heap_str);
 			freeable.push_back((void*) heap_str);
 
@@ -1419,7 +1426,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: `{` could not getline(). Possible missing `}`\n");
 			}
 			rpnln = p;
-
 
 		// ummm hopefully the user actually fucked up and it's not my fault...
 		} else if (*p == '}') {
