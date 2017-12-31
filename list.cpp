@@ -27,15 +27,20 @@ namespace list {
 			depth++;
 
 		// the line is commented out, or end of string
-		if (*str == '#' || !*str)
+		if (*str == '#')
+			while (*(str + 1) && *str != '\n')
+				str++;
+		if (!*str)
 			return false;
-
-		while (depth && *(++str) != '#' && *str)
+		
+		while (depth && *(++str))
 			if (*str == '(')
 				depth++;
 			else if (*str == ')')
 				depth--;
-
+			else if (*str == '#')
+				while (*(str + 1) && *str != '\n')
+					str++;
 		return !depth;
 
 	}

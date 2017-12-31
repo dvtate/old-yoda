@@ -422,6 +422,42 @@ char* runMacro(StrStack* macro, std::stack<CalcValue>& mainStack, std::vector<Us
 
 }
 
+char* runMacroKeepScope(StrStack* macro, std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nodes, std::vector<void*>& freeable, bool showErrors, bool elseStatement) {
+	size_t buff_size = 500;
+	char* buff = (char*) malloc(buff_size);
+	macro->toString(&buff, &buff_size);
+
+	// put the string in a temp file
+	FILE* statement = fileutils::mktmpfile();
+	//FILE* statement = tmpfile();
+	if (!statement) {
+		if (showErrors) {
+			printf("\aERROR: tmpfile() returned null. This isn't your fault. :/\n");
+			return (char*) macro_error;
+		}
+	}
+	fputs(buff, statement);
+	rewind(statement);
+	freeable.push_back(buff);
+
+
+
+	// run the temp file
+	macro::ret_t ret = runFile(statement, var_nodes, showErrors, (mainStack), elseStatement);
+	if (ret == macro::ERROR) {
+		fclose(statement);
+		return (char*) macro_error;
+
+	} else if (ret == macro::RETURN || ret == macro::BREAK) {
+		fclose(statement);
+		return (char*) lambda_finish;
+	}
+
+
+	return NULL;
+
+}
+
 
 char* spawnMacro(StrStack macro, std::stack<CalcValue> mainStack, std::vector<UserVar> var_nodes, bool showErrors, bool elseStatement) {
 

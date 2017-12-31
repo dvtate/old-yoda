@@ -325,70 +325,62 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				mainStack.push(*val);
 
 
-			// modified assignment '*'= += *= /= -= %=
+			// modified assignment '*'= += -= *= /= %= <<= >>=
 		} else if ((strlen(p) == 2 && (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '%') && *(p + 1) == '=')
 				   || (strlen(p) == 3 && (*p == '<' || *p == '>') && *p == *(p + 1) && *(p + 2) == '=')) {
 			// not enough data
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: not enough data for modified assignment")
 			}
-			bool last_index = false;
-			if (mainStack.top().type == CalcValue::INX)
-				last_index = true;
-			CONVERT_TOP(mainStack, var_nodes, freeable);
 
-			CalcValue v2 = mainStack.top();
-			mainStack.pop();
-			CalcValue v1 = mainStack.top();
-			mainStack.pop();
+			// a literal would be stored in freeable for garbage collection, increasing freeable's size
+			size_t freeable_size = freeable.size();
+			CalcValue* v2 = get_top(mainStack, var_nodes, showErrors, freeable); // simplify top to one term
+			bool var2 = freeable.size() == freeable_size; // is 2nd term assignable?
+			freeable_size = freeable.size();
+
+			CalcValue* v1 = get_top(mainStack, var_nodes, showErrors, freeable);
+			bool var1 = freeable.size() == freeable_size;
+
+			if (!v1) {
+				PASS_ERROR("\aERROR: `=`: LHS invalid/missing (error in lazy evaluation)\n");
+			}
+			if (!v2) {
+				PASS_ERROR("\aERROR: `=`: RHS undefined/missing (error in lazy evaluation)\n");
+			}
+
+			// invalid types passed
+			if (*p != '+') {
+				if (v2->type != CalcValue::NUM) {
+					PASS_ERROR("\aERROR: `" <<p <<"` expected two numbers, " <<v2->typeName() <<" received");
+				}
+				if (v1->type != CalcValue::NUM) {
+					PASS_ERROR("\aERROR: `" <<p <<"` expected two numbers, " <<v1->typeName() <<" received");
+				}
+			} else {
+				if (v2->type != CalcValue::NUM && v2->type != CalcValue::STR) {
+					PASS_ERROR("\aERROR: `" <<p <<"` expected two numbers/strings, " <<v2->typeName() <<" received");
+				}
+				if (v1->type != CalcValue::NUM && v1->type != CalcValue::STR ) {
+					PASS_ERROR("\aERROR: `" <<p <<"` expected two numbers/strings, " <<v1->typeName() <<" received");
+				}
+			}
 
 			CalcValue* target;
 			CalcValue* val;
-
-			if (v1.type == CalcValue::INX) {
-				mainStack.push(v1);
-
-				std::vector<ssize_t> index;
-
-				GET_LIST_INDEX(mainStack, var_nodes, index);
-
-				CalcValue list = mainStack.top();
-				mainStack.pop();
-
-				if (list.type == CalcValue::REF) {
-					target = list.valAtRef(var_nodes)->getListElem(index);
-					if (!target) {
-						PASS_ERROR("\aERROR: $"<< list.string <<" undefined or inaccessable.\n");
-					}
-				} else {
-					PASS_ERROR("\aERROR: invalid use of list assignment\n");
-				}
-				val = v2.valAtRef(var_nodes);
-
-			} else if (v1.type == CalcValue::REF) {
-				target = v1.valAtRef(var_nodes);
-				val = v2.valAtRef(var_nodes);
-			} else if (v2.type == CalcValue::REF) {
-				target = v2.valAtRef(var_nodes);
-				val = v1.valAtRef(var_nodes);
-			} else if (last_index) {
-				PASS_ERROR("\aERROR: modified assignment expected the index on the left and the value on the right\n");
+			if (var1) {
+				target = v1;
+				val = v2;
+			} else if (var2) {
+				target = v2;
+				val = v1;
 			} else {
-				PASS_ERROR("\aERROR: modified assignment expected a reference\n");
+				PASS_ERROR("\aERROR: invalid use of assignment operator, first term not assignable.");
 			}
 
-			if (!target || !val) {
-				PASS_ERROR("\aERRORL broken reference to $" <<mainStack.top().string <<std::endl);
-			}
-			if (target->type != CalcValue::NUM && *p != '+') {
-				PASS_ERROR("\aERROR: Modified assignment expected a reference to a numerical value\n");
-			}
-			if (val->type != CalcValue::NUM && *p != '+') {
-				PASS_ERROR("\aERROR: Modified assignment expected a value to modify.")
-			}
 
 			switch (*p) {
-				case '+': // addition is an overloaded operator
+				case '+':// addition is an overloaded operator
 
 					// handling null values
 					if (target->isEmpty() != val->isEmpty()) // val + null
@@ -442,25 +434,31 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 						} else if (val->type == CalcValue::NUM)
 							target->number = target->number + val->number;
 					}
-					break;
+
 				case '-':
-					target->number = target->number - val->number;
+					target->number -= val->number;
 					break;
+
 				case '*':
-					target->number = target->number * val->number;
+					target->number *= val->number;
 					break;
+
 				case '/':
-					target->number = target->number / val->number;
+					target->number /= val->number;
 					break;
-				case '<':
-					target->number = (double) ((long) target->number << (long) val->number);
-					break;
-				case '>':
-					target->number = (double) ((long) target->number >> (long) val->number);
-					break;
+
 				case '%':
-					target->number = (double) ((long) target->number % (long) val->number);
+					target->number = (long) target->number % (long) val->number;
 					break;
+
+				case '<':
+					target->number -= (long) target->number << (long) val->number;
+					break;
+
+				case '>':
+					target->number -= (long) target->number >> (long) val->number;
+					break;
+
 			}
 
 			//trig functions
@@ -1329,19 +1327,18 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			// initialize a list
 		} else if (*p == '(') {
 
+			// this de-tokenizes the list
 			char* newLine = NULL, * p_tmp = ++p;
-
-			while (*p_tmp) {
+			while (*p_tmp)
 				p_tmp++;
-			}
-			if (lineLen - (p_tmp - pInit) > 2) {
+			if (lineLen - (p_tmp - pInit) > 2)
 				*p_tmp = ' ';
-			}
 
 			std::string listBody = list::getList(p, codeFeed, freeable);
 			//std::cout <<"listbody=\"" <<listBody <<"\"\n";
 			if (listBody == "(") {
-				PASS_ERROR("\aERROR: `(` invalid list, possible missing `)`\n");
+				printf("%s",rpnln);
+				PASS_ERROR("\aERROR: invalid list, possible missing `)`\n");
 			}
 
 			std::vector<std::string> elems = list::split(listBody);
@@ -1535,11 +1532,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			// making a lambda/anonymous function
 		} else if (strcmp(p, "lam") == 0 || strcmp(p, "lambda") == 0) {
 			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a body and a list of parameters\n");
+				PASS_ERROR("\aERROR: `" << p << "` expected a body and a list of parameters\n");
 			}
 			CONVERT_TOP(mainStack, var_nodes, freeable);
 			if (mainStack.top().type != CalcValue::ARR) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a body and a list of parameters\n");
+				PASS_ERROR("\aERROR: `" << p << "` expected a body and a list of parameters\n");
 			}
 			Lambda lam;
 
@@ -1551,9 +1548,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					lam.params.push_back(val.isNull() ? "" : val.string);
 				else if (val.isNull()) {
 					PASS_ERROR("\aERROR: null parameter\n");
-				}
-
-				else if (val.type == CalcValue::ARR) {
+				} else if (val.type == CalcValue::ARR) {
 					// va_args
 					if (val.list->size() == 1) {
 						if (val.list->at(0).type != CalcValue::REF) {
@@ -1573,7 +1568,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 						std::string space = " ";
 
 						size_t sze = 100;
-						char* s_tmp = (char*) malloc(sze);
+						char *s_tmp = (char *) malloc(sze);
 						val.list->at(1).block->toString(&s_tmp, &sze);
 						lam.params.push_back(space + val.list->at(0).string + space + s_tmp); // " a a 5 ="
 						free(s_tmp);
@@ -1590,15 +1585,15 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			int paramErr = lam.validParams();
 			if (paramErr >= 0) {
-				PASS_ERROR("\aERROR: lambda: parameter: invalid or misplaced parameter number " <<paramErr + 1\
-				           <<". special parameters must be at the end\n")
+				PASS_ERROR("\aERROR: lambda: parameter: invalid or misplaced parameter number " << paramErr + 1\
+ << ". special parameters must be at the end\n")
 			}
 
 			mainStack.pop();
 			CONVERT_TOP(mainStack, var_nodes, freeable);
 
 			if (mainStack.top().type != CalcValue::BLK) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a body and a list of parameters\n" <<std::endl);
+				PASS_ERROR("\aERROR: `" << p << "` expected a body and a list of parameters\n" << std::endl);
 			}
 
 			lam.src = *mainStack.top().block;
@@ -1607,8 +1602,39 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			mainStack.push(lam);
 
-			// eval operator
-		} else if ((*p == '@' && *(p + 1) == '\0') || strcmp(p, "eval") == 0) {
+
+			// run in same scope
+		} else if (strcmp(p, "eval") == 0) {
+
+			ASSERT_NOT_EMPTY(p);
+
+			CONVERT_TOP(mainStack, var_nodes, freeable);
+			CalcValue top = CalcValue(mainStack.top());
+			mainStack.pop();
+
+			bool elseStatement_cpy = elseStatement;
+			elseStatement = false;
+
+
+			if (top.type == CalcValue::BLK) {
+
+				char *tmp = runMacroKeepScope(top.block, mainStack, var_nodes, freeable, showErrors, elseStatement);
+				if (tmp)
+					return tmp;
+
+			} else if (top.type == CalcValue::STR) {
+				char *err = processLine(mainStack, var_nodes, showErrors, top.string, elseStatement, codeFeed,
+				                        freeable);
+				if (err) {
+					PASS_ERROR("\aERROR: in macro near `" << err << "`. Called here:\n");
+				}
+
+				// note: after adding va_args and missing handlers, lambda execution performance has decreased significantly
+			} else {
+				PASS_ERROR("\aERROR: ")
+			}
+			// run in new deeper scope operator
+		} else if (*p == '@' && *(p + 1) == '\0') {
 			ASSERT_NOT_EMPTY(p);
 
 			CONVERT_TOP(mainStack, var_nodes, freeable);
@@ -2478,76 +2504,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: invalid use of assignment operator, first term not assignable.");
 			}
 
-			/*
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: not enough data for assignment. (takes 2 arguments)\n" <<std::endl);
-			}
-
-			if (mainStack.top().type == CalcValue::INX) {
-				CONVERT_INDEX(mainStack, var_nodes);
-			}
-
-			CalcValue rhs = mainStack.top();
-			mainStack.pop();
-
-			CalcValue lhs = mainStack.top();
-			mainStack.pop();
-
-			if (lhs.type == CalcValue::REF ) {
-				UserVar *var = vars::findVar(var_nodes, lhs.string);
-
-				while (var && var->val.type == CalcValue::REF)
-					var = vars::findVar(var_nodes, var->val.string);
-
-				if (var == NULL) {
-					var = new UserVar(&var_nodes[var_nodes.size() - 1], lhs.string, rhs);
-					//var->val.type = rhs.type;
-					vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
-					//vars::assignVar(var_nodes, lhs.string, rhs);
-					// changing the variable's value
-				} else
-					var->setValue(rhs);
-
-			} else if (lhs.type == CalcValue::INX) {
-				mainStack.push(lhs);
-
-				std::vector<ssize_t> index;
-				GET_LIST_INDEX(mainStack, var_nodes, index);
-
-				CalcValue list = mainStack.top();
-				mainStack.pop();
-
-				if (list.type == CalcValue::REF) {
-					CalcValue* tmp = list.valAtRef(var_nodes);
-					if (!tmp) {
-						PASS_ERROR("\aERROR: $"<< list.string <<" undefined or inaccessable.\n");
-					}
-					tmp->assignElem(index, rhs);
-				} else {
-					PASS_ERROR("\aERROR: invalid use of list assignment");
-				}
-
-			} else if (rhs.type == CalcValue::REF) {
-				UserVar* var = vars::findVar(var_nodes, rhs.string);
-
-				while (var && var->val.type == CalcValue::REF)
-					var = vars::findVar(var_nodes, var->val.string);
-
-				if (var == NULL) {
-					var = new UserVar(&var_nodes[var_nodes.size() - 1], rhs.string, lhs);
-					//var->val.type = lhs.type;
-					vars::lastVar(&var_nodes[var_nodes.size() - 1])->next = var;
-					//vars::assignVar(var_nodes, rhs.string, lhs);
-
-					// changing the variable's value
-				} else
-					var->setValue(lhs);
-
-				// nothing that can hold data
-			} else {
-				PASS_ERROR("\aERROR: inappropriate use of assignment operator. (no assignable term given)\n" <<std::endl);
-			}
-			*/
 
 			// is the given variable/reference defined?
 		} else if (strcmp(p, "is_defined") == 0) {

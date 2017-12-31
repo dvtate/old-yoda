@@ -71,6 +71,7 @@ void runShell(std::vector<UserVar>& var_nodes, bool& errorReporting,
 
 
 char* runMacro(StrStack* macro, std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nodes, std::vector<void*>& freeable, bool showErrors, bool elseStatement);
+char* runMacroKeepScope(StrStack* macro, std::stack<CalcValue>& mainStack, std::vector<UserVar> var_nodes, std::vector<void*>& freeable, bool showErrors, bool elseStatement);
 
 
 // Returns the start of the token/string-constant
