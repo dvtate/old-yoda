@@ -1,0 +1,43 @@
+
+# a function defined for loop
+$for {
+	$init eval
+
+	# check condition before starting
+	{ return } $condition @ ! if
+
+	{
+		$body @
+		$increment @
+	} { $condition @ } while
+
+} ($body, $init, $condition, ($increment, {
+	$increment $condition ~ =
+	$condition $init ~ =
+	$init {} =
+})) lambda =
+
+
+
+
+"YodaScript defined for-loop:" println
+# example application
+({
+	$v print ", " print
+}, { $v 0 = }, { $v 10 < }, { $v ++ }) $for @
+
+# note, $v is a local variable here, so it goes out of scope
+
+
+
+"\nUsing external counter:" println
+
+# example where counter needs to be kept
+$i 0 =
+({
+	$i print "," print
+}, { $i 5 < }, { $i ++ }) $for @
+
+
+# demonstrate the variable hasn't gone out of scope
+"\n$i " $i + " =" + println 
