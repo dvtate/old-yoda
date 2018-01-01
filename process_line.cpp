@@ -52,6 +52,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 
 			CalcValue* v1 = conv_top(mainStack, var_nodes, showErrors, freeable);
+			if (!v1) {
+				PASS_ERROR("\aERROR: `" <<p <<"` expected 2 numbers. Not enough data provided.");
+			}
 			if (v1->type != CalcValue::NUM) {
 				PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
 			}
@@ -883,7 +886,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					list.push_back((double) start);
 				mainStack.push(list);
 			} else { // start == end
-				list.push_back(start);
+				//list.push_back(start);
 				mainStack.push(list);
 			}
 
@@ -1370,7 +1373,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				if (err) {
 					PASS_ERROR("\aERROR: in element near `" << err << "`. in list:\n");
 				}
-
 
 				// eval element
 				if (tmpStack.size() > 1) {
