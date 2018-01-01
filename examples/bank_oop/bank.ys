@@ -1,0 +1,207 @@
+$ExampleBankObject {
+
+	# list of references to current customers
+	:customers ()
+
+	# name of the bank
+	:name "Generic Bank"
+
+	# customer constructor
+	:new_customer {
+		# create customer object
+		$ret {
+			:balance $balance ~
+			:name $name ~
+			:id $self :customers ~
+
+
+			:deposit {
+				{ # prevent negative deposits
+					"ERROR: (Customer :deposit): you cannot deposit a debt" error
+				} $amount 0 < if
+
+				# add deposit to balance
+				$self :balance $amount +=
+
+			} ($self, $amount) lambda
+
+
+			:withdraw {
+				{ # overdraw
+					"ERROR: (Customer :withdraw): amount greater than balance" error
+				} $amount $self :balance > if
+		
+				# remove deposit from their blance
+				$self :balance $amount -=
+
+			} ($self, $amount) lambda
+
+
+
+
+			# transfer money from this customer to another
+			:transfer {
+				{
+					"ERROR: (Customer :transfer): ammount must be positive" error
+				} $amount 0 < if
+				{
+					"ERROR: (Customer :transfer): insufficient funds" error
+				} $amount $self :balance > if
+
+
+				{ 
+					"ERROR: (Customer :transfer): unrecognized $destination type" error
+				} elseif { # it's a reference to a customer object
+
+					$destination :balance $amount +=
+					$self :balance $amount -=
+
+				} $destination typeof "reference" == elseif { # its a customer's name
+
+					# get the index of the customer
+					$index 0 =					
+					{
+						$index ++
+						{ 
+							"ERROR: (Customer :transfer): destination not found" error
+						} $index $bank :customers list_size == if
+
+					} {
+						$bank :customers $index ] :name $destination !=
+					} while
+
+					$bank :customers $index ] :balance $amount +=
+					$self :balance $amount -=
+
+				} $destination typeof "string" == elseif { # it's a customer's id
+
+					# get the index of the customer
+					$index 0 =					
+					{
+						$index ++
+						{ 
+							"ERROR: (Customer :transfer): destination not found" error
+						} $index $bank :customers list_size == if
+
+					} {
+						$bank :customers $index ] :id $destination !=
+					} while
+
+					$bank :customers $index ] :balance $amount +=
+					$self :balance $amount -=
+					
+				} $destination typeof "number/boolean" == if
+
+			} ($self, $bank, $destination, $amount) lambda
+			
+		} object =
+
+		# add them to our customers list
+		$self :customers $ret global_ref push_back 
+
+		# return the most recent customer	
+		$self :customers $self :customers list_size 1 - ] return
+
+
+	} ($self, $name,
+	   ($balance, { $balance 0 = })
+	) lambda
+
+
+	# end a customer's account
+	:terminate_acct {
+
+		{
+			{ "ERROR: (Bank :terminate_acct): unrecognized $acct type" error }
+			
+			{ # given reference to acct
+				# get the index of the customer
+				$index 0 =					
+				{
+					$index ++
+					{ 
+						"ERROR: (Customer :transfer): destination not found" error
+					} $index $self :customers list_size == if
+
+				} {
+					$self :customers $index ] :id $acct :id !=
+					$self :customers $index ] :name $acct :name != || 
+				} while
+
+				# delete the global_ref holding their acct
+				$self :customers $index ] ~ refstr $ delete
+				# remove them from our customer's list
+				$self :customers $index ] delete 
+
+			} $acct typeof "reference" ==
+
+			{ # given acct holder's name
+
+				# get the index of the customer
+				$index 0 =					
+				{
+					$index ++
+					{ # customer not found
+						"ERROR: (Customer :transfer): destination not found" error
+					} $index $self :customers list_size == if
+
+				} { $self :customers $index ] :name $acct != } while
+
+				# delete the global_ref holding their acct
+				$self :customers $index ] ~ refstr $ delete
+				# remove them from our customer's list
+				$self :customers $index ] delete 
+
+			} $acct typeof "string" ==
+
+			{ # given acct holder's id
+
+				# get the index of the customer
+				$index 0 =					
+				{
+					$index ++
+					{ # customer not found
+						"ERROR: (Customer :transfer): destination not found" error
+					} $index $self :customers list_size == if
+
+				} { $self :customers $index ] :id $acct != } while
+
+				# delete the global_ref holding their acct
+				$self :customers $index ] ~ refstr $ delete
+				# remove them from our customer's list
+				$self :customers $index ] delete 
+				
+			} $acct typeof "number/boolean" ==
+		} cond
+		
+	} ($self, $acct) lambda
+
+	:list_customers {
+		{
+			$customer $self :customers $i ] ~ =
+			"[" print $i print "]: " print 
+			$customer :name println
+			"  id: " print 
+			$customer :id println
+			"  balance:" print
+			$customer :balance println
+		} 0 $self :customers list_size $i foreach
+	} ($self) lambda
+} object =
+
+
+
+# create a bank object
+$NewBank {
+	# copy our example bank object into $ret
+	$ret $ExampleBankObject  ~ =
+	
+	# apply name to the object
+	$ret :name $name str =
+
+	# return the new bank object
+	$ret ~ return
+
+} ($name) lam =
+
+
