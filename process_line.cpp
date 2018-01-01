@@ -369,6 +369,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				}
 			}
 
+			// where is value coming from and where is it being assigned?
 			CalcValue* target;
 			CalcValue* val;
 			if (var1) {
@@ -437,6 +438,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 						} else if (val->type == CalcValue::NUM)
 							target->number = target->number + val->number;
 					}
+					break;
 
 				case '-':
 					target->number -= val->number;
@@ -1627,6 +1629,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (top.type == CalcValue::BLK) {
 
 				char *tmp = runMacroKeepScope(top.block, mainStack, var_nodes, freeable, showErrors, elseStatement);
+
 				if (tmp)
 					return tmp;
 
@@ -1634,13 +1637,15 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				char *err = processLine(mainStack, var_nodes, showErrors, top.string, elseStatement, codeFeed,
 				                        freeable);
 				if (err) {
-					PASS_ERROR("\aERROR: in macro near `" << err << "`. Called here:\n");
+					PASS_ERROR("\aERROR: `"<<p <<"`: in string near `" << err << "`. Called here:\n");
 				}
 
 				// note: after adding va_args and missing handlers, lambda execution performance has decreased significantly
 			} else {
-				PASS_ERROR("\aERROR: ")
+				PASS_ERROR("\aERROR: eval expected a string or a macro, " <<top.typeName() <<"provided\n");
 			}
+
+			elseStatement = elseStatement_cpy;
 			// run in new deeper scope operator
 		} else if (*p == '@' && *(p + 1) == '\0') {
 			ASSERT_NOT_EMPTY(p);
