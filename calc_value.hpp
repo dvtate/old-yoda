@@ -318,8 +318,8 @@ public:
 	double getNum(){
 		if (type == NUM)
 			return number;
-		else if (type == STR)
-			return strlen(string);
+		else if (type == STR) // short-circuit logic prevents segfault
+			return string && strlen(string);
 		else
 			return 0;
 	}
