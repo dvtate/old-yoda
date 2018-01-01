@@ -1,0 +1,140 @@
+
+# include our bank library
+"bank.ys" insert
+
+# out list of banks currently in operation
+$banks () =
+
+
+# list banks with selectors and identifiers
+$list_banks {
+
+	{
+		# selector index
+		"[" print $i print "]: " print
+
+		# name of bank		
+		$banks $i ] :name print
+
+		# number of members
+		" (" print
+		$banks $i ] :customers list_size print
+		" members" print
+		")" println
+	} 0 $banks list_size range $i foreach
+
+} () lambda =
+
+$select_bank {
+	{ -1 return } $banks list_size 0 == if
+
+	# list banks with selectors
+	() $list_banks @
+
+	# make them pick one
+	"Enter bank number label (default=0, cancel=c): " print
+	$index input =
+
+	
+	{ # index too big
+
+		"invalid label " $index + println
+		"expected expected label between 0 and " $banks list_size 1 - + println
+		-1 return
+	} $index int $banks list_size >= if
+
+
+	{ # if first char of $index is 'c'
+		-1 return
+	} $index str "" split 0 ] "c" == if
+
+	# parse index as an integer
+	$index int ~ return
+
+} () lambda =
+
+
+
+
+
+
+$cmds_help "Commands List:\n"
+"> new bank - make a new bank\n" +
+"> new customer - make a new customer\n" +
+"> dbank - close a bank\n" +
+"> dcustomer - terminate a customer's account\n" +
+"> transfer - transfer money from one account to another\n" +
+"> deposit - deposit money to an account\n" +
+"> withdraw - withdraw money from an account\n" +
+"> list banks - list all current banks\n" + 
+"> list customers - list all current customers\n" +
+"> help - display this help message\n" + 
+"> quit - end the simulation\n" + =
+
+$cmds_help println
+
+{ # main loop
+	"> " print
+	$command input =	
+	{
+		{ # else, unrecognized command
+			"Command `" $command + "` not found." + println
+			$cmds_help println
+		} 
+
+		{ # string enclosed text == eval
+			$command eval eval
+
+		} $command "\"" strstr if
+
+		# display help
+		{ $cmds_help println } $command "help" == 
+
+		# exit program
+		{ exit } $command "quit" == 
+
+		{ # make a bank
+
+			"Enter a name for the new bank: " print
+			$bname input =
+			$banks ($bname) $NewBank @ push_back
+			"Bank \"" print $bname print "\" is now open for business." println
+		} $command "new bank" == 
+
+		{ # make a new customer
+	
+			
+			$i () $select_bank @ =
+
+			$i print "$i =" println
+
+			{ # they changed their mind
+				"operation canceled" println
+			} else {
+				"Enter a name for the customer: " print
+				$name input =
+				"Enter a starting balance: " print
+				$bal input num =
+				($banks $i ] ~ , $name, $bal) $banks $i ] :new_customer @
+				"Customer " print $name print " created" println
+
+			} $i 0 >= if
+			
+		} $command "new customer" == 
+
+
+		{ # list banks
+			() $list_banks @
+		} $command "list banks" == 
+
+		{ # list customers
+			$i () $select_bank @ =
+			{ # they changed their mind
+				"operation canceled" println
+			} else {
+				($banks $i ]) $banks $i ] :list_customers
+			} $i 0 >= $banks if
+		} $command "list customers" ==
+	} cond
+
+} { true } while
