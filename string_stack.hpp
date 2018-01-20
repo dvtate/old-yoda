@@ -127,10 +127,10 @@ public:
 
 	}
 
-	/// converts the block to a string
+	// converts the block to a string
 	void toString(char** dest, size_t* size);
 
-	/// prints the contents of a string stack
+	// prints the contents of a string stack
 	static inline void printStrStack(const StrStack& stack){
 		// start from top element (this one is empty)
 		char** buff = stack.buffer;
@@ -142,14 +142,15 @@ public:
 
 	}
 
-	/// concatenates 2 stacks together
+	// concatenates 2 stacks together
 	static inline void appendToStack(StrStack& out, const StrStack& in){
 		// bottom of stack1 -> top of stack1 -> bottom of stack2 -> top of stack2
 		char** head = in.stackHead;
-		out.push(*(head));
+		out.push(*head);
 		while (head++ < in.buffer)
 			out.push(*head);
 	}
+
 };
 
 

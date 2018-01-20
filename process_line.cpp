@@ -1633,14 +1633,16 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				if (tmp)
 					return tmp;
 
-			} else if (top.type == CalcValue::STR) {
-				char *err = processLine(mainStack, var_nodes, showErrors, top.string, elseStatement, codeFeed,
-				                        freeable);
-				if (err) {
-					PASS_ERROR("\aERROR: `"<<p <<"`: in string near `" << err << "`. Called here:\n");
-				}
+			} else if (top.type == CalcValue::STR && top.string) {
 
-				// note: after adding va_args and missing handlers, lambda execution performance has decreased significantly
+				StrStack macro;
+				macro.push(top.string);
+
+				char *tmp = runMacroKeepScope(top.block, mainStack, var_nodes, freeable, showErrors, elseStatement);
+
+				if (tmp)
+					return tmp;
+
 			} else {
 				PASS_ERROR("\aERROR: eval expected a string or a macro, " <<top.typeName() <<"provided\n");
 			}
@@ -1877,15 +1879,16 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 							if (top.lambda->countSpaces(i) == 2) {
 								// variable doesnt get defined here but handler gets run
 
-								char *tmp = (char *) malloc(strlen(top.lambda->params[i].c_str()));
+								char* tmp = (char*) malloc(strlen(top.lambda->params[i].c_str()));
 								strcpy(tmp, top.lambda->params[i].c_str() + 1);
 
 								unsigned int c = 0;
-								while (tmp[c] != ' ') c++;
+								while (tmp[c] != ' ')
+									c++;
 								tmp[c] = '\0';
 
-								char *tmp2 = tmp + c + 1;
-								char *err = processLine(mainStack, var_nodes, showErrors, tmp2, elseStatement, codeFeed,
+								char* tmp2 = tmp + c + 1;
+								char* err = processLine(mainStack, var_nodes, showErrors, tmp2, elseStatement, codeFeed,
 								                        freeable);
 								if (err) {
 									PASS_ERROR("\aERROR: in optional variable handler `" << err << "`. Called here:\n");
