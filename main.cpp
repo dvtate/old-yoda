@@ -103,7 +103,7 @@ int main(int argc, char** argv){
 		runFile(argv[1], showErrors);
 
 
-		// windows sucks :P
+		// trash OS
 #ifdef _WIN32
 		std::cin.ignore();
 #endif

@@ -63,11 +63,13 @@ extern macro::ret_t runFile(FILE* prog_file, std::vector<UserVar>& var_nodes, bo
 		std::cerr <<'(' <<__FILENAME__ <<'#'<<__LINE__ <<") " <<MSG;\
 	return p;
 
+
 // error's if the stack is empty
 #define ASSERT_NOT_EMPTY(OPERATOR)\
 	if (mainStack.empty()) {\
 		PASS_ERROR("\aERROR: not enough data for `" <<OPERATOR <<"`.\n")\
 	}
+
 
 // makes the top() value an actual Value as opposed to a reference
 #define CONVERT_REFS(MAINSTACK, VAR_NODES)\
@@ -187,4 +189,5 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
                   bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
                   std::vector<void*>& freeable
 );
+
 #endif

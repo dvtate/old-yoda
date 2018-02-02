@@ -1,7 +1,7 @@
 #include <thread>
 #include "process_line.hpp"
 #include "core.hpp"
-
+#include "user_defs.hpp"
 
 /// returns: location/source of error or NULL
 /// params: environment/operation variables
@@ -2681,6 +2681,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 			mainStack.top().type = CalcValue::REF;
 
+
 			// let's try and figure out what this could be...
 		} else {
 
@@ -2695,17 +2696,31 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (lineLen - (p - pInit) > 2)
 				*tmp = ' ';
 
-			// the user is still learning
+			// not a number
 			if (p == num_end) {
-				PASS_ERROR("\aSYNTAX ERROR: invalid token near `" <<p <<"`\nfirst token: `" <<pInit <<"`\nstklen: "
-							<<mainStack.size() <<"\nrpnln: \"" <<rpnln <<"\"\nscope: " <<var_nodes.size()
-							<<std::endl);
+
+
+				bool ret = false;
+				char* op_ret = udefs::callOperator(p, mainStack, var_nodes, showErrors, rpnln, elseStatement, codeFeed, freeable, ret);
+
+
+				// operator not defined
+				if (!ret) {
+
+					PASS_ERROR(
+							"\aSYNTAX ERROR: invalid token near `" << p << "`\nfirst token: `" << pInit << "`\nstklen: "
+							                                       << mainStack.size() << "\nrpnln: \"" << rpnln
+							                                       << "\"\nscope: " << var_nodes.size()
+							                                       << std::endl);
+				} else
+					goto next_token;
 			}
 
 			mainStack.push(number);
 			rpnln = num_end;
 		}
 
+next_token:
 		// get next token
 		p = qtok(rpnln, &rpnln);
 
