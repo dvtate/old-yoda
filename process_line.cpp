@@ -1332,6 +1332,9 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		// operator definitions
 		} else if (strcmp(p, "define") == 0) {
 
+			if (mainStack.size() < 2) {
+				PASS_ERROR("\aERROR: `define` expected a body macro and a label string\n");
+			}
 			CalcValue* label = conv_top(mainStack, var_nodes, showErrors, freeable);
 			if (!label) {
 				PASS_ERROR("\aERROR: in lazy evaluation\n");
@@ -1344,7 +1347,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			UserDef newOp;
 			newOp.setCond(label->string);
 
-			std::cout <<"label: " <<label->string <<std::endl;
 
 			CalcValue* body = conv_top(mainStack, var_nodes, showErrors, freeable);
 
@@ -1355,9 +1357,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: `define` expected a body macro and a label string\n");
 			}
 
-
-
-			//newOp.setCond(str);
 			newOp.setProc(*body->block);
 			udefs::userDefs.push_back(newOp);
 
@@ -2736,6 +2735,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				bool ret = false;
 				char* op_ret = udefs::callOperator(p, mainStack, var_nodes, showErrors, rpnln, elseStatement, codeFeed, freeable, ret);
 
+				if (op_ret) {
+					if (showErrors)
+						std::cerr <<"\aERROR: in from operator `" <<p <<"`\n";
+					return op_ret;
+				}
 
 				// operator not defined
 				if (!ret) {

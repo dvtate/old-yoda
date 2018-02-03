@@ -4,6 +4,8 @@
 
 #include <stack>
 #include <vector>
+#include <string.h>
+#include <stdlib.h>
 
 #include "calc_value.hpp"
 #include "core.hpp"
@@ -33,7 +35,10 @@ public:
 
 	}
 
-	~UserDef(){}
+	~UserDef(){
+		if (cond_type == LABEL)
+			free(label);
+	}
 
 
 	// what actually happens, the code run when operator is triggered
@@ -48,7 +53,10 @@ public:
 	enum { FXNPTR, MACRO } proc_type;
 
 
-	// two condition types
+
+
+
+	// 3 condition types
 	// what triggers the operator
 	union {
 		bool (*adv_cond)(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
@@ -56,12 +64,15 @@ public:
 		                       std::vector<void*>& freeable);
 		bool (*bas_cond)(char* p);
 
-		std::string label;
+		char* label;
 	};
 	// are they usng a basic or advanced condition?
 	enum { ADVANCED, BASIC, LABEL } cond_type;
 
 
+
+
+	// assign process
 	void setProc(char* (*_method)(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
                  bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
                  std::vector<void*>& freeable))
@@ -70,33 +81,45 @@ public:
 		proc_type = FXNPTR;
 	};
 
-	void setProc(const StrStack _macro) {
+	void setProc(const StrStack& _macro) {
 		macro = _macro;
 		proc_type = MACRO;
 	}
 
+
+
+	// assign condition
 	void setCond(bool (*condition)(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
 	                               bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
 	                               std::vector<void*>& freeable)
 	) {
+		// prevent mem leak
+		if (cond_type == LABEL)
+			free(label);
+
 		adv_cond = condition;
 		cond_type = ADVANCED;
 	}
-
 	void setCond(bool (*condition)(char* p)) {
+		// prevent mem leak
+		if (cond_type == LABEL)
+			free(label);
+
 		bas_cond = condition;
 		cond_type = BASIC;
 	}
-
-	void setCond(std::string _label) {
-		label.assign(_label);
-		cond_type = LABEL;
-	}
-
 	void setCond(const char* _label) {
-		label.assign(_label);
+		// prevent mem leak
+		if (cond_type == LABEL)
+			free(label);
+
+		label = (char*) malloc(strlen(_label) + 1);
+		strcpy(label, _label);
 		cond_type = LABEL;
 	}
+
+
+
 
 	// check the condition
 	bool cond(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
@@ -106,7 +129,7 @@ public:
 		if (cond_type == BASIC)
 			return bas_cond(p);
 		else if (cond_type == LABEL)
-			return label == p;
+			return strcmp(label, p) == 0;
 		else
 			return adv_cond(p, mainStack, var_nodes, showErrors, rpnln, elseStatement, codeFeed, freeable);
 	}
@@ -117,11 +140,20 @@ public:
 
 namespace udefs {
 
+	// list of defined operators
 	extern std::vector<UserDef> userDefs;
 
-	char *callOperator(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
+	// attempt call an operator
+	char* callOperator(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
 	                   bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
 	                   std::vector<void*>& freeable, bool& ret);
 
+	// find index of appropriate operator
+	int findOperator(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
+	                 bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
+	                 std::vector<void*>& freeable);
+
 };
+
+
 #endif //YODA_USER_DEFS_HPP

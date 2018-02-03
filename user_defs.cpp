@@ -9,13 +9,14 @@ namespace udefs {
 
 	// this will store the user-defined operators
 	std::vector<UserDef> userDefs;
-	std::vector<char*> labels;
+
+
 
 	// searches userDefs for correct operator
 	//  if one is found, call it
 	//  if one isn't, set bool& ret to true
 
-	char *callOperator(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
+	char* callOperator(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
 	                   bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
 	                   std::vector<void*>& freeable, bool& ret)
 	{
@@ -37,13 +38,17 @@ namespace udefs {
 			}
 		}
 
+		// we didn't find one...
+		ret = false;
+		return NULL;
 
 
 	}
 
+	// returns index of first element which whos cond() returns true.
 	int findOperator(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
 	                 bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
-	                 std::vector<void*>& freeable, bool& ret)
+	                 std::vector<void*>& freeable)
 	{
 		for (size_t i = 0; i < userDefs.size(); i++)
 			if (userDefs[i].cond(p, mainStack, var_nodes, showErrors, rpnln, elseStatement, codeFeed, freeable))
