@@ -26,6 +26,8 @@ public:
 
 		if (cond_type == BASIC)
 			bas_cond = in.bas_cond;
+		else if (cond_type == LABEL)
+			label = in.label;
 		else
 			adv_cond = in.adv_cond;
 
@@ -53,9 +55,11 @@ public:
 		                       bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
 		                       std::vector<void*>& freeable);
 		bool (*bas_cond)(char* p);
+
+		std::string label;
 	};
 	// are they usng a basic or advanced condition?
-	enum { ADVANCED, BASIC } cond_type;
+	enum { ADVANCED, BASIC, LABEL } cond_type;
 
 
 	void setProc(char* (*_method)(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
@@ -84,6 +88,16 @@ public:
 		cond_type = BASIC;
 	}
 
+	void setCond(std::string _label) {
+		label.assign(_label);
+		cond_type = LABEL;
+	}
+
+	void setCond(const char* _label) {
+		label.assign(_label);
+		cond_type = LABEL;
+	}
+
 	// check the condition
 	bool cond(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
 	          bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
@@ -91,20 +105,23 @@ public:
 	{
 		if (cond_type == BASIC)
 			return bas_cond(p);
+		else if (cond_type == LABEL)
+			return label == p;
 		else
 			return adv_cond(p, mainStack, var_nodes, showErrors, rpnln, elseStatement, codeFeed, freeable);
 	}
 
 };
 
-extern std::vector<UserDef> userDefs;
 
 
 namespace udefs {
 
-	char *callOperator(char *p, std::stack<CalcValue> &mainStack, std::vector<UserVar> &var_nodes,
-	                   bool &showErrors, char *&rpnln, bool &elseStatement, FILE *codeFeed,
-	                   std::vector<void *> &freeable, bool& ret);
+	extern std::vector<UserDef> userDefs;
+
+	char *callOperator(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
+	                   bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
+	                   std::vector<void*>& freeable, bool& ret);
 
 };
 #endif //YODA_USER_DEFS_HPP

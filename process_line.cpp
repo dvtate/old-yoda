@@ -1108,8 +1108,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			// we're now done with the file
 			fclose(statement);
 
-
-		} else if (strcmp(p, "def") == 0 || strcmp(p, "define") == 0) {
+		// globalize a variable
+		} else if (strcmp(p, "globalize") == 0) {
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: `" <<p <<"` expected a value and a handle\n");
 			}
@@ -1325,8 +1325,41 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			else if (val.type == CalcValue::STR)
 				mainStack.push(atoi(val.getStr()));
 			else {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a number\n");
+				PASS_ERROR("\aERROR: `" << p << "` expected a number\n");
 			}
+
+
+		// operator definitions
+		} else if (strcmp(p, "define") == 0) {
+
+			CalcValue* label = conv_top(mainStack, var_nodes, showErrors, freeable);
+			if (!label) {
+				PASS_ERROR("\aERROR: in lazy evaluation\n");
+			}
+			if (label->type != CalcValue::STR) {
+				PASS_ERROR("\aERROR: `define` expected a body macro and a label string\n");
+			}
+
+
+			UserDef newOp;
+			newOp.setCond(label->string);
+
+			std::cout <<"label: " <<label->string <<std::endl;
+
+			CalcValue* body = conv_top(mainStack, var_nodes, showErrors, freeable);
+
+			if (!body) {
+				PASS_ERROR("\aERROR: in lazy evaluation\n");
+			}
+			if (body->type != CalcValue::BLK) {
+				PASS_ERROR("\aERROR: `define` expected a body macro and a label string\n");
+			}
+
+
+
+			//newOp.setCond(str);
+			newOp.setProc(*body->block);
+			udefs::userDefs.push_back(newOp);
 
 
 			// initialize a list
