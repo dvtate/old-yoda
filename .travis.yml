@@ -6,7 +6,7 @@ compiler:
   
 # can't use standard Makefile because travis uses outdated
 # versions of gcc..
-script: g++ *.cpp -Wall -Wextra --std=c++0x
+script: g++ *.cpp -Wall -Wextra --std=c++0x -ldl
 
 notifications:
   email: false
