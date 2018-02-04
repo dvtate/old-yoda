@@ -28,11 +28,11 @@ public:
 
 		if (cond_type == BASIC)
 			bas_cond = in.bas_cond;
-		else if (cond_type == LABEL)
-			label = in.label;
-		else
+		else if (cond_type == LABEL) {
+			label = (char*) malloc(strlen(in.label) + 1);
+			strcpy(label, in.label);
+		} else
 			adv_cond = in.adv_cond;
-
 	}
 
 	~UserDef(){
@@ -70,6 +70,31 @@ public:
 	enum { ADVANCED, BASIC, LABEL } cond_type;
 
 
+
+	UserDef&operator=(const UserDef& in){
+
+		// no mem leaks here :)
+		if (cond_type == LABEL)
+			free(label);
+
+
+		proc_type = in.proc_type;
+		cond_type = in.cond_type;
+
+		if (proc_type == FXNPTR)
+			method = in.method;
+		else
+			macro = in.macro;
+
+		if (cond_type == BASIC)
+			bas_cond = in.bas_cond;
+		else if (cond_type == LABEL) {
+			label = (char*) malloc(strlen(in.label) + 1);
+			strcpy(label, in.label);
+		} else
+			adv_cond = in.adv_cond;
+
+	}
 
 
 	// assign process
@@ -113,12 +138,10 @@ public:
 		if (cond_type == LABEL)
 			free(label);
 
-		label = (char*) malloc(strlen(_label) + 1);
+		label = (char*) malloc(strlen(_label) + 2);
 		strcpy(label, _label);
 		cond_type = LABEL;
 	}
-
-
 
 
 	// check the condition
@@ -128,9 +151,9 @@ public:
 	{
 		if (cond_type == BASIC)
 			return bas_cond(p);
-		else if (cond_type == LABEL)
+		else if (cond_type == LABEL) {
 			return strcmp(label, p) == 0;
-		else
+		} else
 			return adv_cond(p, mainStack, var_nodes, showErrors, rpnln, elseStatement, codeFeed, freeable);
 	}
 

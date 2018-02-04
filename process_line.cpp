@@ -1346,8 +1346,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			UserDef newOp;
 			newOp.setCond(label->string);
-
-
 			CalcValue* body = conv_top(mainStack, var_nodes, showErrors, freeable);
 
 			if (!body) {
@@ -1360,8 +1358,10 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			newOp.setProc(*body->block);
 			udefs::userDefs.push_back(newOp);
 
+			free(body);
+			free(label);
 
-			// initialize a list
+		// initialize a list
 		} else if (*p == '(') {
 
 			// this recombines the current token with the rest of rpnln
@@ -2733,7 +2733,8 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 
 				bool ret = false;
-				char* op_ret = udefs::callOperator(p, mainStack, var_nodes, showErrors, rpnln, elseStatement, codeFeed, freeable, ret);
+				char* op_ret = udefs::callOperator(strutils::trimStr(p), mainStack, var_nodes, showErrors,
+				                                   rpnln, elseStatement, codeFeed, freeable, ret);
 
 				if (op_ret) {
 					if (showErrors)
