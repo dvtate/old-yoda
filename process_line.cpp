@@ -1,7 +1,10 @@
+#include <dlfcn.h>
 #include <thread>
+
 #include "process_line.hpp"
 #include "core.hpp"
 #include "user_defs.hpp"
+
 
 /// returns: location/source of error or NULL
 /// params: environment/operation variables
@@ -1335,18 +1338,18 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (mainStack.size() < 2) {
 				PASS_ERROR("\aERROR: `define` expected a body macro and a label string\n");
 			}
-			CalcValue* label = conv_top(mainStack, var_nodes, showErrors, freeable);
+			CalcValue *label = conv_top(mainStack, var_nodes, showErrors, freeable);
 			if (!label) {
 				PASS_ERROR("\aERROR: in lazy evaluation\n");
 			}
-			if (label->type != CalcValue::STR) {
+			if (label->type != CalcValue::STR || label->isEmpty() ) {
 				PASS_ERROR("\aERROR: `define` expected a body macro and a label string\n");
 			}
 
 
 			UserDef newOp;
 			newOp.setCond(label->string);
-			CalcValue* body = conv_top(mainStack, var_nodes, showErrors, freeable);
+			CalcValue *body = conv_top(mainStack, var_nodes, showErrors, freeable);
 
 			if (!body) {
 				PASS_ERROR("\aERROR: in lazy evaluation\n");
@@ -1361,6 +1364,34 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			free(body);
 			free(label);
 
+		// load a .so library
+		} else if (strcmp(p, "load_lib") == 0) {
+
+			ASSERT_NOT_EMPTY(p);
+			CalcValue* path = conv_top(mainStack, var_nodes, showErrors, freeable);
+
+			if (!path) {
+				PASS_ERROR("\aERROR: `load_lib` expected a path to the library\n");
+			}
+			if (path->type != CalcValue::STR || path->isEmpty() ) {
+				PASS_ERROR("\aERROR: `load_lib` expected a string for the path to the library\n");
+			}
+
+			void* dl = dlopen(path->string, RTLD_LAZY);
+			if (!dl) {
+				PASS_ERROR("\aERROR: `load_lib` couldn't find \"" <<path->string <<"\"\n");
+			}
+
+			std::vector<UserDef>* newOps = (std::vector<UserDef>*)dlsym(dl, "ops_export");
+			if (!newOps) {
+				PASS_ERROR("\aERROR: ops_export not found...\n");
+			}
+			for (UserDef def : *newOps) {
+				//def.cond_type = UserDef::LABEL;
+				//def.proc_type = UserDef::FXNPTR;
+
+				udefs::userDefs.push_back(def);
+			}
 		// initialize a list
 		} else if (*p == '(') {
 

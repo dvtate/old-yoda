@@ -81,11 +81,13 @@ public:
 		proc_type = in.proc_type;
 		cond_type = in.cond_type;
 
+		// copy
 		if (proc_type == FXNPTR)
 			method = in.method;
 		else
 			macro = in.macro;
 
+		// copy condition in
 		if (cond_type == BASIC)
 			bas_cond = in.bas_cond;
 		else if (cond_type == LABEL) {
@@ -94,6 +96,7 @@ public:
 		} else
 			adv_cond = in.adv_cond;
 
+		return *this;
 	}
 
 
