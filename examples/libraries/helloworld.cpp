@@ -1,4 +1,4 @@
-#include "user_defs.hpp"
+#include "/home/tate/CLionProjects/yoda/user_defs.hpp"
 
 
 char* method(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
@@ -9,19 +9,7 @@ char* method(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& va
 }
 
 
-UserDef makeSayHello() {
-
-	UserDef sayHello;
-
-	sayHello.setCond("hello");
-	sayHello.setProc(method);
-	sayHello.cond_type = UserDef::LABEL;	
-	sayHello.proc_type = UserDef::FXNPTR;
-	
-	return sayHello;
-}
-
-std::vector<UserDef> newOps = { makeSayHello() };
+std::vector<UserDef> newOps = { UserDef().setCond("hello").setProc(method) };
 
 
 extern "C" {
