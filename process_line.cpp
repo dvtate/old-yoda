@@ -6,7 +6,7 @@
 #include "user_defs.hpp"
 
 
-/// returns: location/source of error or NULL
+/// returns: location/source of error or nullptr
 /// params: environment/operation variables
 /// this function runs the user's code, most essential part of the interpreter
 /// go ahead and hate on the fact its over 200 lines long... but it works tho :)
@@ -26,11 +26,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 
 	// empty string/whitespace input
-	if (p == NULL)
+	if (p == nullptr)
 		return p;
 
 	// decipher token
-	while (p != NULL && *p != '\0') {
+	while (p != nullptr && *p != '\0') {
 
 		//printf("p=\"%s\"\n",p);
 
@@ -698,7 +698,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					char *pch = strtok(str, delims);
 					while (pch) {
 						list.push_back(pch);
-						pch = strtok(NULL, delims);
+						pch = strtok(nullptr, delims);
 					}
 					mainStack.push(list);
 				}
@@ -746,7 +746,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 					PASS_ERROR("\aERROR: `"<<p <<"` expected a string and a numerical index\n");
 				}
 
-				ssize_t i = mainStack.top().number;
+				ssize_t i = (ssize_t) mainStack.top().number;
 				mainStack.pop();
 
 				if ((size_t) abs(i) > strlen(tmp) || i == (ssize_t) strlen(tmp)) {
@@ -1026,7 +1026,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			}
 
 			char *file_contents;
-			size_t input_file_size;
+			ssize_t input_file_size;
 
 			// open the file
 			FILE *input_file = fopen(mainStack.top().string, "rb");
@@ -1206,7 +1206,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			if (mainStack.top().type != CalcValue::ARR) {
 				PASS_ERROR("\aERROR: `"<<p <<"`expected a list.\n\n");
 			}
-			auto tmp = mainStack.top().list->size();
+			size_t tmp = mainStack.top().list->size();
 			mainStack.pop();
 			mainStack.push((double) tmp);
 
@@ -1361,8 +1361,6 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 			newOp.setProc(*body->block);
 			udefs::userDefs.push_back(newOp);
 
-			free(body);
-			free(label);
 
 		// load a .so library
 		} else if (strcmp(p, "load_lib") == 0) {
@@ -1382,21 +1380,20 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: `load_lib` couldn't find \"" <<path->string <<"\"\n");
 			}
 
-			std::vector<UserDef>* newOps = (std::vector<UserDef>*)dlsym(dl, "ops_export");
+			std::vector<UserDef>* newOps = (std::vector<UserDef>*) dlsym(dl, "ops_export");
 			if (!newOps) {
 				PASS_ERROR("\aERROR: ops_export not found...\n");
 			}
-			for (UserDef def : *newOps) {
-				//def.cond_type = UserDef::LABEL;
-				//def.proc_type = UserDef::FXNPTR;
 
+			for (const UserDef& def : *newOps)
 				udefs::userDefs.push_back(def);
-			}
+
+
 		// initialize a list
 		} else if (*p == '(') {
 
 			// this recombines the current token with the rest of rpnln
-			char* newLine = NULL, * p_tmp = ++p;
+			char* newLine = nullptr, * p_tmp = ++p;
 
 			while (*p_tmp)
 				p_tmp++;
@@ -1441,11 +1438,11 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				// eval element
 				if (tmpStack.size() > 1) {
-					CalcValue *tmp = conv_top_keep_refs(mainStack, var_nodes, showErrors, freeable);
-					if (!tmp) {
+					CalcValue *top_tmp = conv_top_keep_refs(mainStack, var_nodes, showErrors, freeable);
+					if (!top_tmp) {
 						PASS_ERROR("\aERROR: error during lazy evaluation of list element\n");
 					}
-					tmpStack.push(*tmp);
+					tmpStack.push(*top_tmp);
 				}
 
 				// put element into the list
@@ -1784,7 +1781,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				}
 
 				// add layer to scope
-				var_nodes.push_back(UserVar(NULL, " ", 0.0));
+				var_nodes.push_back(UserVar(nullptr, " ", 0.0));
 
 				// this gonna get rly complicated
 				if (hasArgs) {
@@ -2308,12 +2305,12 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			// if it hasn't been assigned yet..
 			/*UserVar* var = vars::findVar(var_nodes, mainStack.top().string); // container variable
-			if (var == NULL) {
+			if (var == nullptr) {
 				var = new UserVar(first_node, mainStack.top().string, CalcValue());
 				vars::lastVar(first_node)->next = var;
 			}*/
 
-			UserVar iterator_scope(NULL, " ", CalcValue());
+			UserVar iterator_scope(nullptr, " ", CalcValue());
 			var_nodes.push_back(iterator_scope);
 			UserVar *var = vars::assignVar(var_nodes, mainStack.top().string, CalcValue());
 
@@ -2461,7 +2458,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				UserVar *var = var_nodes[i].next;
 
 				// for each variable in scope
-				while (var != NULL) {
+				while (var != nullptr) {
 					if (var->val.type == CalcValue::NUM)
 						std::cout << "[NUM] @ " << var << ": $" << var->name << ' '
 						          << var->val.getNum() << " =\n";
@@ -2769,7 +2766,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				if (op_ret) {
 					if (showErrors)
-						std::cerr <<"\aERROR: in from operator `" <<p <<"`\n";
+						std::cerr <<"\aERROR: in operator `" <<p <<"`\n";
 					return op_ret;
 				}
 
@@ -2796,6 +2793,6 @@ next_token:
 	}
 
 
-	return NULL;
+	return nullptr;
 
 }

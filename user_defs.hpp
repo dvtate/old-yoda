@@ -4,8 +4,8 @@
 
 #include <stack>
 #include <vector>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 
 #include "calc_value.hpp"
 #include "core.hpp"
@@ -145,7 +145,7 @@ public:
 		if (cond_type == LABEL)
 			free(label);
 
-		label = (char*) malloc(strlen(_label) + 2);
+		label = (char*) malloc(strlen(_label) + 1);
 		strcpy(label, _label);
 		cond_type = LABEL;
 

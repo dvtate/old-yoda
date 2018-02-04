@@ -157,7 +157,7 @@ CalcValue* conv_top_keep_refs(std::stack<CalcValue>& mainStack, std::vector<User
 		}
 	}
 
-	// const
+	// const/literal
 	ret = new CalcValue(mainStack.top()); // a waste of memory...
 	freeable.push_back(ret);
 	mainStack.pop();
