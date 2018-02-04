@@ -71,7 +71,7 @@ public:
 
 
 
-	UserDef&operator=(const UserDef& in){
+	UserDef& operator=(const UserDef& in){
 
 		// no mem leaks here :)
 		if (cond_type == LABEL)
@@ -101,23 +101,25 @@ public:
 
 
 	// assign process
-	void setProc(char* (*_method)(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
+	UserDef& setProc(char* (*_method)(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
                  bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
                  std::vector<void*>& freeable))
 	{
 		method = _method;
 		proc_type = FXNPTR;
+		return *this;
 	};
 
-	void setProc(const StrStack& _macro) {
+	UserDef& setProc(const StrStack& _macro) {
 		macro = _macro;
 		proc_type = MACRO;
+		return *this;
 	}
 
 
 
 	// assign condition
-	void setCond(bool (*condition)(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
+	UserDef& setCond(bool (*condition)(char* p, std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_nodes,
 	                               bool& showErrors, char*& rpnln, bool& elseStatement, FILE* codeFeed,
 	                               std::vector<void*>& freeable)
 	) {
@@ -127,16 +129,18 @@ public:
 
 		adv_cond = condition;
 		cond_type = ADVANCED;
+		return *this;
 	}
-	void setCond(bool (*condition)(char* p)) {
+	UserDef& setCond(bool (*condition)(char* p)) {
 		// prevent mem leak
 		if (cond_type == LABEL)
 			free(label);
 
 		bas_cond = condition;
 		cond_type = BASIC;
+		return *this;
 	}
-	void setCond(const char* _label) {
+	UserDef& setCond(const char* _label) {
 		// prevent mem leak
 		if (cond_type == LABEL)
 			free(label);
@@ -144,6 +148,8 @@ public:
 		label = (char*) malloc(strlen(_label) + 2);
 		strcpy(label, _label);
 		cond_type = LABEL;
+
+		return *this;
 	}
 
 
