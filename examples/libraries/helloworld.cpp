@@ -11,12 +11,15 @@ char* method(	char* p, 				// current token/operator
 		std::vector<void*>& freeable		// garbage collector (cleared at end of scope)
 ) {
 	std::cout <<"hi there\n";
+	return NULL; // no errors
 }
 
-// fill vector with operators to export
-std::vector<UserDef> newOps = { UserDef().setCond("hello").setProc(method) };
+// this vector stores all of our operators we want to export
+// this variable must be called "ops_export"
+std::vector<UserDef> ops_export = {
+	UserDef().setCond("hello").setProc(method) 
+};
 
-// export operators
-extern "C" {
-	void* ops_export = (void*) &newOps;
-}
+
+// note: more advanced conditions can also be used
+// note: you can also use `StrStack` (internal class for macros) instead of functions to run yodascript code
