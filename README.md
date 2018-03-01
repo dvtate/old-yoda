@@ -332,7 +332,13 @@ For an up to date features list click [here](https://plus.google.com/+Tatetesta/
 * Timing:
   - `<miliseconds number> sleep`: pauses interpretation for the given number of miliseconds (microsecond accuracy*)
   
-* Interpreter Commands
+* Libraries and Extending the Language:
+  - `<macro> <label string> define`: the interpreter will run the `macro` for each `label` token seen. (tokens don't have spaces)
+  - `<filename string> insert`: runs `filename` (path to yodascript file) in current scope
+  - `<library string> load_lib`: adds defs from `library` (path to .so/.dll language extension)
+  
+  
+* Interpreter Commands:
   - `q`, `exit`, `quit`: stops interpretation of the script
   - `help`: displays help message
   - `reset`: deletes all variables, stack, etc. (essentially restarts interpreter)
