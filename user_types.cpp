@@ -3,9 +3,25 @@
 #include "calc_value.hpp"
 
 
+CalcValue UserType::getKeys() {
+	std::vector<CalcValue> keys(members.size());
+	for (size_t i = 0; i < members.size(); i++)
+		keys[i] = CalcValue(members[i].c_str());
+	return CalcValue(keys);
+}
+
 CalcValue* UserType::getMember(const std::string query) {
 
 	//printf("ut.getmem(%s)\n", query.c_str());
+
+	// ghetto & inefficient
+	if (query == "keys" || query == "self") {
+		addMember("keys", getKeys());
+		auto loc = find(attrNames.begin(), attrNames.end(), query);
+		return &attributes[loc - attrNames.begin()];
+	}
+
+
 	for (unsigned i = 0; i < members.size(); i++)
 		if (members[i] == query)
 			return &values[i];
@@ -28,6 +44,11 @@ CalcValue* UserType::getMember(const std::string query) {
 UserType& UserType::addMember(std::string nMem, CalcValue nVal){
 	//printf("UT.am(%s)", nMem.c_str());
 
+	if (nMem == "self" || nMem == "keys") {
+		auto loc = find(attrNames.begin(), attrNames.end(), nMem);
+		attributes[loc - attrNames.begin()] = nVal;
+		return *this;
+	}
 	std::vector<std::string>::iterator loc = find(members.begin(), members.end(), nMem);
 
 	// not yet a member
@@ -78,5 +99,15 @@ bool UserType::operator==(const UserType& vs){
 	}
 	return true;
 
+
+}
+
+void UserType::addSelfRef(std::string ref) {
+
+	addMember("self", CalcValue().setRef(ref.c_str()));
+
+	for (CalcValue& val : values)
+		if (val.type == CalcValue::LAM)
+			val.lambda->src.edit(0, ("\n $self \"" + ref + "\" $ = " + val.lambda->src.at(0)).c_str());
 
 }

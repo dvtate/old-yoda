@@ -341,7 +341,7 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			// a literal would be stored in freeable for garbage collection, increasing freeable's size
 			size_t freeable_size = freeable.size();
-			CalcValue* v2 = get_top(mainStack, var_nodes, showErrors, freeable); // simplify top to one term
+			CalcValue* v2 = conv_top(mainStack, var_nodes, showErrors, freeable); // simplify top to one term
 			bool var2 = freeable.size() == freeable_size; // is 2nd term assignable?
 			freeable_size = freeable.size();
 
@@ -2004,13 +2004,13 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 				// put the statement in a string
 				size_t buff_size = 500;
-				char *buff = (char *) malloc(buff_size);
+				char* buff = (char*) malloc(buff_size);
 				top.lambda->src.toString(&buff, &buff_size);
 
 				// put the string in a temp file
 				FILE *statement = tmpfile();
 				if (!statement) {
-
+					PASS_ERROR("NULL tmpfile() ?!?!")
 				}
 
 				fputs(buff, statement);
@@ -2555,14 +2555,15 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		// assignment operator
 		} else if (*p == '=' && *(p + 1) == '\0') { // variable assignment
 
-
 			// a literal would be stored in freeable for garbage collection, increasing freeable's size
 			size_t freeable_size = freeable.size();
-			CalcValue* v2 = conv_top_keep_refs(mainStack, var_nodes, showErrors, freeable); // simplify top to one term
+			CalcValue *v2 = conv_top_keep_refs(mainStack, var_nodes, showErrors, freeable); // simplify top to one term
 			bool var2 = freeable.size() == freeable_size; // is 2nd term assignable?
 			freeable_size = freeable.size();
 
-			CalcValue* v1 = get_top(mainStack, var_nodes, showErrors, freeable);
+
+			std::stack<CalcValue> tmpStack = mainStack; // copy mainstack into a temp
+			CalcValue *v1 = get_top(mainStack, var_nodes, showErrors, freeable);
 			bool var1 = freeable.size() == freeable_size;
 
 			if (!v1) {
@@ -2572,14 +2573,43 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 				PASS_ERROR("\aERROR: `=`: RHS undefined/missing (error in lazy evaluation)\n");
 			}
 
-			if (var1)
-				v1->setValue(*v2);
-			else if (var2)
-				v2->setValue(*v1);
-			else {
+			if (var1) {
+				if (v2->type == CalcValue::OBJ) {
+
+					std::cout <<"applying self\n";
+					std::string name = mutilate::mutilateVarName("objself");
+
+					CalcValue tmp(*v2);
+					tmp.object->addSelfRef(name);
+					//std::cout <<"new line1: " <<tmp.object->values[0].lambda->src.at(0) <<'\n';
+					vars::assignNewVar(var_nodes, name.c_str(), tmp);
+					v1->setRef(name.c_str());
+
+
+				} else {
+					v1->setValue(*v2);
+				}
+			} else {
 				PASS_ERROR("\aERROR: invalid use of assignment operator, first term not assignable.");
 			}
 
+
+		} else if (strcmp(p, "reqprint") == 0) {
+			ASSERT_NOT_EMPTY(p);
+			if (mainStack.top().type != CalcValue::REQ) {
+				PASS_ERROR("reqprint expected a member-request type :/")
+			}
+			for (std::string part : *mainStack.top().request) {
+				std::cout << ": " << part << std::endl;
+			}
+
+		} else if (strcmp(p, "reftrace") == 0) {
+			CalcValue ref = mainStack.top();
+			while (ref.type == CalcValue::REF) {
+				std::cout <<'$' <<ref.string <<std::endl;
+				ref = vars::valueAtVar(var_nodes, ref.string);
+
+			}
 
 			// is the given variable/reference defined?
 		} else if (strcmp(p, "is_defined") == 0) {
@@ -2601,7 +2631,17 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 
 			// error reporting can get annoying on final programs
 			// toggle errors
-		} else if (strcmp(p, "__errors-off") == 0)
+		} else if (strcmp(p, "conv_keeprefs") == 0) {
+			CalcValue* cv = conv_top_keep_refs(mainStack, var_nodes, showErrors, freeable);
+			if (cv)
+				mainStack.push(*cv);
+			else
+				mainStack.push(NULL_CALCVAL_OBJECT);
+
+
+		}
+
+		else if (strcmp(p, "__errors-off") == 0)
 			showErrors = false;
 		else if (strcmp(p, "__errors-on") == 0)
 			showErrors = true;

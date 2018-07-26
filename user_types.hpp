@@ -16,18 +16,24 @@ public:
 	// ... if only I wasn't so lazy
 	std::vector<std::string> members; // I have given up on performance.. :(
 	std::vector<CalcValue>   values;
+	std::vector<const char*> attrNames = {
+			"keys", "self"
+	};
+	std::vector<CalcValue>  attributes{attrNames.size()};
 
 	UserType(){};
 
 	UserType(const UserType& in){
 		members = in.members;
 		values = in.values;
+		attrNames = in.attrNames;
+		attributes = in.attributes;
 	}
 
 
 	// attempts to add a member, if already there, then change value
 	UserType& addMember(std::string nMem, CalcValue nVal);
-	UserType& addMember(std::vector<std::string> loc, const CalcValue nVal);
+	UserType& addMember(std::vector<std::string> loc, CalcValue nVal);
 
 	bool hasMember(const std::string name) {
 		return find(members.begin(), members.end(), name) != members.end();
@@ -47,7 +53,10 @@ public:
 		return *this;
 	}
 
+	CalcValue getKeys();
+	CalcValue getSelf();
 
+	void addSelfRef(std::string);
 
 };
 

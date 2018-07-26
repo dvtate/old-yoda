@@ -10,8 +10,6 @@
 ///       there were a variety of names for this type before I decided on calling them macros
 
 
-class CalcValue;
-class UserVar;
 
 
 class StrStack {
@@ -78,16 +76,34 @@ public:
 	}
 
 	// 0 = bottom of stack
-	char* at(const ssize_t index) {
+	char*& at(const ssize_t index) {
 		if ((size_t)abs(index) >= stackDepth)
 			throw "StrStack[] index out of bounds";
 
 		return index >= 0 ? *(stackHead + index) : *(buffer + index - 1);
 	}
-	char* operator[](const ssize_t index) {
+
+	char*& operator[](const ssize_t index) {
 		return at(index);
 	}
 
+	void setAt(const ssize_t index, char* c) {
+        if ((size_t)abs(index) >= stackDepth)
+            throw "StrStack[] index out of bounds";
+
+        (index >= 0 ? *(stackHead + index) : *(buffer + index - 1)) = c;
+	}
+
+	void edit(const ssize_t index, const char* value) {
+
+		char*& ref = at(index);
+		ref = (char*) realloc(ref, strlen(value) + 1);
+		strcpy(ref, value);
+
+		setAt(index, ref);
+
+		//std::cout <<"ref='" <<ref <<"'\nline='" <<at(index) <<"'\n";
+	}
 	// deletes all strings
 	void clear();
 
