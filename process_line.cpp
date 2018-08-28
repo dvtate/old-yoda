@@ -473,94 +473,78 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 		} else if (strcmp(p, "sin") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(sin(mainStack.top().getNum()));
-			mainStack.pop();
+            mainStack.top().setValue(sin(mainStack.top().getNum()));
 		} else if (strcmp(p, "cos") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(cos(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(cos(mainStack.top().getNum()));
 		} else if (strcmp(p, "tan") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(tan(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(tan(mainStack.top().getNum()));
+
 			// inverse trig functions
 		} else if (strcmp(p, "asin") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(asin(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(asin(mainStack.top().getNum()));
 		} else if (strcmp(p, "acos") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(acos(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(acos(mainStack.top().getNum()));
 		} else if (strcmp(p, "atan") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(atan(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(atan(mainStack.top().getNum()));
 
 			// hyperbolic trig functions
 		} else if (strcmp(p, "sinh") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(sinh(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(sinh(mainStack.top().getNum()));
 		} else if (strcmp(p, "cosh") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(cosh(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(cosh(mainStack.top().getNum()));
 		} else if (strcmp(p, "tanh") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_INDEX(mainStack, var_nodes);
 			CONVERT_REFS(mainStack, var_nodes);
-			mainStack.push(tanh(mainStack.top().getNum()));
-			mainStack.pop();
-
+			mainStack.top().setValue(tanh(mainStack.top().getNum()));
 
 			// inverse hyperbolic trig functions
 		} else if (strcmp(p, "asinh") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(asinh(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(asinh(mainStack.top().getNum()));
 		} else if (strcmp(p, "acosh") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(acosh(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(acosh(mainStack.top().getNum()));
 		} else if (strcmp(p, "atanh") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(atanh(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(atanh(mainStack.top().getNum()));
 
 			// more unary math functions
 		} else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0) {
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(log10(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(log10(mainStack.top().getNum()));
 		} else if (strcmp(p, "ln") == 0) { // natural log
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(log(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(log(mainStack.top().getNum()));
 
 		} else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0) { // square root
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(sqrt(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(sqrt(mainStack.top().getNum()));
 
 		} else if (strcmp(p, "abs") == 0) { // absolute value
 			ASSERT_NOT_EMPTY(p);
 			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.push(fabs(mainStack.top().getNum()));
-			mainStack.pop();
+			mainStack.top().setValue(fabs(mainStack.top().getNum()));
 
 			// find length of a string
 		} else if (strcmp(p, "strlen") == 0) {
