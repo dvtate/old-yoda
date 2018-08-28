@@ -149,7 +149,7 @@ For an up to date features list click [here](https://plus.google.com/+Tatetesta/
   hello
   ```
  - <b>Lambdas:</b>
-  Lambdas are equivalent to functions in javascript.
+  Lambdas are equivalent to arrow-functions in javascript.
   ```tcl
   >>> $fxn { $a print } ($a) lambda =
   >>> ("hello") $fxn @ # calling the lambda
