@@ -10,7 +10,7 @@
 namespace vars {
 
 	// return the last variable on the list
-	UserVar *lastVar(UserVar *first) {
+	UserVar* lastVar(UserVar* first) {
 		while (first->next != NULL)
 			first = first->next;
 
@@ -100,7 +100,7 @@ make_new_var:
 
 
 	// returns pointer to given variable
-	UserVar *findVar(UserVar *first, const char *name) {
+	UserVar* findVar(UserVar* first, const char* name) {
 
 		if (!name || !first)
 			return NULL;
@@ -115,11 +115,11 @@ make_new_var:
 				first = first->next;
 
 
-		return (UserVar *) NULL;
+		return (UserVar*) NULL;
 	}
 
-	UserVar *findVar(std::vector<UserVar> &vars, const char *name) {
-		UserVar *ret = NULL;
+	UserVar* findVar(std::vector<UserVar>& vars, const char* name) {
+		UserVar* ret = NULL;
 		for (int i = vars.size() - 1; i >= 0 && !ret; i--)
 			ret = findVar(&vars[i], name);
 
@@ -128,7 +128,7 @@ make_new_var:
 
 
 	// returns whether variable is in list or not
-	bool varExists(UserVar *first, const char *name) {
+	bool varExists(UserVar* first, const char* name) {
 
 		first = first->next;
 
@@ -141,7 +141,7 @@ make_new_var:
 		return false;
 	}
 
-	bool varExists(std::vector<UserVar> &vars, const char *name) {
+	bool varExists(std::vector<UserVar>& vars, const char* name) {
 		bool ret = false;
 		for (ssize_t i = vars.size() - 1; i >= 0 && !ret; i--)
 			ret = varExists(&vars[i], name);
@@ -152,11 +152,11 @@ make_new_var:
 
 
 	// de-references the variable's
-	CalcValue *valueAtVar(UserVar *first, const char name[USERVAR_NAME_MAXLENGTH]) {
-		UserVar *var = findVar(first, name);
+	CalcValue* valueAtVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]) {
+		UserVar* var = findVar(first, name);
 
 		if (var) {
-			CalcValue *val = &var->val;
+			const CalcValue* val = &var->val;
 			if (val->type == CalcValue::REF)
 				return valueAtVar(first, val->string);
 			else
@@ -166,11 +166,11 @@ make_new_var:
 
 	}
 
-	CalcValue *valueAtVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]) {
-		UserVar *var = findVar(vars, name);
+	CalcValue* valueAtVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]) {
+		UserVar* var = findVar(vars, name);
 
 		if (var) {
-			CalcValue *val = &var->val;
+			const CalcValue* val = &var->val;
 			if (val->type == CalcValue::REF)
 				return valueAtVar(vars, val->string);
 			else
@@ -181,11 +181,11 @@ make_new_var:
 	}
 
 	// finds the last var in a reference chain
-	UserVar *lastVarInRefChain(UserVar *first, const char name[USERVAR_NAME_MAXLENGTH]) {
-		UserVar *var = findVar(first, name);
+	UserVar* lastVarInRefChain(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]) {
+		UserVar* var = findVar(first, name);
 
 		if (var) {
-			CalcValue *val = &var->val;
+			CalcValue* val = &var->val;
 			if (val->type == CalcValue::REF)
 				return lastVarInRefChain(first, val->string);
 			else
@@ -195,11 +195,11 @@ make_new_var:
 
 	}
 
-	UserVar *lastVarInRefChain(std::vector<UserVar> &vars, const char name[USERVAR_NAME_MAXLENGTH]) {
-		UserVar *var = findVar(vars, name);
+	UserVar* lastVarInRefChain(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]) {
+		UserVar* var = findVar(vars, name);
 
 		if (var) {
-			CalcValue *val = &var->val;
+			CalcValue* val = &var->val;
 			if (val->type == CalcValue::REF)
 				return lastVarInRefChain(vars, val->string);
 			else
