@@ -25,7 +25,7 @@ namespace vars {
 		var1 = first->next;
 
 		// leap-frog and delete
-		while (var1 != NULL) {
+		while (var1) {
 			var2 = var1->next;
 
 			delete var1;
@@ -51,7 +51,7 @@ namespace vars {
 
 		// making a new variable
 		if (var == NULL) {
-make_new_var:
+			make_new_var:
 			var = new UserVar(first, name, value);
 			lastVar(first)->next = var;
 
@@ -115,15 +115,18 @@ make_new_var:
 				first = first->next;
 
 
-		return (UserVar*) NULL;
+		return NULL;
 	}
 
 	UserVar* findVar(std::vector<UserVar>& vars, const char* name) {
-		UserVar* ret = NULL;
-		for (int i = vars.size() - 1; i >= 0 && !ret; i--)
-			ret = findVar(&vars[i], name);
+		for (int i = vars.size() - 1; i >= 0; i--) {
+			UserVar *ret = findVar(&vars[i], name);
+			if (ret)
+				return ret;
+		}
 
-		return ret;
+		return NULL;
+
 	}
 
 
@@ -132,7 +135,7 @@ make_new_var:
 
 		first = first->next;
 
-		while (first != NULL)
+		while (first)
 			if (strcmp(first->name, name) == 0)
 				return true;
 			else
@@ -142,11 +145,10 @@ make_new_var:
 	}
 
 	bool varExists(std::vector<UserVar>& vars, const char* name) {
-		bool ret = false;
-		for (ssize_t i = vars.size() - 1; i >= 0 && !ret; i--)
-			ret = varExists(&vars[i], name);
-
-		return ret;
+		for (ssize_t i = vars.size() - 1; i >= 0; i--)
+			if (varExists(&vars[i], name))
+				return true;
+		return false;
 
 	}
 
@@ -155,58 +157,42 @@ make_new_var:
 	CalcValue* valueAtVar(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]) {
 		UserVar* var = findVar(first, name);
 
-		if (var) {
-			const CalcValue* val = &var->val;
-			if (val->type == CalcValue::REF)
-				return valueAtVar(first, val->string);
-			else
-				return val;
-		} else
-			return NULL;
-
+		return var ?
+			var->val.type == CalcValue::REF ?
+				valueAtVar(first, var->val.string)
+				: &var->val
+			: NULL;
 	}
 
 	CalcValue* valueAtVar(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]) {
 		UserVar* var = findVar(vars, name);
 
-		if (var) {
-			const CalcValue* val = &var->val;
-			if (val->type == CalcValue::REF)
-				return valueAtVar(vars, val->string);
-			else
-				return val;
-		} else
-			return NULL;
-
+		return var ?
+			var->val.type == CalcValue::REF ?
+				valueAtVar(vars, var->val.string)
+				: &var->val
+			: NULL;
 	}
 
 	// finds the last var in a reference chain
 	UserVar* lastVarInRefChain(UserVar* first, const char name[USERVAR_NAME_MAXLENGTH]) {
 		UserVar* var = findVar(first, name);
 
-		if (var) {
-			CalcValue* val = &var->val;
-			if (val->type == CalcValue::REF)
-				return lastVarInRefChain(first, val->string);
-			else
-				return var;
-		} else
-			return NULL;
-
+		return var ? // var defined ?
+			var->val.type == CalcValue::REF ? // is it a ref ?
+				lastVarInRefChain(first, var->val.string)
+				: var
+			: NULL;
 	}
 
 	UserVar* lastVarInRefChain(std::vector<UserVar>& vars, const char name[USERVAR_NAME_MAXLENGTH]) {
 		UserVar* var = findVar(vars, name);
 
-		if (var) {
-			CalcValue* val = &var->val;
-			if (val->type == CalcValue::REF)
-				return lastVarInRefChain(vars, val->string);
-			else
-				return var;
-		} else
-			return NULL;
-
+		return var ?
+			var->val.type == CalcValue::REF ?
+				lastVarInRefChain(vars, var->val.string) // recursion to find ref-dest
+				: var // var found and isn't a ref
+			: NULL; // not defined
 	}
 
 
