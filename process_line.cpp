@@ -32,1201 +32,1268 @@ char* processLine(std::stack<CalcValue>& mainStack, std::vector<UserVar>& var_no
 	// decipher token
 	while (p != nullptr && *p != '\0') {
 
-		//printf("p=\"%s\"\n",p);
-
-		// char is a binary operator
-		if (((*p == '-' || *p == '*' || *p == '/' || *p == '%'
-		      || *p == '|' || *p == '&' || *p == '^' || *p == '>' || *p == '<')
-		     && *(p + 1) == '\0')
-		    || !strcmp(p, "<<") || !strcmp(p, ">>") || !strcmp(p, "**")
-		    || !strcmp(p, "<=") || !strcmp(p, ">=") || !strcmp(p, "logbase")
-		    || !strcmp(p, "pow") // for those who dont like "**"
-				) {
-
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: Not enough data to satisfy operator `" <<p <<"`.\n");
-			}
-
-			CalcValue* v2 = conv_top(mainStack, var_nodes, showErrors, freeable);
-			if (v2->type != CalcValue::NUM) {
-				PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
-			}
-			double b = v2->number;
-
-
-			CalcValue* v1 = conv_top(mainStack, var_nodes, showErrors, freeable);
-			if (!v1) {
-				PASS_ERROR("\aERROR: `" <<p <<"` expected 2 numbers. Not enough data provided.");
-			}
-			if (v1->type != CalcValue::NUM) {
-				PASS_ERROR("\aERROR: incompatible data-types for operator `" <<p <<"`. (expected two numbers)\n");
-			}
-
-			double a = v1->number;
-
-
-			switch (*p) {
-				case '*':
-					if (*(p + 1) == '*')
-						mainStack.push(pow(a, b));
-					else
-						mainStack.push(a * b);
-					break;
-
-				case '/': mainStack.push(a / b); break;
-				case '-': mainStack.push(a - b); break;
-				case '%': mainStack.push((long) a % (long) b); break;
-				case '^': mainStack.push((long) a ^ (long) b); break;
-				case '|': mainStack.push((long) a | (long) b); break;
-				case '&': mainStack.push((long) a & (long) b); break;
-
-				case '<':
-					switch (*(p + 1)) {
-						case '<': mainStack.push((int) a << (int) b); break;
-						case '=': mainStack.push(a <= b); break;
-						case '\0': mainStack.push(a < b); break;
-					}
-					break;
-
-				case '>':
-					switch (*(p + 1)) {
-						case '>': mainStack.push((int) a >> (int) b); break;
-						case '=': mainStack.push(a >= b); break;
-						case '\0': mainStack.push(a > b); break;
-					}
-					break;
-
-				case 'l': mainStack.push(log10(b) / log10(a)); break;
-				case 'p': mainStack.push(pow(a, b)); break;
-			}
-
-		} else if (*p == '+' && *(p + 1) == '\0') {
-
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: Not enough data to satisfy `+` operator." << std::endl);
-			}
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			CalcValue b = mainStack.top();
-			mainStack.pop();
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			CalcValue a = mainStack.top();
-			mainStack.pop();
-
-			// handling null values
-			if (a.isEmpty() != b.isEmpty()) // val + null
-				mainStack.push(b.isEmpty() ? a : b);
-
-			else if (a.isEmpty() && b.isEmpty()) // null + null
-				mainStack.push(a);
-
-				// 1 + 1
-			else if (a.type == CalcValue::NUM && b.type == CalcValue::NUM)
-				mainStack.push(a.getNum() + b.getNum());
-
-				// "x" + y = "xy"
-			else if (a.type == CalcValue::STR || b.type == CalcValue::STR) {
-				// string .toString enclosed in quotes which is undesireable
-				const std::string combined =
-						(a.type == CalcValue::STR ? a.string : a.toString(var_nodes)) +
-						(b.type == CalcValue::STR ? b.string : b.toString(var_nodes));
-				mainStack.push(combined.c_str());
-			} else {
-				PASS_ERROR("\aERROR: incompatable types for operator +.\n");
-			}
-
-		} else if (strcmp(p, "conv") == 0) {
-			CalcValue* cv = conv_top(mainStack, var_nodes, showErrors, freeable);
-			if (!cv) {
-				PASS_ERROR("\aERROR: during lazy evaluation\n");
-			}
-			mainStack.push(*cv);
-
-		} else if (strcmp(p, "==") == 0) {
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `" <<p <<"` expected 2 values to compare\n");
-			}
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			CalcValue a = mainStack.top();
-			mainStack.pop();
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(CalcValue(mainStack.top() == a));
-
-			// not equal to
-		} else if (strcmp(p, "!=") == 0) {
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `" <<p <<"` expected 2 values to compare\n");
-			}
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			CalcValue a = mainStack.top();
-			mainStack.pop();
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top() = !(mainStack.top() == a);
-
-			// logical not operator
-		} else if (*p == '!' && *(p + 1) == '\0') {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-
-			mainStack.top().setValue(mainStack.top().getNum() == 0.0);
-
-			// short-circuit &&
-		} else if (strcmp(p, "&&") == 0) {
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit and) expected 2 boolean expressions/macros\n");
-			}
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			CalcValue v2 = mainStack.top();
-			mainStack.pop();
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			CalcValue v1 = mainStack.top();
-			mainStack.pop();
-
-			if (v1.type == CalcValue::NUM) {
-				if (v1.number == 0)
-					mainStack.push(0.0);
-				else {
-					if (v2.type == CalcValue::NUM) {
-						if (v2.number == 0)
-							mainStack.push(0.0);
-						else
-							mainStack.push(1.0);
-					} else if (v2.type == CalcValue::BLK) {
-						std::stack<CalcValue> condStack;
-
-						RUN_STR_STK(*v2.block, condStack);
-						// if condition evaluates to false (or doesnt give a value)
-						if (condStack.empty() || !condStack.top().getNum())
-							mainStack.push(0.0);
-						else
-							mainStack.push(1.0);
-					} else {
-						PASS_ERROR("\aERROR: `" <<p <<"` (and) expected a boolean expression (or macro for shortcircuit)\n");
-					}
-				}
-
-			} else if (v1.type == CalcValue::BLK) {
-				std::stack<CalcValue> condStack;
-
-				RUN_STR_STK(*v1.block, condStack);
-				// if condition evaluates to false (or doesnt give a value)
-				if (condStack.empty() || !condStack.top().getNum())
-					mainStack.push(0.0);
-				else {
-					if (v2.type == CalcValue::NUM) {
-						if (v2.number == 0)
-							mainStack.push(0.0);
-						else
-							mainStack.push(1.0);
-
-					} else if (v2.type == CalcValue::BLK) {
-						std::stack<CalcValue> condStack;
-
-						RUN_STR_STK(*v2.block, condStack);
-						// if condition evaluates to false (or doesnt give a value)
-						if (condStack.empty() || !condStack.top().getNum())
-							mainStack.push(0.0);
-						else
-							mainStack.push(1.0);
-					} else {
-						PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit and) expected a boolean expression/macro\n");
-					}
-				}
-
-			} else {
-				PASS_ERROR("\aERROR: `" <<p <<"` (short-circuit or) expected a boolean expression/macro\n");
-			}
-
-			// short-circuit ||
-		} else if (strcmp(p, "||") == 0) {
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `" << p << "` (short-circuit or) expected 2 boolean expressions/macros\n");
-			}
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			CalcValue v2 = mainStack.top();
-			mainStack.pop();
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			CalcValue v1 = mainStack.top();
-			mainStack.pop();
-
-			if (v1.type == CalcValue::NUM) {
-				if (v1.number != 0)
-					mainStack.push(1.0);
-				else {
-					if (v2.type == CalcValue::NUM) {
-						if (v2.number == 0)
-							mainStack.push(0.0);
-						else
-							mainStack.push(1.0);
-					} else if (v2.type == CalcValue::BLK) {
-						std::stack<CalcValue> condStack;
-
-						RUN_STR_STK(*v2.block, condStack);
-						// if condition evaluates to false (or doesnt give a value)
-						if (condStack.empty() || !condStack.top().getNum())
-							mainStack.push(0.0);
-						else
-							mainStack.push(1.0);
-					} else {
-						PASS_ERROR("\aERROR: `" << p << "` (short-circuit or) expected a boolean expression/macro\n");
-					}
-				}
-
-			} else if (v1.type == CalcValue::BLK) {
-
-				std::stack<CalcValue> condStack;
-
-				RUN_STR_STK(*v1.block, condStack);
-				// if condition evaluates to false (or doesnt give a value)
-				if (!condStack.empty() && condStack.top().getNum())
-					mainStack.push(1.0);
-				else {
-					if (v2.type == CalcValue::NUM) {
-						if (v2.number == 0)
-							mainStack.push(0.0);
-						else
-							mainStack.push(1.0);
-					} else if (v2.type == CalcValue::BLK) {
-						std::stack<CalcValue> condStack;
-
-						RUN_STR_STK(*v2.block, condStack);
-						// if condition evaluates to false (or doesnt give a value)
-						if (condStack.empty() || !condStack.top().getNum())
-							mainStack.push(0.0);
-						else
-							mainStack.push(1.0);
-					} else {
-						PASS_ERROR("\aERROR: `" << p << "` (short-circuit and) expected a boolean expression/macro\n");
-					}
-				}
-
-
-			} else {
-				PASS_ERROR("\aERROR: `" << p << "` (short-circuit and) expected a boolean expression/macro\n");
-			}
-
-			// ++ | --
-		} else if (strlen(p) == 2 && (*p == '+' || *p == '-') && *(p + 1) == *p) {
-			ASSERT_NOT_EMPTY(p);
-
-			unsigned fsize = freeable.size();
-			CalcValue* val = conv_top(mainStack, var_nodes, showErrors, freeable);
-
-			if (!val) {
-				PASS_ERROR("\aERROR: during lazy evaluation\n");
-			}
-
-			if (val->type != CalcValue::NUM) {
-				PASS_ERROR("\aERROR: `" <<p <<"` expected a number\n");
-			}
-			val->number += *p == '+' ? 1 : -1;
-
-			// incrementing a constant pushes back onto the stack
-			if (freeable.size() != fsize)
-				mainStack.push(*val);
-
-
-			// modified assignment '*'= += -= *= /= %= <<= >>=
-		} else if ((strlen(p) == 2 && (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '%') && *(p + 1) == '=')
-				   || (strlen(p) == 3 && (*p == '<' || *p == '>') && *p == *(p + 1) && *(p + 2) == '=')) {
-			// not enough data
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: not enough data for modified assignment")
-			}
-
-			// a literal would be stored in freeable for garbage collection, increasing freeable's size
-			size_t freeable_size = freeable.size();
-			CalcValue* v2 = conv_top(mainStack, var_nodes, showErrors, freeable); // simplify top to one term
-			bool var2 = freeable.size() == freeable_size; // is 2nd term assignable?
-			freeable_size = freeable.size();
-
-			CalcValue* v1 = get_top(mainStack, var_nodes, showErrors, freeable);
-			bool var1 = freeable.size() == freeable_size;
-
-			if (!v1) {
-				PASS_ERROR("\aERROR: `=`: LHS invalid/missing (error in lazy evaluation)\n");
-			}
-			if (!v2) {
-				PASS_ERROR("\aERROR: `=`: RHS undefined/missing (error in lazy evaluation)\n");
-			}
-
-			// invalid types passed
-			if (*p != '+') {
-				if (v2->type != CalcValue::NUM) {
-					PASS_ERROR("\aERROR: `" <<p <<"` expected two numbers, " <<v2->typeName() <<" received");
-				}
-				if (v1->type != CalcValue::NUM) {
-					PASS_ERROR("\aERROR: `" <<p <<"` expected two numbers, " <<v1->typeName() <<" received");
-				}
-			} else {
-				if (v2->type != CalcValue::NUM && v2->type != CalcValue::STR) {
-					PASS_ERROR("\aERROR: `" <<p <<"` expected two numbers/strings, " <<v2->typeName() <<" received");
-				}
-				if (v1->type != CalcValue::NUM && v1->type != CalcValue::STR ) {
-					PASS_ERROR("\aERROR: `" <<p <<"` expected two numbers/strings, " <<v1->typeName() <<" received");
-				}
-			}
-
-			// where is value coming from and where is it being assigned?
-			CalcValue* target;
-			CalcValue* val;
-			if (var1) {
-				target = v1;
-				val = v2;
-			} else if (var2) {
-				target = v2;
-				val = v1;
-			} else {
-				PASS_ERROR("\aERROR: invalid use of assignment operator, first term not assignable.");
-			}
-
-
-			switch (*p) {
-				case '+':// addition is an overloaded operator
-
-					// handling null values
-					if (target->isEmpty() != val->isEmpty()) // val + null
-						target->number = target->isEmpty() ?  val->number : target->number;
-
-						// branching out all 4 permutations of string and num
-					else if (target->type == CalcValue::STR) {
-						if (val->type == CalcValue::STR) {
-							// allocate enough memory for both strings and a null terminator
-							char combined[strlen(target->getStr()) + strlen(val->getStr()) + 1];
-
-							// combine the strings
-							strcpy(combined, target->getStr());
-							strcpy(combined + strlen(target->getStr()), val->getStr());
-
-							target->setValue(combined);
-
-						} else if (val->type == CalcValue::NUM) { // b is a number
-
-							// convert the double to a string
-							char str[26];
-							snprintf(str, 26, "%*.*g", 10, 16, val->getNum());
-							char* trimmedStr = strutils::trimStr(str);
-
-							// allocate memory
-							char combined[strlen(target->getStr()) + strlen(trimmedStr) + 1];
-
-							// combine them
-							strcpy(combined, target->getStr());
-							strcpy(combined + strlen(target->getStr()), trimmedStr);
-
-							target->setValue(combined);
-						}
-					} else if (target->type == CalcValue::NUM) {
-						if (val->type == CalcValue::STR) {
-
-							// convert the double to a string
-							char str[26];
-
-							snprintf(str, 26, "%*.*g", 10, 16, target->getNum());
-							char* trimmedStr = strutils::trimStr(str);
-
-							// allocate memory
-							char combined[strlen(trimmedStr) + strlen(val->getStr()) + 1];
-							// combine them
-							strcpy(combined, trimmedStr);
-							strcpy(&combined[strlen(trimmedStr)], val->getStr());
-
-							target->setValue(combined);
-
-						} else if (val->type == CalcValue::NUM)
-							target->number = target->number + val->number;
-					}
-					break;
-
-				case '-':
-					target->number -= val->number;
-					break;
-
-				case '*':
-					target->number *= val->number;
-					break;
-
-				case '/':
-					target->number /= val->number;
-					break;
-
-				case '%':
-					target->number = (long) target->number % (long) val->number;
-					break;
-
-				case '<':
-					target->number -= (long) target->number << (long) val->number;
-					break;
-
-				case '>':
-					target->number -= (long) target->number >> (long) val->number;
-					break;
-
-			}
-
-			//trig functions
-		} else if (strcmp(p, "sin") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
+        //printf("p=\"%s\"\n",p);
+
+        // char is a binary operator
+        if (((*p == '-' || *p == '*' || *p == '/' || *p == '%'
+              || *p == '|' || *p == '&' || *p == '^' || *p == '>' || *p == '<')
+             && *(p + 1) == '\0')
+            || !strcmp(p, "<<") || !strcmp(p, ">>") || !strcmp(p, "**")
+            || !strcmp(p, "<=") || !strcmp(p, ">=") || !strcmp(p, "logbase")
+            || !strcmp(p, "pow") // for those who dont like "**"
+                ) {
+
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: Not enough data to satisfy operator `" << p << "`.\n");
+            }
+
+            CalcValue *v2 = conv_top(mainStack, var_nodes, showErrors, freeable);
+            if (v2->type != CalcValue::NUM) {
+                PASS_ERROR("\aERROR: incompatible data-types for operator `" << p << "`. (expected two numbers)\n");
+            }
+            double b = v2->number;
+
+
+            CalcValue *v1 = conv_top(mainStack, var_nodes, showErrors, freeable);
+            if (!v1) {
+                PASS_ERROR("\aERROR: `" << p << "` expected 2 numbers. Not enough data provided.");
+            }
+            if (v1->type != CalcValue::NUM) {
+                PASS_ERROR("\aERROR: incompatible data-types for operator `" << p << "`. (expected two numbers)\n");
+            }
+
+            double a = v1->number;
+
+
+            switch (*p) {
+                case '*':
+                    if (*(p + 1) == '*')
+                        mainStack.push(pow(a, b));
+                    else
+                        mainStack.push(a * b);
+                    break;
+
+                case '/':
+                    mainStack.push(a / b);
+                    break;
+                case '-':
+                    mainStack.push(a - b);
+                    break;
+                case '%':
+                    mainStack.push((long) a % (long) b);
+                    break;
+                case '^':
+                    mainStack.push((long) a ^ (long) b);
+                    break;
+                case '|':
+                    mainStack.push((long) a | (long) b);
+                    break;
+                case '&':
+                    mainStack.push((long) a & (long) b);
+                    break;
+
+                case '<':
+                    switch (*(p + 1)) {
+                        case '<':
+                            mainStack.push((int) a << (int) b);
+                            break;
+                        case '=':
+                            mainStack.push(a <= b);
+                            break;
+                        case '\0':
+                            mainStack.push(a < b);
+                            break;
+                    }
+                    break;
+
+                case '>':
+                    switch (*(p + 1)) {
+                        case '>':
+                            mainStack.push((int) a >> (int) b);
+                            break;
+                        case '=':
+                            mainStack.push(a >= b);
+                            break;
+                        case '\0':
+                            mainStack.push(a > b);
+                            break;
+                    }
+                    break;
+
+                case 'l':
+                    mainStack.push(log10(b) / log10(a));
+                    break;
+                case 'p':
+                    mainStack.push(pow(a, b));
+                    break;
+            }
+
+        } else if (*p == '+' && *(p + 1) == '\0') {
+
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: Not enough data to satisfy `+` operator." << std::endl);
+            }
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            CalcValue b = mainStack.top();
+            mainStack.pop();
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            CalcValue a = mainStack.top();
+            mainStack.pop();
+
+            // handling null values
+            if (a.isEmpty() != b.isEmpty()) // val + null
+                mainStack.push(b.isEmpty() ? a : b);
+
+            else if (a.isEmpty() && b.isEmpty()) // null + null
+                mainStack.push(a);
+
+                // 1 + 1
+            else if (a.type == CalcValue::NUM && b.type == CalcValue::NUM)
+                mainStack.push(a.getNum() + b.getNum());
+
+                // "x" + y = "xy"
+            else if (a.type == CalcValue::STR || b.type == CalcValue::STR) {
+                // string .toString enclosed in quotes which is undesireable
+                const std::string combined =
+                        (a.type == CalcValue::STR ? a.string : a.toString(var_nodes)) +
+                        (b.type == CalcValue::STR ? b.string : b.toString(var_nodes));
+                mainStack.push(combined.c_str());
+            } else {
+                PASS_ERROR("\aERROR: incompatable types for operator +.\n");
+            }
+
+        } else if (strcmp(p, "conv") == 0) {
+            CalcValue *cv = conv_top(mainStack, var_nodes, showErrors, freeable);
+            if (!cv) {
+                PASS_ERROR("\aERROR: during lazy evaluation\n");
+            }
+            mainStack.push(*cv);
+
+        } else if (strcmp(p, "==") == 0) {
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: `" << p << "` expected 2 values to compare\n");
+            }
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            CalcValue a = mainStack.top();
+            mainStack.pop();
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(CalcValue(mainStack.top() == a));
+
+            // not equal to
+        } else if (strcmp(p, "!=") == 0) {
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: `" << p << "` expected 2 values to compare\n");
+            }
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            CalcValue a = mainStack.top();
+            mainStack.pop();
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top() = !(mainStack.top() == a);
+
+            // logical not operator
+        } else if (*p == '!' && *(p + 1) == '\0') {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+
+            mainStack.top().setValue(mainStack.top().getNum() == 0.0);
+
+            // short-circuit &&
+        } else if (strcmp(p, "&&") == 0) {
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: `" << p << "` (short-circuit and) expected 2 boolean expressions/macros\n");
+            }
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            CalcValue v2 = mainStack.top();
+            mainStack.pop();
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            CalcValue v1 = mainStack.top();
+            mainStack.pop();
+
+            if (v1.type == CalcValue::NUM) {
+                if (v1.number == 0)
+                    mainStack.push(0.0);
+                else {
+                    if (v2.type == CalcValue::NUM) {
+                        if (v2.number == 0)
+                            mainStack.push(0.0);
+                        else
+                            mainStack.push(1.0);
+                    } else if (v2.type == CalcValue::BLK) {
+                        std::stack<CalcValue> condStack;
+
+                        RUN_STR_STK(*v2.block, condStack);
+                        // if condition evaluates to false (or doesnt give a value)
+                        if (condStack.empty() || !condStack.top().getNum())
+                            mainStack.push(0.0);
+                        else
+                            mainStack.push(1.0);
+                    } else {
+                        PASS_ERROR("\aERROR: `" << p
+                                                << "` (and) expected a boolean expression (or macro for shortcircuit)\n");
+                    }
+                }
+
+            } else if (v1.type == CalcValue::BLK) {
+                std::stack<CalcValue> condStack;
+
+                RUN_STR_STK(*v1.block, condStack);
+                // if condition evaluates to false (or doesnt give a value)
+                if (condStack.empty() || !condStack.top().getNum())
+                    mainStack.push(0.0);
+                else {
+                    if (v2.type == CalcValue::NUM) {
+                        if (v2.number == 0)
+                            mainStack.push(0.0);
+                        else
+                            mainStack.push(1.0);
+
+                    } else if (v2.type == CalcValue::BLK) {
+                        std::stack<CalcValue> condStack;
+
+                        RUN_STR_STK(*v2.block, condStack);
+                        // if condition evaluates to false (or doesnt give a value)
+                        if (condStack.empty() || !condStack.top().getNum())
+                            mainStack.push(0.0);
+                        else
+                            mainStack.push(1.0);
+                    } else {
+                        PASS_ERROR("\aERROR: `" << p << "` (short-circuit and) expected a boolean expression/macro\n");
+                    }
+                }
+
+            } else {
+                PASS_ERROR("\aERROR: `" << p << "` (short-circuit or) expected a boolean expression/macro\n");
+            }
+
+            // short-circuit ||
+        } else if (strcmp(p, "||") == 0) {
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: `" << p << "` (short-circuit or) expected 2 boolean expressions/macros\n");
+            }
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            CalcValue v2 = mainStack.top();
+            mainStack.pop();
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            CalcValue v1 = mainStack.top();
+            mainStack.pop();
+
+            if (v1.type == CalcValue::NUM) {
+                if (v1.number != 0)
+                    mainStack.push(1.0);
+                else {
+                    if (v2.type == CalcValue::NUM) {
+                        if (v2.number == 0)
+                            mainStack.push(0.0);
+                        else
+                            mainStack.push(1.0);
+                    } else if (v2.type == CalcValue::BLK) {
+                        std::stack<CalcValue> condStack;
+
+                        RUN_STR_STK(*v2.block, condStack);
+                        // if condition evaluates to false (or doesnt give a value)
+                        if (condStack.empty() || !condStack.top().getNum())
+                            mainStack.push(0.0);
+                        else
+                            mainStack.push(1.0);
+                    } else {
+                        PASS_ERROR("\aERROR: `" << p << "` (short-circuit or) expected a boolean expression/macro\n");
+                    }
+                }
+
+            } else if (v1.type == CalcValue::BLK) {
+
+                std::stack<CalcValue> condStack;
+
+                RUN_STR_STK(*v1.block, condStack);
+                // if condition evaluates to false (or doesnt give a value)
+                if (!condStack.empty() && condStack.top().getNum())
+                    mainStack.push(1.0);
+                else {
+                    if (v2.type == CalcValue::NUM) {
+                        if (v2.number == 0)
+                            mainStack.push(0.0);
+                        else
+                            mainStack.push(1.0);
+                    } else if (v2.type == CalcValue::BLK) {
+                        std::stack<CalcValue> condStack;
+
+                        RUN_STR_STK(*v2.block, condStack);
+                        // if condition evaluates to false (or doesnt give a value)
+                        if (condStack.empty() || !condStack.top().getNum())
+                            mainStack.push(0.0);
+                        else
+                            mainStack.push(1.0);
+                    } else {
+                        PASS_ERROR("\aERROR: `" << p << "` (short-circuit and) expected a boolean expression/macro\n");
+                    }
+                }
+
+
+            } else {
+                PASS_ERROR("\aERROR: `" << p << "` (short-circuit and) expected a boolean expression/macro\n");
+            }
+
+            // ++ | --
+        } else if (strlen(p) == 2 && (*p == '+' || *p == '-') && *(p + 1) == *p) {
+            ASSERT_NOT_EMPTY(p);
+
+            unsigned fsize = freeable.size();
+            CalcValue *val = conv_top(mainStack, var_nodes, showErrors, freeable);
+
+            if (!val) {
+                PASS_ERROR("\aERROR: during lazy evaluation\n");
+            }
+
+            if (val->type != CalcValue::NUM) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a number\n");
+            }
+            val->number += *p == '+' ? 1 : -1;
+
+            // incrementing a constant pushes back onto the stack
+            if (freeable.size() != fsize)
+                mainStack.push(*val);
+
+
+            // modified assignment '*'= += -= *= /= %= <<= >>=
+        } else if (
+                (strlen(p) == 2 && (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '%') && *(p + 1) == '=')
+                || (strlen(p) == 3 && (*p == '<' || *p == '>') && *p == *(p + 1) && *(p + 2) == '=')) {
+            // not enough data
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: not enough data for modified assignment")
+            }
+
+            // a literal would be stored in freeable for garbage collection, increasing freeable's size
+            size_t freeable_size = freeable.size();
+            CalcValue *v2 = conv_top(mainStack, var_nodes, showErrors, freeable); // simplify top to one term
+            bool var2 = freeable.size() == freeable_size; // is 2nd term assignable?
+            freeable_size = freeable.size();
+
+            CalcValue *v1 = get_top(mainStack, var_nodes, showErrors, freeable);
+            bool var1 = freeable.size() == freeable_size;
+
+            if (!v1) {
+                PASS_ERROR("\aERROR: `=`: LHS invalid/missing (error in lazy evaluation)\n");
+            }
+            if (!v2) {
+                PASS_ERROR("\aERROR: `=`: RHS undefined/missing (error in lazy evaluation)\n");
+            }
+
+            // invalid types passed
+            if (*p != '+') {
+                if (v2->type != CalcValue::NUM) {
+                    PASS_ERROR("\aERROR: `" << p << "` expected two numbers, " << v2->typeName() << " received");
+                }
+                if (v1->type != CalcValue::NUM) {
+                    PASS_ERROR("\aERROR: `" << p << "` expected two numbers, " << v1->typeName() << " received");
+                }
+            } else {
+                if (v2->type != CalcValue::NUM && v2->type != CalcValue::STR) {
+                    PASS_ERROR(
+                            "\aERROR: `" << p << "` expected two numbers/strings, " << v2->typeName() << " received");
+                }
+                if (v1->type != CalcValue::NUM && v1->type != CalcValue::STR) {
+                    PASS_ERROR(
+                            "\aERROR: `" << p << "` expected two numbers/strings, " << v1->typeName() << " received");
+                }
+            }
+
+            // where is value coming from and where is it being assigned?
+            CalcValue *target;
+            CalcValue *val;
+            if (var1) {
+                target = v1;
+                val = v2;
+            } else if (var2) {
+                target = v2;
+                val = v1;
+            } else {
+                PASS_ERROR("\aERROR: invalid use of assignment operator, first term not assignable.");
+            }
+
+
+            switch (*p) {
+                case '+':// addition is an overloaded operator
+
+                    // handling null values
+                    if (target->isEmpty() != val->isEmpty()) // val + null
+                        target->number = target->isEmpty() ? val->number : target->number;
+
+                        // branching out all 4 permutations of string and num
+                    else if (target->type == CalcValue::STR) {
+                        if (val->type == CalcValue::STR) {
+                            // allocate enough memory for both strings and a null terminator
+                            char combined[strlen(target->getStr()) + strlen(val->getStr()) + 1];
+
+                            // combine the strings
+                            strcpy(combined, target->getStr());
+                            strcpy(combined + strlen(target->getStr()), val->getStr());
+
+                            target->setValue(combined);
+
+                        } else if (val->type == CalcValue::NUM) { // b is a number
+
+                            // convert the double to a string
+                            char str[26];
+                            snprintf(str, 26, "%*.*g", 10, 16, val->getNum());
+                            char *trimmedStr = strutils::trimStr(str);
+
+                            // allocate memory
+                            char combined[strlen(target->getStr()) + strlen(trimmedStr) + 1];
+
+                            // combine them
+                            strcpy(combined, target->getStr());
+                            strcpy(combined + strlen(target->getStr()), trimmedStr);
+
+                            target->setValue(combined);
+                        }
+                    } else if (target->type == CalcValue::NUM) {
+                        if (val->type == CalcValue::STR) {
+
+                            // convert the double to a string
+                            char str[26];
+
+                            snprintf(str, 26, "%*.*g", 10, 16, target->getNum());
+                            char *trimmedStr = strutils::trimStr(str);
+
+                            // allocate memory
+                            char combined[strlen(trimmedStr) + strlen(val->getStr()) + 1];
+                            // combine them
+                            strcpy(combined, trimmedStr);
+                            strcpy(&combined[strlen(trimmedStr)], val->getStr());
+
+                            target->setValue(combined);
+
+                        } else if (val->type == CalcValue::NUM)
+                            target->number = target->number + val->number;
+                    }
+                    break;
+
+                case '-':
+                    target->number -= val->number;
+                    break;
+
+                case '*':
+                    target->number *= val->number;
+                    break;
+
+                case '/':
+                    target->number /= val->number;
+                    break;
+
+                case '%':
+                    target->number = (long) target->number % (long) val->number;
+                    break;
+
+                case '<':
+                    target->number -= (long) target->number << (long) val->number;
+                    break;
+
+                case '>':
+                    target->number -= (long) target->number >> (long) val->number;
+                    break;
+
+            }
+
+            //trig functions
+        } else if (strcmp(p, "sin") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
             mainStack.top().setValue(sin(mainStack.top().getNum()));
-		} else if (strcmp(p, "cos") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(cos(mainStack.top().getNum()));
-		} else if (strcmp(p, "tan") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(tan(mainStack.top().getNum()));
-
-			// inverse trig functions
-		} else if (strcmp(p, "asin") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(asin(mainStack.top().getNum()));
-		} else if (strcmp(p, "acos") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(acos(mainStack.top().getNum()));
-		} else if (strcmp(p, "atan") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(atan(mainStack.top().getNum()));
-
-			// hyperbolic trig functions
-		} else if (strcmp(p, "sinh") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(sinh(mainStack.top().getNum()));
-		} else if (strcmp(p, "cosh") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(cosh(mainStack.top().getNum()));
-		} else if (strcmp(p, "tanh") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_INDEX(mainStack, var_nodes);
-			CONVERT_REFS(mainStack, var_nodes);
-			mainStack.top().setValue(tanh(mainStack.top().getNum()));
-
-			// inverse hyperbolic trig functions
-		} else if (strcmp(p, "asinh") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(asinh(mainStack.top().getNum()));
-		} else if (strcmp(p, "acosh") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(acosh(mainStack.top().getNum()));
-		} else if (strcmp(p, "atanh") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(atanh(mainStack.top().getNum()));
-
-			// more unary math functions
-		} else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(log10(mainStack.top().getNum()));
-		} else if (strcmp(p, "ln") == 0) { // natural log
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(log(mainStack.top().getNum()));
-
-		} else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0) { // square root
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(sqrt(mainStack.top().getNum()));
-
-		} else if (strcmp(p, "abs") == 0) { // absolute value
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			mainStack.top().setValue(fabs(mainStack.top().getNum()));
-
-			// find length of a string
-		} else if (strcmp(p, "strlen") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type == CalcValue::STR)
-				mainStack.top().setValue((double)strlen(mainStack.top().string));
-			else {
-				PASS_ERROR("\aERROR: strlen expected a string.\n");
-			}
-
-			// find first occurance of substring in a string (strstr())
-		} else if (strcmp(p, "strstr") == 0) {
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: strstr expected 2 strings, a haystack and a needle to find\n");
-			}
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: strstr expected 2 strings, a haystack and a needle to find\n");
-			}
-
-			char needle[strlen(mainStack.top().string)];
-			strcpy(needle, mainStack.top().string);
-			mainStack.pop();
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: strstr expected 2 strings, a haystack and a needle to find\n");
-			}
-			char haystack[strlen(mainStack.top().string)];
-			strcpy(haystack, mainStack.top().string);
-			mainStack.pop();
-
-			mainStack.push(strstr(haystack, needle));
-
-			// case-insensitive strstr
-		} else if (strcmp(p, "stristr") == 0) {
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
-			}
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
-			}
-
-			char needle[strlen(mainStack.top().string)];
-			strcpy(needle, mainStack.top().string);
-			mainStack.pop();
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
-			}
-
-			char haystack[strlen(mainStack.top().string)];
-			strcpy(haystack, mainStack.top().string);
-			mainStack.pop();
-
-			mainStack.push(strutils::stristr(haystack, needle));
-
-			// remove leading and triling
-		} else if (strcmp(p, "trim") == 0) {
-
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: trim expected a string\n");
-			}
-
-			char str[strlen(mainStack.top().string) + 1];
-			strcpy(str, mainStack.top().string);
-			mainStack.pop();
-			mainStack.push(strutils::trimStr(str));
-
-		} else if (strcmp(p, "split") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-
-			// split elems of list
-			if (mainStack.top().type == CalcValue::ARR) {
-				// TODO: fix this
-				std::vector<CalcValue> tmp = *mainStack.top().list;
-				mainStack.pop();
-
-				for (CalcValue elem : tmp)
-					mainStack.push(CalcValue(elem));
-
-				// spliting a string
-			} else {
-
-				if (mainStack.size() < 2) {
-					PASS_ERROR("\aERROR: `"<<p <<"` expected 2 strings, a base-string and delimiters\n");
-				}
-
-				// get delims
-				if (mainStack.top().type != CalcValue::STR) {
-					PASS_ERROR("\aERROR: `"<<p <<"` expected 2 strings, a base-string and delimiters\n");
-				}
-				// exploding string into constituent characters
-				if (!strlen(mainStack.top().string)) {
-					mainStack.pop();
-					// get str
-					CONVERT_TOP(mainStack, var_nodes, freeable);
-					if (mainStack.top().type != CalcValue::STR) {
-						PASS_ERROR("\aERROR: `"<<p <<"` expected 2 strings, a base-string and delimiters\n");
-					}
-					char str[strlen(mainStack.top().string)]; // no room for '\0'
-					strcpy(str, mainStack.top().string);
-					mainStack.pop();
-
-					// push each character onto the stack
-					std::vector<CalcValue> list;
-					for (char ch : str) {
-						char chr[2] = {ch, '\0'};
-						list.push_back(chr);
-					}
-					mainStack.push(list);
-					// split by delimiter
-				} else {
-					// copy delimiters
-					char delims[strlen(mainStack.top().string) + 1];
-					strcpy(delims, mainStack.top().string);
-					mainStack.pop();
-
-					// get str
-					CONVERT_TOP(mainStack, var_nodes, freeable);
-					if (!mainStack.top().isStr()) {
-						PASS_ERROR("\aERROR: `"<<p <<"` expected 2 strings, a base-string and delimiters\n");
-					}
-					char str[strlen(mainStack.top().string) + 1];
-					strcpy(str, mainStack.top().string);
-					mainStack.pop();
-
-					std::vector<CalcValue> list;
-					char *pch = strtok(str, delims);
-					while (pch) {
-						list.push_back(pch);
-						pch = strtok(nullptr, delims);
-					}
-					mainStack.push(list);
-				}
-			}
-
-			// replace substring
-		} else if (strcmp(p, "str_replace") == 0) {
-			if (mainStack.size() < 3) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected 3 strings: base_string, old_substr, new_substr");
-			}
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected 3 strings: base_string, old_substr, new_substr");
-			}
-			char with[strlen(mainStack.top().string) + 1];
-			strcpy(with, mainStack.top().string);
-			mainStack.pop();
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected 3 strings: base_string, old_substr, new_substr\n");
-			}
-			char repl[strlen(mainStack.top().string) + 1];
-			strcpy(repl, mainStack.top().string);
-			mainStack.pop();
-
-			char *tmp = strutils::str_replace(mainStack.top().string, repl, with);
-			mainStack.push(tmp);
-			free(tmp);
-
-		} else if (strcmp(p, "char_at") == 0) {
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a string and a numerical index\n");
-			}
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-
-			if (mainStack.top().type == CalcValue::STR && mainStack.top().string) {
-				char tmp[strlen(mainStack.top().string)];
-				strcpy(tmp, mainStack.top().string);
-				mainStack.pop();
-
-				CONVERT_TOP(mainStack, var_nodes, freeable);
-				if (mainStack.top().type != CalcValue::NUM) {
-					PASS_ERROR("\aERROR: `"<<p <<"` expected a string and a numerical index\n");
-				}
-
-				ssize_t i = (ssize_t) mainStack.top().number;
-				mainStack.pop();
-
-				if ((size_t) abs(i) > strlen(tmp) || i == (ssize_t) strlen(tmp)) {
-					//PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
-					mainStack.push(CalcValue());
-				} else {
-					char chr[2];
-
-					// negative index starts from back
-					chr[0] = tmp[i >= 0 ? i : strlen(tmp) + i];
-					chr[1] = '\0';
-					mainStack.push(chr);
-				}
-			} else if (mainStack.top().type == CalcValue::NUM) {
-
-				ssize_t i = (ssize_t) mainStack.top().number;
-
-				mainStack.pop();
-				CONVERT_TOP(mainStack, var_nodes, freeable);
-
-				if (mainStack.top().type != CalcValue::STR) {
-					PASS_ERROR("\aERROR: `"<<p <<"` expected a string and a numerical index\n");
-				}
-
-				char chr[2];
-
-				if ((size_t) abs(i) > strlen(mainStack.top().string) || i == (ssize_t) strlen(mainStack.top().string)) {
-					//PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
-					mainStack.pop();
-					mainStack.push(CalcValue()); // returns null on error
-				} else {
-
-					chr[0] = mainStack.top().string[i >= 0 ? i : strlen(mainStack.top().string) + i];
-					chr[1] = '\0';
-					mainStack.pop();
-					mainStack.push(chr);
-				}
-			}
-
-			// delete a char from a string at an index
-		} else if (strcmp(p, "del_char") == 0) {
-
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a string and a numerical index\n");
-			}
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type == CalcValue::STR && mainStack.top().string) {
-
-				// copy top string
-				char tmp[strlen(mainStack.top().string)];
-				strcpy(tmp, mainStack.top().string);
-				mainStack.pop();
-
-				// get index
-				CONVERT_TOP(mainStack, var_nodes, freeable);
-				if (mainStack.top().type != CalcValue::NUM) {
-					PASS_ERROR("\aERROR: `"<<p <<"` expected a string and a numerical index\n");
-				}
-				int i = (int) mainStack.top().number;
-				mainStack.pop();
-
-				// assert index in range
-				if (abs(i) > (ssize_t) strlen(tmp) || i == (ssize_t) strlen(tmp)) {
-					PASS_ERROR("\aERROR: `"<<p <<"`: index `" << i << "` out of bounds\n");
-				}
-
-				// delete char at index
-				strutils::deleteChar(i >= 0 ? tmp + i  : tmp + strlen(tmp) + i);
-				mainStack.push(tmp);
-
-
-			} else if (mainStack.top().type == CalcValue::NUM)  {
-				// get index
-				ssize_t i = (ssize_t) mainStack.top().number;
-				mainStack.pop();
-
-				// check range of index
-				if (abs(i) > (ssize_t) strlen(mainStack.top().string) || i == (ssize_t) strlen(mainStack.top().string)) {
-					PASS_ERROR("\aERROR: `"<<p <<"`: index `" << i << "` out of bounds\n");
-				}
-
-				// verify string
-				CONVERT_TOP(mainStack, var_nodes, freeable);
-				if (mainStack.top().type != CalcValue::STR) {
-					PASS_ERROR("\aERROR: `"<<p <<"` expected a string and a numerical index");
-				}
-
-				// calls delete char on the CV in ms.top(), if index is negative then start from reverse
-				char* str = mainStack.top().string;
-				strutils::deleteChar(i >= 0 ? i + str : str + strlen(str) + i);
-
-			}
-
-			// line-comments
-		} else if (*p == '#')
-			break; // ignore rest of line
-
-			// constants
-		else if (strcmp(p, "pi") == 0)
-			mainStack.push(M_PI); // defined in math.h
-		else if (*p == 'e' && *(p + 1) == '\0')
-			mainStack.push(M_E); // defined in math.h
-		else if (strcmp(p, "null") == 0)
-			mainStack.push(CalcValue());
-		else if (strcmp(p, "true") == 0)
-			mainStack.push(1.0);
-		else if (strcmp(p, "false") == 0)
-			mainStack.push(0.0);
-
-			// generates a list with a range of numbers from * to * ~~
-		else if (strcmp(p, "range") == 0) {
-			// assert stklen
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected 2 numbers, a start and end\n");
-			}
-			// get end
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type != CalcValue::NUM) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected 2 numbers, a start and end\n");
-			}
-			int end = (int) mainStack.top().getNum();
-			mainStack.pop();
-
-
-			// get start
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type != CalcValue::NUM) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected 2 numbers, a start and end\n");
-			}
-			int start = (int) mainStack.top().getNum();
-			mainStack.pop();
-
-			// generate list
-			std::vector<CalcValue> list;
-			if (start > end) { // [start, end] 3,2,1
-				for (; start >= end; start--)
-					list.push_back((double) start);
-				mainStack.push(list);
-			} else if (start < end) { // [start, end) 1,2,3
-				for (; start < end; start++)
-					list.push_back((double) start);
-				mainStack.push(list);
-			} else { // start == end
-				//list.push_back(start);
-				mainStack.push(list);
-			}
-
-
-			// print value terminal
-		} else if (strcmp(p, "print") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (printCalcValueRAW(mainStack.top(), var_nodes)) {
-				PASS_ERROR("\aERROR: `"<<p <<"` has failed.\n");
-
-			}
-			mainStack.pop();
-
-			// print and end with a newline
-		} else if (strcmp(p, "println") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (printCalcValueRAW(mainStack.top(), var_nodes)) {
-				PASS_ERROR("\aERROR: `"<<p <<"` has failed.\n");
-			}
-			mainStack.pop();
-
-			std::cout <<std::endl;
-
-		} else if (strcmp(p, "color_print") == 0) {
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `" <<p <<"` expected a strings for the message and the color\n\n");
-			}
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (!mainStack.top().isStr()) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a message and a string containing a valid HTML color\n\n");
-			}
-
-			setFgColor(mainStack.top().string);
-			mainStack.pop();
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			CalcValue msg = mainStack.top();
-			mainStack.pop();
-			if (printCalcValueRAW(msg, var_nodes)) {
-				setFgColor();
-				PASS_ERROR("ERROR: `"<<p <<"` has failed\n");
-			}
-
-			setFgColor();
-
-			// changes the terminal background color for text
-		} else if (strcmp(p, "setBgColor") == 0) {
-
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a string containing a valid HTML color.\n\n");
-			}
-
-			setBgColor(mainStack.top().string);
-			mainStack.pop();
-
-			// changes the terminal foreground color for text
-		} else if (strcmp(p, "setFgColor") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a string containing a valid HTML color.\n\n");
-			}
-
-			setFgColor(mainStack.top().string);
-			mainStack.pop();
-
-		} else if (strcmp(p, "reset_color") == 0)
-			resetANSI();
-		else if (strcmp(p, "resetFgColor") == 0)
-			setFgColor();
-		else if (strcmp(p, "resetBgColor") == 0)
-			setBgColor();
-
-
-
-			// user input
-		else if (strcmp(p, "input") == 0 || strcmp(p, "getline") == 0) {
-			char* input = (char*) malloc(256);
-			size_t line_len = 256;
-
-			if (getline(&input, &line_len, stdin) == -1) {
-				PASS_ERROR("\aERROR: `"<<p <<"` could not getline()... EOF?\n");
-			}
-
-			if (input[strlen(input) - 1] == '\n')
-				input[strlen(input) - 1] = '\0';
-
-			mainStack.push(input);
-			free(input);
-
-			// get a single character from stdin
-		} else if (strcmp(p, "getchar") == 0) {
-			char input[2] = { (char) getc(stdin), '\0'};
-			mainStack.push(input);
-			// silently get character without needing newline
-		} else if (strcmp(p, "getch") == 0) {
-			char tmp[] {
+        } else if (strcmp(p, "cos") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(cos(mainStack.top().getNum()));
+        } else if (strcmp(p, "tan") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(tan(mainStack.top().getNum()));
+
+            // inverse trig functions
+        } else if (strcmp(p, "asin") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(asin(mainStack.top().getNum()));
+        } else if (strcmp(p, "acos") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(acos(mainStack.top().getNum()));
+        } else if (strcmp(p, "atan") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(atan(mainStack.top().getNum()));
+
+            // hyperbolic trig functions
+        } else if (strcmp(p, "sinh") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(sinh(mainStack.top().getNum()));
+        } else if (strcmp(p, "cosh") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(cosh(mainStack.top().getNum()));
+        } else if (strcmp(p, "tanh") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_INDEX(mainStack, var_nodes);
+            CONVERT_REFS(mainStack, var_nodes);
+            mainStack.top().setValue(tanh(mainStack.top().getNum()));
+
+            // inverse hyperbolic trig functions
+        } else if (strcmp(p, "asinh") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(asinh(mainStack.top().getNum()));
+        } else if (strcmp(p, "acosh") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(acosh(mainStack.top().getNum()));
+        } else if (strcmp(p, "atanh") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(atanh(mainStack.top().getNum()));
+
+            // more unary math functions
+        } else if (strcmp(p, "log") == 0 || strcmp(p, "log10") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(log10(mainStack.top().getNum()));
+        } else if (strcmp(p, "ln") == 0) { // natural log
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(log(mainStack.top().getNum()));
+
+        } else if (strcmp(p, "sqrt") == 0 || strcmp(p, "sqr") == 0) { // square root
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(sqrt(mainStack.top().getNum()));
+
+        } else if (strcmp(p, "abs") == 0) { // absolute value
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            mainStack.top().setValue(fabs(mainStack.top().getNum()));
+
+            // find length of a string
+        } else if (strcmp(p, "strlen") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type == CalcValue::STR)
+                mainStack.top().setValue((double) strlen(mainStack.top().string));
+            else {
+                PASS_ERROR("\aERROR: strlen expected a string.\n");
+            }
+
+            // find first occurance of substring in a string (strstr())
+        } else if (strcmp(p, "strstr") == 0) {
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: strstr expected 2 strings, a haystack and a needle to find\n");
+            }
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::STR) {
+                PASS_ERROR("\aERROR: strstr expected 2 strings, a haystack and a needle to find\n");
+            }
+
+            char needle[strlen(mainStack.top().string)];
+            strcpy(needle, mainStack.top().string);
+            mainStack.pop();
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::STR) {
+                PASS_ERROR("\aERROR: strstr expected 2 strings, a haystack and a needle to find\n");
+            }
+            char haystack[strlen(mainStack.top().string)];
+            strcpy(haystack, mainStack.top().string);
+            mainStack.pop();
+
+            mainStack.push(strstr(haystack, needle));
+
+            // case-insensitive strstr
+        } else if (strcmp(p, "stristr") == 0) {
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
+            }
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::STR) {
+                PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
+            }
+
+            char needle[strlen(mainStack.top().string)];
+            strcpy(needle, mainStack.top().string);
+            mainStack.pop();
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::STR) {
+                PASS_ERROR("\aERROR: stristr expected 2 strings, a haystack and a needle to find\n");
+            }
+
+            char haystack[strlen(mainStack.top().string)];
+            strcpy(haystack, mainStack.top().string);
+            mainStack.pop();
+
+            mainStack.push(strutils::stristr(haystack, needle));
+
+            // remove leading and triling
+        } else if (strcmp(p, "trim") == 0) {
+
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::STR) {
+                PASS_ERROR("\aERROR: trim expected a string\n");
+            }
+
+            char str[strlen(mainStack.top().string) + 1];
+            strcpy(str, mainStack.top().string);
+            mainStack.pop();
+            mainStack.push(strutils::trimStr(str));
+
+        } else if (strcmp(p, "split") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+
+            // split elems of list
+            if (mainStack.top().type == CalcValue::ARR) {
+                // TODO: fix this
+                std::vector<CalcValue> tmp = *mainStack.top().list;
+                mainStack.pop();
+
+                for (CalcValue elem : tmp)
+                    mainStack.push(CalcValue(elem));
+
+                // spliting a string
+            } else {
+
+                if (mainStack.size() < 2) {
+                    PASS_ERROR("\aERROR: `" << p << "` expected 2 strings, a base-string and delimiters\n");
+                }
+
+                // get delims
+                if (mainStack.top().type != CalcValue::STR) {
+                    PASS_ERROR("\aERROR: `" << p << "` expected 2 strings, a base-string and delimiters\n");
+                }
+                // exploding string into constituent characters
+                if (!strlen(mainStack.top().string)) {
+                    mainStack.pop();
+                    // get str
+                    CONVERT_TOP(mainStack, var_nodes, freeable);
+                    if (mainStack.top().type != CalcValue::STR) {
+                        PASS_ERROR("\aERROR: `" << p << "` expected 2 strings, a base-string and delimiters\n");
+                    }
+                    char str[strlen(mainStack.top().string)]; // no room for '\0'
+                    strcpy(str, mainStack.top().string);
+                    mainStack.pop();
+
+                    // push each character onto the stack
+                    std::vector<CalcValue> list;
+                    for (char ch : str) {
+                        char chr[2] = {ch, '\0'};
+                        list.push_back(chr);
+                    }
+                    mainStack.push(list);
+                    // split by delimiter
+                } else {
+                    // copy delimiters
+                    char delims[strlen(mainStack.top().string) + 1];
+                    strcpy(delims, mainStack.top().string);
+                    mainStack.pop();
+
+                    // get str
+                    CONVERT_TOP(mainStack, var_nodes, freeable);
+                    if (!mainStack.top().isStr()) {
+                        PASS_ERROR("\aERROR: `" << p << "` expected 2 strings, a base-string and delimiters\n");
+                    }
+                    char str[strlen(mainStack.top().string) + 1];
+                    strcpy(str, mainStack.top().string);
+                    mainStack.pop();
+
+                    std::vector<CalcValue> list;
+                    char *pch = strtok(str, delims);
+                    while (pch) {
+                        list.push_back(pch);
+                        pch = strtok(nullptr, delims);
+                    }
+                    mainStack.push(list);
+                }
+            }
+
+            // replace substring
+        } else if (strcmp(p, "str_replace") == 0) {
+            if (mainStack.size() < 3) {
+                PASS_ERROR("\aERROR: `" << p << "` expected 3 strings: base_string, old_substr, new_substr");
+            }
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::STR) {
+                PASS_ERROR("\aERROR: `" << p << "` expected 3 strings: base_string, old_substr, new_substr");
+            }
+            char with[strlen(mainStack.top().string) + 1];
+            strcpy(with, mainStack.top().string);
+            mainStack.pop();
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::STR) {
+                PASS_ERROR("\aERROR: `" << p << "` expected 3 strings: base_string, old_substr, new_substr\n");
+            }
+            char repl[strlen(mainStack.top().string) + 1];
+            strcpy(repl, mainStack.top().string);
+            mainStack.pop();
+
+            char *tmp = strutils::str_replace(mainStack.top().string, repl, with);
+            mainStack.push(tmp);
+            free(tmp);
+
+        } else if (strcmp(p, "char_at") == 0) {
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a string and a numerical index\n");
+            }
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+
+            if (mainStack.top().type == CalcValue::STR && mainStack.top().string) {
+                char tmp[strlen(mainStack.top().string)];
+                strcpy(tmp, mainStack.top().string);
+                mainStack.pop();
+
+                CONVERT_TOP(mainStack, var_nodes, freeable);
+                if (mainStack.top().type != CalcValue::NUM) {
+                    PASS_ERROR("\aERROR: `" << p << "` expected a string and a numerical index\n");
+                }
+
+                ssize_t i = (ssize_t) mainStack.top().number;
+                mainStack.pop();
+
+                if ((size_t) abs(i) > strlen(tmp) || i == (ssize_t) strlen(tmp)) {
+                    //PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
+                    mainStack.push(CalcValue());
+                } else {
+                    char chr[2];
+
+                    // negative index starts from back
+                    chr[0] = tmp[i >= 0 ? i : strlen(tmp) + i];
+                    chr[1] = '\0';
+                    mainStack.push(chr);
+                }
+            } else if (mainStack.top().type == CalcValue::NUM) {
+
+                ssize_t i = (ssize_t) mainStack.top().number;
+
+                mainStack.pop();
+                CONVERT_TOP(mainStack, var_nodes, freeable);
+
+                if (mainStack.top().type != CalcValue::STR) {
+                    PASS_ERROR("\aERROR: `" << p << "` expected a string and a numerical index\n");
+                }
+
+                char chr[2];
+
+                if ((size_t) abs(i) > strlen(mainStack.top().string) || i == (ssize_t) strlen(mainStack.top().string)) {
+                    //PASS_ERROR("\aERROR: char_at: index `" << i << "` out of bounds\n");
+                    mainStack.pop();
+                    mainStack.push(CalcValue()); // returns null on error
+                } else {
+
+                    chr[0] = mainStack.top().string[i >= 0 ? i : strlen(mainStack.top().string) + i];
+                    chr[1] = '\0';
+                    mainStack.pop();
+                    mainStack.push(chr);
+                }
+            }
+
+            // delete a char from a string at an index
+        } else if (strcmp(p, "del_char") == 0) {
+
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a string and a numerical index\n");
+            }
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type == CalcValue::STR && mainStack.top().string) {
+
+                // copy top string
+                char tmp[strlen(mainStack.top().string)];
+                strcpy(tmp, mainStack.top().string);
+                mainStack.pop();
+
+                // get index
+                CONVERT_TOP(mainStack, var_nodes, freeable);
+                if (mainStack.top().type != CalcValue::NUM) {
+                    PASS_ERROR("\aERROR: `" << p << "` expected a string and a numerical index\n");
+                }
+                int i = (int) mainStack.top().number;
+                mainStack.pop();
+
+                // assert index in range
+                if (abs(i) > (ssize_t) strlen(tmp) || i == (ssize_t) strlen(tmp)) {
+                    PASS_ERROR("\aERROR: `" << p << "`: index `" << i << "` out of bounds\n");
+                }
+
+                // delete char at index
+                strutils::deleteChar(i >= 0 ? tmp + i : tmp + strlen(tmp) + i);
+                mainStack.push(tmp);
+
+
+            } else if (mainStack.top().type == CalcValue::NUM) {
+                // get index
+                ssize_t i = (ssize_t) mainStack.top().number;
+                mainStack.pop();
+
+                // check range of index
+                if (abs(i) > (ssize_t) strlen(mainStack.top().string) ||
+                    i == (ssize_t) strlen(mainStack.top().string)) {
+                    PASS_ERROR("\aERROR: `" << p << "`: index `" << i << "` out of bounds\n");
+                }
+
+                // verify string
+                CONVERT_TOP(mainStack, var_nodes, freeable);
+                if (mainStack.top().type != CalcValue::STR) {
+                    PASS_ERROR("\aERROR: `" << p << "` expected a string and a numerical index");
+                }
+
+                // calls delete char on the CV in ms.top(), if index is negative then start from reverse
+                char *str = mainStack.top().string;
+                strutils::deleteChar(i >= 0 ? i + str : str + strlen(str) + i);
+
+            }
+
+            // line-comments
+        } else if (*p == '#')
+            break; // ignore rest of line
+
+            // constants
+        else if (strcmp(p, "pi") == 0)
+            mainStack.push(M_PI); // defined in math.h
+        else if (*p == 'e' && *(p + 1) == '\0')
+            mainStack.push(M_E); // defined in math.h
+        else if (strcmp(p, "null") == 0)
+            mainStack.push(CalcValue());
+        else if (strcmp(p, "true") == 0)
+            mainStack.push(1.0);
+        else if (strcmp(p, "false") == 0)
+            mainStack.push(0.0);
+
+            // generates a list with a range of numbers from * to * ~~
+        else if (strcmp(p, "range") == 0) {
+            // assert stklen
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: `" << p << "` expected 2 numbers, a start and end\n");
+            }
+            // get end
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::NUM) {
+                PASS_ERROR("\aERROR: `" << p << "` expected 2 numbers, a start and end\n");
+            }
+            int end = (int) mainStack.top().getNum();
+            mainStack.pop();
+
+
+            // get start
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::NUM) {
+                PASS_ERROR("\aERROR: `" << p << "` expected 2 numbers, a start and end\n");
+            }
+            int start = (int) mainStack.top().getNum();
+            mainStack.pop();
+
+            // generate list
+            std::vector<CalcValue> list;
+            if (start > end) { // [start, end] 3,2,1
+                for (; start >= end; start--)
+                    list.push_back((double) start);
+                mainStack.push(list);
+            } else if (start < end) { // [start, end) 1,2,3
+                for (; start < end; start++)
+                    list.push_back((double) start);
+                mainStack.push(list);
+            } else { // start == end
+                //list.push_back(start);
+                mainStack.push(list);
+            }
+
+
+            // print value terminal
+        } else if (strcmp(p, "print") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (printCalcValueRAW(mainStack.top(), var_nodes)) {
+                PASS_ERROR("\aERROR: `" << p << "` has failed.\n");
+
+            }
+            mainStack.pop();
+
+            // print and end with a newline
+        } else if (strcmp(p, "println") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (printCalcValueRAW(mainStack.top(), var_nodes)) {
+                PASS_ERROR("\aERROR: `" << p << "` has failed.\n");
+            }
+            mainStack.pop();
+
+            std::cout << std::endl;
+
+        } else if (strcmp(p, "color_print") == 0) {
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a strings for the message and the color\n\n");
+            }
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (!mainStack.top().isStr()) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a message and a string containing a valid HTML color\n\n");
+            }
+
+            setFgColor(mainStack.top().string);
+            mainStack.pop();
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            CalcValue msg = mainStack.top();
+            mainStack.pop();
+            if (printCalcValueRAW(msg, var_nodes)) {
+                setFgColor();
+                PASS_ERROR("ERROR: `" << p << "` has failed\n");
+            }
+
+            setFgColor();
+
+            // changes the terminal background color for text
+        } else if (strcmp(p, "setBgColor") == 0) {
+
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::STR) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a string containing a valid HTML color.\n\n");
+            }
+
+            setBgColor(mainStack.top().string);
+            mainStack.pop();
+
+            // changes the terminal foreground color for text
+        } else if (strcmp(p, "setFgColor") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::STR) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a string containing a valid HTML color.\n\n");
+            }
+
+            setFgColor(mainStack.top().string);
+            mainStack.pop();
+
+        } else if (strcmp(p, "reset_color") == 0)
+            resetANSI();
+        else if (strcmp(p, "resetFgColor") == 0)
+            setFgColor();
+        else if (strcmp(p, "resetBgColor") == 0)
+            setBgColor();
+
+
+
+            // user input
+        else if (strcmp(p, "input") == 0 || strcmp(p, "getline") == 0) {
+            char *input = (char *) malloc(256);
+            size_t line_len = 256;
+
+            if (getline(&input, &line_len, stdin) == -1) {
+                PASS_ERROR("\aERROR: `" << p << "` could not getline()... EOF?\n");
+            }
+
+            if (input[strlen(input) - 1] == '\n')
+                input[strlen(input) - 1] = '\0';
+
+            mainStack.push(input);
+            free(input);
+
+            // get a single character from stdin
+        } else if (strcmp(p, "getchar") == 0) {
+            char input[2] = {(char) getc(stdin), '\0'};
+            mainStack.push(input);
+            // silently get character without needing newline
+        } else if (strcmp(p, "getch") == 0) {
+            char tmp[]{
 #ifdef _WIN32
-					getch()
+                    getch()
 #else
-					terminp::getch()
+                    terminp::getch()
 #endif
-					, '\0'};
-			mainStack.push(tmp);
-			// get character without newline
-		} else if (strcmp(p, "getche") == 0) {
-			char tmp[] {
+                    , '\0'};
+            mainStack.push(tmp);
+            // get character without newline
+        } else if (strcmp(p, "getche") == 0) {
+            char tmp[]{
 #ifdef _WIN32
-					getche()
+                    getche()
 #else
-					terminp::getche()
+                    terminp::getche()
 #endif
-					, '\0'};
-			mainStack.push(tmp);
+                    , '\0'};
+            mainStack.push(tmp);
 
 
-			// load the contents of a file into a string
-		} else if (strcmp(p, "file_get_contents") == 0) {
+            // load the contents of a file into a string
+        } else if (strcmp(p, "file_get_contents") == 0) {
 
-			ASSERT_NOT_EMPTY(p);
+            ASSERT_NOT_EMPTY(p);
 
-			CONVERT_TOP(mainStack, var_nodes, freeable);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
 
-			// didn't recieve an string...
-			if (!mainStack.top().isStr()) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a string for the file name.\n\n");
-			}
+            // didn't recieve an string...
+            if (!mainStack.top().isStr()) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a string for the file name.\n\n");
+            }
 
-			char *file_contents;
-			ssize_t input_file_size;
+            char *file_contents;
+            ssize_t input_file_size;
 
-			// open the file
-			FILE *input_file = fopen(mainStack.top().string, "rb");
-			mainStack.pop();
-			if (!input_file) {
-				// if file not found pass a null calc_value object
-				//PASS_ERROR("\aERROR: file_get_contents: file `" <<mainStack.top().string <<"` not found.";
-				mainStack.push(NULL_CALCVAL_OBJECT);
-			} else {
+            // open the file
+            FILE *input_file = fopen(mainStack.top().string, "rb");
+            mainStack.pop();
+            if (!input_file) {
+                // if file not found pass a null calc_value object
+                //PASS_ERROR("\aERROR: file_get_contents: file `" <<mainStack.top().string <<"` not found.";
+                mainStack.push(NULL_CALCVAL_OBJECT);
+            } else {
 
-				// get size of file
-				fseek(input_file, 0, SEEK_END);
-				input_file_size = ftell(input_file);
-				rewind(input_file);
+                // get size of file
+                fseek(input_file, 0, SEEK_END);
+                input_file_size = ftell(input_file);
+                rewind(input_file);
 
-				// allocate memory for the string
-				file_contents = (char*) malloc(input_file_size + 1);
-				fread(file_contents, sizeof(char), input_file_size, input_file);
+                // allocate memory for the string
+                file_contents = (char *) malloc(input_file_size + 1);
+                fread(file_contents, sizeof(char), input_file_size, input_file);
 
-				// push the string to the stack
-				file_contents[input_file_size] = '\0';
-				mainStack.push(file_contents);
+                // push the string to the stack
+                file_contents[input_file_size] = '\0';
+                mainStack.push(file_contents);
 
-				// cleanup
-				fclose(input_file);
-				free(file_contents);
+                // cleanup
+                fclose(input_file);
+                free(file_contents);
 
-			}
-
-
-			// load the contents of a string into a file
-		} else if (strcmp(p, "file_put_contents") == 0) {
-			// takes a string and a filename
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected 2 strings contents and file name\n\n");
-			}
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-
-			// takes a string for the filename
-			if (!mainStack.top().isStr()) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a string for the file name.\n\n");
-			}
-
-			FILE *output_file = fopen(mainStack.top().string, "w");
-			if (!output_file) {
-				PASS_ERROR("\aERROR: couldn't create or open file (!fopen())\n");
-			}
-			mainStack.pop();
-
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-
-			// takes a string for the contents
-			if (!mainStack.top().isStr()) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a string for the contents to write.\n\n");
-			}
-
-			fwrite(mainStack.top().string, 1, strlen(mainStack.top().string) + 1, output_file);
-			mainStack.pop();
-			fclose(output_file);
-
-			// functionally equivalent to #include but without a preprocessor
-		} else if (strcmp(p, "insert") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-
-			if (mainStack.top().type != CalcValue::STR || mainStack.top().isEmpty()) {
-				PASS_ERROR("\aERROR: `" << p << "` expected a string for the file name")
-			}
-			FILE *statement = fopen(mainStack.top().string, "r");
-			if (!statement) {
-				PASS_ERROR("\aERROR: " << p << ": \"" << mainStack.top().string << "\" couldn't be found.\n");
-			}
-			mainStack.pop();
-
-			// run the file
-			macro::ret_t ret = runFile(statement, var_nodes, showErrors, mainStack, elseStatement);
-			if (ret == macro::ERROR) {
-				PASS_ERROR("\aERROR: error in file added with `" << p << "`\n");
-			}
-
-			// we're now done with the file
-			fclose(statement);
-
-		// globalize a variable
-		} else if (strcmp(p, "globalize") == 0) {
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `" <<p <<"` expected a value and a handle\n");
-			}
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type != CalcValue::STR) {
-				PASS_ERROR("\aERROR:  `" <<p <<"` expected a string for the handle, instead recieved " <<mainStack.top().typeName() <<std::endl);
-			}
-
-			// make a new global variable which can't be accesed with normal $references
-			char* v_name = mutilate::mutilateVarName(mainStack.top().string);
-			mainStack.pop();
-			vars::assignNewVar(&var_nodes[0], v_name, *conv_top_keep_refs(mainStack, var_nodes, showErrors, freeable));
-
-			// make a string stack which accesses it
-			StrStack definition;
-			char line[strlen(v_name) + 8];
-			line[0] = '"';
-			line[1] = 0;
-			strcat(line, v_name);
-			strcat(line, "\" _$ ~");
-
-			definition.push(line);
-			mainStack.push(definition);
+            }
 
 
-			/// TODO: finish implementation
+            // load the contents of a string into a file
+        } else if (strcmp(p, "file_put_contents") == 0) {
+            // takes a string and a filename
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: `" << p << "` expected 2 strings contents and file name\n\n");
+            }
 
-			// get the value at the specific index of an array
-		} else if (strcmp(p, "get") == 0) {
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a list and a numerical index\n\n");
-			}
+            CONVERT_TOP(mainStack, var_nodes, freeable);
 
-			CONVERT_TOP(mainStack, var_nodes, freeable);
+            // takes a string for the filename
+            if (!mainStack.top().isStr()) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a string for the file name.\n\n");
+            }
 
-			if (mainStack.top().type == CalcValue::NUM) {
-				size_t index = (size_t) round(abs(mainStack.top().getNum()));
-				mainStack.pop();
-				if (mainStack.top().type == CalcValue::ARR) {
-					CalcValue val = (*mainStack.top().list)[index];
-					mainStack.top() = val;
-				} else {
-					PASS_ERROR("\aERROR: `"<<p <<"` expected a list for the numerical index (recieved " <<mainStack.top().typeName() <<")\n\n");
-				}
-			} else if (mainStack.top().type == CalcValue::ARR) {
-				std::vector<CalcValue> list = *mainStack.top().list;
-				mainStack.pop();
-				if (mainStack.top().type == CalcValue::NUM) {
-					CalcValue val = list[(size_t) round(abs(mainStack.top().getNum()))];
-					mainStack.top() = val;
-				} else {
-					PASS_ERROR("\aERROR: `"<<p <<"` expected a numerical index for the list (recieved " <<mainStack.top().typeName() <<")\n\n");
-				}
-			} else if (mainStack.top().type == CalcValue::INX) {
-				CONVERT_INDEX(mainStack, var_nodes);
-			} else {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a list and a numerical index (recieved " <<mainStack.top().typeName() <<")\n\n");
+            FILE *output_file = fopen(mainStack.top().string, "w");
+            if (!output_file) {
+                PASS_ERROR("\aERROR: couldn't create or open file (!fopen())\n");
+            }
+            mainStack.pop();
 
-			}
+            CONVERT_TOP(mainStack, var_nodes, freeable);
 
-			// index of a list (bracket operator)
-		} else if (*p == ']') {
-			char* tmp = ++p;
+            // takes a string for the contents
+            if (!mainStack.top().isStr()) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a string for the contents to write.\n\n");
+            }
 
-			while (*tmp)
-				tmp++;
-			if (lineLen - (tmp - pInit) > 2)
-				*tmp = ' ';
+            fwrite(mainStack.top().string, 1, strlen(mainStack.top().string) + 1, output_file);
+            mainStack.pop();
+            fclose(output_file);
 
-			do {
-				ASSERT_NOT_EMPTY(p);
-				CONVERT_TOP(mainStack, var_nodes, freeable);
+            // functionally equivalent to #include but without a preprocessor
+        } else if (strcmp(p, "insert") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
 
-				if (mainStack.top().type != CalcValue::NUM) {
-					PASS_ERROR("\aERROR: non-numerical index. (" <<mainStack.top().typeName()<<")\n");
-				}
-				CalcValue tmp;
-				tmp.type = CalcValue::INX;
-				tmp.index = (ssize_t) mainStack.top().getNum();
-				mainStack.pop();
-				mainStack.push(tmp);
-				p++;
-			} while (*p == ']');
+            if (mainStack.top().type != CalcValue::STR || mainStack.top().isEmpty()) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a string for the file name")
+            }
+            FILE *statement = fopen(mainStack.top().string, "r");
+            if (!statement) {
+                PASS_ERROR("\aERROR: " << p << ": \"" << mainStack.top().string << "\" couldn't be found.\n");
+            }
+            mainStack.pop();
 
-			rpnln = p;
+            // run the file
+            macro::ret_t ret = runFile(statement, var_nodes, showErrors, mainStack, elseStatement);
+            if (ret == macro::ERROR) {
+                PASS_ERROR("\aERROR: error in file added with `" << p << "`\n");
+            }
 
-			// returns size of list at top of stak
-		} else if (strcmp(p, "list_size") == 0) {
-			ASSERT_NOT_EMPTY(p);
-			CONVERT_TOP(mainStack, var_nodes, freeable);
-			if (mainStack.top().type != CalcValue::ARR) {
-				PASS_ERROR("\aERROR: `"<<p <<"`expected a list.\n\n");
-			}
-			size_t tmp = mainStack.top().list->size();
-			mainStack.pop();
-			mainStack.push((double) tmp);
+            // we're now done with the file
+            fclose(statement);
 
-			// push a value onto a list
-		} else if (strcmp(p, "push_back") == 0) {
-			if (mainStack.size() < 2) {
-				PASS_ERROR("\aERROR: `"<<p <<"` expected a list and a value\n\n");
-			}
+            // globalize a variable
+        } else if (strcmp(p, "globalize") == 0) {
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a value and a handle\n");
+            }
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::STR) {
+                PASS_ERROR("\aERROR:  `" << p << "` expected a string for the handle, instead recieved "
+                                         << mainStack.top().typeName() << std::endl);
+            }
 
-			unsigned fsizeinit = freeable.size();
-			CalcValue* list = conv_top(mainStack, var_nodes, showErrors, freeable);
-			bool constarr = fsizeinit != freeable.size();
+            // make a new global variable which can't be accesed with normal $references
+            char *v_name = mutilate::mutilateVarName(mainStack.top().string);
+            mainStack.pop();
+            vars::assignNewVar(&var_nodes[0], v_name, *conv_top_keep_refs(mainStack, var_nodes, showErrors, freeable));
 
-			if (list->type == CalcValue::ARR) {
-				CalcValue* elem = conv_top(mainStack, var_nodes, showErrors, freeable);
-				list->list->push_back(*elem);
-				if (constarr)
-					mainStack.push(*list);
-			} else {
-				CalcValue* elem = list;
-				unsigned fsizeinit = freeable.size();
-				list = conv_top(mainStack, var_nodes, showErrors, freeable);
-				bool constarr = fsizeinit != freeable.size();
+            // make a string stack which accesses it
+            StrStack definition;
+            char line[strlen(v_name) + 8];
+            line[0] = '"';
+            line[1] = 0;
+            strcat(line, v_name);
+            strcat(line, "\" _$ ~");
 
-				if (list->type == CalcValue::ARR) {
-					list->list->push_back(*elem);
-					if (constarr)
-						mainStack.push(*list);
-				} else {
-					PASS_ERROR("\aERROR: `" <<p <<"` expected a list, instead recieved " <<list->typeName() <<" and " <<elem->typeName() <<std::endl);
+            definition.push(line);
+            mainStack.push(definition);
 
-				}
-			}
 
-			// random number on [0,1]
+            /// TODO: finish implementation
+
+            // get the value at the specific index of an array
+        } else if (strcmp(p, "get") == 0) {
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a list and a numerical index\n\n");
+            }
+
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+
+            if (mainStack.top().type == CalcValue::NUM) {
+                size_t index = (size_t) round(abs(mainStack.top().getNum()));
+                mainStack.pop();
+                if (mainStack.top().type == CalcValue::ARR) {
+                    CalcValue val = (*mainStack.top().list)[index];
+                    mainStack.top() = val;
+                } else {
+                    PASS_ERROR("\aERROR: `" << p << "` expected a list for the numerical index (recieved "
+                                            << mainStack.top().typeName() << ")\n\n");
+                }
+            } else if (mainStack.top().type == CalcValue::ARR) {
+                std::vector<CalcValue> list = *mainStack.top().list;
+                mainStack.pop();
+                if (mainStack.top().type == CalcValue::NUM) {
+                    CalcValue val = list[(size_t) round(abs(mainStack.top().getNum()))];
+                    mainStack.top() = val;
+                } else {
+                    PASS_ERROR("\aERROR: `" << p << "` expected a numerical index for the list (recieved "
+                                            << mainStack.top().typeName() << ")\n\n");
+                }
+            } else if (mainStack.top().type == CalcValue::INX) {
+                CONVERT_INDEX(mainStack, var_nodes);
+            } else {
+                PASS_ERROR("\aERROR: `" << p << "` expected a list and a numerical index (recieved "
+                                        << mainStack.top().typeName() << ")\n\n");
+
+            }
+
+            // index of a list (bracket operator)
+        } else if (*p == ']') {
+            char *tmp = ++p;
+
+            while (*tmp)
+                tmp++;
+            if (lineLen - (tmp - pInit) > 2)
+                *tmp = ' ';
+
+            do {
+                ASSERT_NOT_EMPTY(p);
+                CONVERT_TOP(mainStack, var_nodes, freeable);
+
+                if (mainStack.top().type != CalcValue::NUM) {
+                    PASS_ERROR("\aERROR: non-numerical index. (" << mainStack.top().typeName() << ")\n");
+                }
+                CalcValue tmp;
+                tmp.type = CalcValue::INX;
+                tmp.index = (ssize_t) mainStack.top().getNum();
+                mainStack.pop();
+                mainStack.push(tmp);
+                p++;
+            } while (*p == ']');
+
+            rpnln = p;
+
+            // returns size of list at top of stak
+        } else if (strcmp(p, "list:size") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::ARR) {
+                PASS_ERROR("\aERROR: `" << p << "`expected a list.\n\n");
+            }
+            size_t tmp = mainStack.top().list->size();
+            mainStack.pop();
+            mainStack.push((double) tmp);
+
+            // push a value onto a list
+        } else if (strcmp(p, "list:push") == 0) {
+            if (mainStack.size() < 2) {
+                PASS_ERROR("\aERROR: `" << p << "` expected a list and a value\n\n");
+            }
+
+            unsigned fsizeinit = freeable.size();
+            CalcValue *elem = conv_top(mainStack, var_nodes, showErrors, freeable);
+            bool constelem = fsizeinit != freeable.size();
+
+            fsizeinit = freeable.size();
+            CalcValue *list = conv_top(mainStack, var_nodes, showErrors, freeable);
+            bool constarr = fsizeinit != freeable.size();
+
+            // <list> <elem> push_back
+            if (list->type == CalcValue::ARR) {
+                list->list->push_back(*elem);
+                if (constarr)
+                    mainStack.push(*list);
+
+                // <elem> <list> push_back
+            } else if (elem->type == CalcValue::ARR) {
+                elem->list->push_back(*list);
+                if (constelem)
+                    mainStack.push(*elem);
+
+            } else {
+                PASS_ERROR("\aERROR: `" << p << "` expected a list, instead recieved " << list->typeName() << " and "
+                                        << elem->typeName() << std::endl);
+            }
+
+	    } else if (strcmp(p, "list:new") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::NUM) {
+                PASS_ERROR("list:new expected a number of elements to include, instead recieved " <<mainStack.top().typeName());
+            }
+            int len = (int) mainStack.top().number;
+
+            mainStack.pop();
+            mainStack.push(std::vector<CalcValue>());
+            mainStack.top().list->reserve(len);
+
+
+        } else if (strcmp(p, "list:reserve") == 0) {
+            ASSERT_NOT_EMPTY(p);
+            CONVERT_TOP(mainStack, var_nodes, freeable);
+            if (mainStack.top().type != CalcValue::NUM) {
+                PASS_ERROR("list:reserve expected a number of elements to reserve space for, instead recieved " << mainStack.top().typeName());
+            }
+            int len = (int) mainStack.top().number;
+
+            mainStack.pop();
+
+            if (mainStack.top().type != CalcValue::REF) {
+                PASS_ERROR("list:reserve expected an array to act on, instead recieved" << mainStack.top().typeName());
+            }
+            mainStack.top().valAtRef(var_nodes)->list->reserve(len);
+
+
+            // random number on [0,1]
 		} else if (strcmp(p, "random") == 0) {
+
 			mainStack.push((double) rand() / RAND_MAX);
 
 			// convert to string
