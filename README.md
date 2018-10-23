@@ -145,7 +145,7 @@ For an up to date features list click [here](https://plus.google.com/+Tatetesta/
   lists hold multiple pieces of data in one container. They contain diverse types and are handled like any other data.
   ```tcl
   >>> # use the get operator to get the value at an index of a list
-  >>> (1,"hello",{ "hi" print }) 1 get println
+  >>> (1,"hello",{ "hi" print }) 1 ] println
   hello
   ```
  - <b>Lambdas:</b>
@@ -313,10 +313,13 @@ For an up to date features list click [here](https://plus.google.com/+Tatetesta/
   - `break`: keeps the stack and exits the call
   
 * List Operators:
-  - `<list> <index number> get`: pushes the value at the given index of the given list
+  - `<list> <index number> list:get`: pushes the value at the given index of the given list
   - `<list> split`: pushes all the elements of a list onto the stack
   - `<list> <index number> ]`: index for given list, lazy evaluates to that element in the list
-  - `<list> <value> push_back`: pushes a value onto the end of a list, or creates a list containing the original and added value
+  - `<list> <value> list:push`: pushes a value onto the end of a list, or creates a list containing the original and added value
+  - `<list> list:size`: pushes the size of the given list (how many elements)
+  - `<list> <size> list:resize` : grows list to fit given number of elements
+  - `<size> list:new` : makes a new list of given size
   
 * OOP:
   - `<object> :member`, `<object> <member string> :`: member accessors
