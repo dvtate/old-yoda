@@ -1,3 +1,8 @@
+# Hi there, this is awkward
+This repo contains poorly written code (lots of it). Because this project spanned multiple years of me learning C/C++, there are poor design choices made early on that have forced me into doing a (complete rewrite of the interpreter)[https://github.com/dvtate/ys-alpha]. Once I'm finished implementing all the features (including the ones that only worked sometimes) of this interpreter, I'll probably rename this repo to indicate it's defunct.
+
+Also will update readme on new repo with syntax changes and such.
+
 # YodaScript / RPN Shell
 A YodaScript (.ys) interpreter which is now turing complete! The language is dynamically typed, and although it has a rather unique syntax, those familiar to RPN may prefer it to other languages. This is just a side project of mine suggestions and help are welcome. Using the shell, it can be used as a calculator by those familiar with RPN.
 
