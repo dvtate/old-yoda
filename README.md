@@ -1,5 +1,5 @@
 # Hi there, this is awkward
-This repo contains poorly written code (lots of it). Because this project spanned multiple years of me learning C/C++, there are poor design choices made early on that have forced me into doing a (complete rewrite of the interpreter)[https://github.com/dvtate/ys-alpha]. Once I'm finished implementing all the features (including the ones that only worked sometimes) of this interpreter, I'll probably rename this repo to indicate it's defunct.
+This repo contains poorly written code (lots of it). Because this project spanned multiple years of me learning C/C++, there are poor design choices made early on that have forced me into doing a [complete rewrite of the interpreter](https://github.com/dvtate/ys-alpha). Once I'm finished implementing all the features (including the ones that only worked sometimes) of this interpreter, I'll probably rename this repo to indicate it's defunct.
 
 Also will update readme on new repo with syntax changes and such.
 
