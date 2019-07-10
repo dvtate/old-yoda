@@ -1,8 +1,8 @@
 # This Repo is now Defunct
 Because this project spanned multiple years of teaching myself C/C++ and a variety of CS concepts, there were many decisions made early on that eventually snowballed into major problems. With these in mind I decided to do a [complete rewrite of the interpreter](https://github.com/dvtate/ys-alpha).
-- [problems with the code in this repo](https://github.com/dvtate/yoda/)
-- [new features](https://github.com/dvtate/yoda/)
-- [interpreter changes](https://github.com/dvtate/yoda/)
+- [problems with the code in this repo](https://github.com/dvtate/yoda/blob/master/whats_wrong.md#whats-wrong-with-the-old-interpreter)
+- [new features](https://github.com/dvtate/yoda/blob/master/whats_wrong.md#whats-new-for-yodascript)
+- [interpreter changes](https://github.com/dvtate/yoda/blob/master/whats_wrong.md#whats-new-for-the-interpreter)
 
 The rest of the original readme is left intact:
 
